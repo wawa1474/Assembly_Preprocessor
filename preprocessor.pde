@@ -7,10 +7,6 @@ PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
 ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
 IntList _repeat_Args = new IntList(); // stack for repeat arguments
-// TODO: recursive macros would require;
-//           getVariable(String, boolean) and parseVariables(String)
-//           as well as peekMacroArgs() and getFile()
-//         to be able to reverse traverse the stack to grab args from previous bits
 
 //processing-java's directory must be added to PATH
 //--sketch refers to the directory, not the file
@@ -72,12 +68,6 @@ void setup(){
     
     println("Total Macros: " + Macros.size());
     println("Total Macro Args Pushed: " + MacroArgsStack.size()); // should be 0 when done
-    //for(int i = 0; i < _Files[_Files_Macros].size(); i++){
-    //  FileHolder tmp = _Files[_Files_Macros].get(i);
-    //  println("Macro Name: " + tmp.file.Name);
-    //  print("Macro Args: ");printArray(tmp.file.PathArray);
-    //  print("Macro Contents: ");printArray(tmp.contents);
-    //}
   }
   
   testRPN();

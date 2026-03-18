@@ -94,8 +94,8 @@ void parseLet(String line, int index){
 }
 
 void parseLet(String variable, String action, TokenReturn secondToken){
-  VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0", 0);
-  VariableReturn secondVar = parseVariables(secondToken.string, 0);
+  VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0");
+  VariableReturn secondVar = parseVariables(secondToken.string);
   //println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   
   if(firstVar.Number && secondVar.Number){
@@ -187,17 +187,16 @@ float parseLet(float firstVar, String action, float secondVar){
   }
 }
 
-// TODO: add a depth input + make peekMacroArgs honor that to make macro args resursive...
-String getVariable(String name, boolean global, int depth){
+String getVariable(String name, boolean global){
   //println("getVariable: " + name + ", " + global);
   //println(getIndex());
   if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
   }else if(!global){
-    MacroArg[] lineMacroArgs = CurrentMacroArgs;//depth == 0 ? CurrentMacroArgs : peekMacroArgs(depth - 1);
+    MacroArg[] lineMacroArgs = CurrentMacroArgs;
     //print("lineMacroArgs: ");printArray(lineMacroArgs);
     if(lineMacroArgs != null && CurrentWorker.Macro != null){
-      MacroArg[] curMacro = CurrentWorker.Macro.Args;//depth == 0 ? CurrentWorker.getArgs() : peekWorkerMacroArgs(depth);
+      MacroArg[] curMacro = CurrentWorker.Macro.Args;
       //print("curMacro: ");print("<" + curMacro.length + ">");printArray(curMacro);
       for(int a = 0; a < curMacro.length; a++){
         if(curMacro[a].Name.equals(name)){
@@ -205,11 +204,7 @@ String getVariable(String name, boolean global, int depth){
             if(curMacro[a].Value != null){ return curMacro[a].Value; }
             else{ return "\\!{macro arg '" + name + "' does not have a default value!}"; }
           }else{
-            // I think I broke the 'if' at some point by changing how variables are handled...
-            // or maybe it never worked?
-            //if(lineMacroArgs[a].Name.contains("%")){ return parseVariables(lineMacroArgs[a].Name, depth+1).toString(); }
-            //else{ return parseVariables(lineMacroArgs[a].Name, depth).toString(); }
-            return parseVariables(lineMacroArgs[a].Name, depth).toString();
+            return parseVariables(lineMacroArgs[a].Name).toString();
           }
         }
       }
@@ -246,17 +241,7 @@ String getBuiltin(String name){
       using {} grabs attention better...
 */
 
-//VariableReturn parseVariables(String line, int depth){ // just checking if input is int
-//  if(line.length() > 0){
-//    VariableReturn tmp = tryInt(line);
-//    if(tmp.Number){ return tmp; }
-//  }
-  
-//  return new VariableReturn(line);
-//}
-
-// only? needed by outputLine(String line, boolean skip)
-VariableReturn parseVariables(String line, int depth){ // going through entire line to convert remaining bits into final output
+VariableReturn parseVariables(String line){ // going through entire line to convert remaining bits into final output
   //println("parseVariables: " + line);
   String value = "";
   
@@ -265,7 +250,7 @@ VariableReturn parseVariables(String line, int depth){ // going through entire l
     
     switch(c){
       case '\\':
-        TokenReturn output = cleanEscape(line, i, depth);
+        TokenReturn output = cleanEscape(line, i);
         i = output.nextIndex;
         value += output.string;
         break;

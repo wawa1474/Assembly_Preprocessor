@@ -229,14 +229,8 @@ PathReturn splitFilepath(String file){
 }
 
 void getNewFile(PathReturn base, PathReturn file){
-  //if(_tmpFileHolder.contents != null && checkFileName()){ // I think we need to ALWAYS push 'old' file to stack...
-  if(CurrentWorker != null){
-    //println("push file");
-    Workers.add(new Worker(CurrentWorker));
-  }else{
-    CurrentWorker = new Worker();
-  }
-  //}
+  if(CurrentWorker != null){ Workers.add(new Worker(CurrentWorker)); }
+  else{ CurrentWorker = new Worker(); }
   CurrentWorker.loadFile(base, file);
 }
 
@@ -245,19 +239,11 @@ void getNewFile(PathReturn base, String line){
   setIndex(-1); // needs to be -1 due to a ++ at end of main loop
 }
 
-//void popFileIfLastLine(){
-//  while(getIndex() >= getFileLength() - 1 && _Files.size() > 0){
-//    if(CurrentWorker.File.file.Reverse == _PathReturn_Reverse_Macro){ popMacroArgs(); } // also pop macro's args from arg stack
-//    _Files_Type = _Files_Inputs;
-//    CurrentWorker.File = new FileHolder(_Files.remove(_Files.size() - 1));
-//  }
-//}
-
 void popFileIfLastLine(){
   //print("<" + Workers.size() + ">");printArray(Workers);
   while(getIndex() >= getFileLength() - 1 && Workers.size() > 0){
     //println("pop file");
     if(CurrentWorker.Type == WorkerType.Macro && MacroArgsStack.size() > 0){ popMacroArgs(); } // also pop macro's args from arg stack
-    CurrentWorker = new Worker(Workers.remove(Workers.size() - 1));
+    CurrentWorker = new Worker(popWorker());
   }
 }

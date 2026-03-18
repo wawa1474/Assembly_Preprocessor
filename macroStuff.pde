@@ -146,7 +146,7 @@ void buildMacro(String line_, int index_){
   TokenReturn token = getNextToken(line_, index_);
   int originLine = getIndex();
   String name = token.string;
-  MacroArg[] args = getMacroArgs(line_, token.nextIndex, 0);
+  MacroArg[] args = getMacroArgs(line_, token.nextIndex);
   StringList content = new StringList();
   IntList lineNum = new IntList();
   int state = 0;
@@ -171,7 +171,7 @@ void buildMacro(String line_, int index_){
   decIndex(); // main loops ++ at end, so we have to -- to be on correct line for next main loop
 }
 
-MacroArg[] getMacroArgs(String line, int index, int depth){
+MacroArg[] getMacroArgs(String line, int index){
   //println("getMacroArgs: " + line);
   ArrayList<MacroArg> args = new ArrayList<MacroArg>();
   MacroArg tmp = new MacroArg();
@@ -255,7 +255,7 @@ MacroArg[] getMacroArgs(String line, int index, int depth){
           //  break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index, depth);
+            TokenReturn output = cleanEscape(line, index);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -314,13 +314,12 @@ boolean checkMacros(String macro, String line, int index){
   Macro tmp = Macros.get(macro);
   if(tmp != null){
     //println("checkMacro: " + macro);
-    //_Files_Type = _Files_Macros; // now handled by worker.type
     MacroArgsStack.add(CurrentMacroArgs);
-    CurrentMacroArgs = getMacroArgs(line, index, 0); // MacroArgsStack.add(getMacroArgsHash(line, index, 0)); // pushMacroArgs(getMacroArgs(line, index, 0));
-    Workers.add(new Worker(CurrentWorker)); // _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
-    CurrentWorker = new Worker(tmp); // _tmpFileHolder = new FileHolder(tmp);
-    setIndex(-1); // needs to be -1 due to a ++ at end of main loop
+    CurrentMacroArgs = getMacroArgs(line, index);
     //printArray(CurrentMacroArgs);
+    Workers.add(new Worker(CurrentWorker));
+    CurrentWorker = new Worker(tmp);
+    setIndex(-1); // needs to be -1 due to a ++ at end of main loop
     return true;
   }
   return false;

@@ -23,21 +23,8 @@ MacroArg[] popMacroArgs(){
   return MacroArgsStack.remove(MacroArgsStack.size() - 1);
 }
 
-MacroArg[] peekMacroArgs(int depth){
-  int size = MacroArgsStack.size() - 1;
-  if(size >= 0 && depth >= 0 && depth <= size){
-    return MacroArgsStack.get(size - depth);
-  }
-  return null;
-}
-
-MacroArg[] peekWorkerMacroArgs(int depth){
-  int size = Workers.size() - 1;
-  if(size >= 0 && depth >= 0 && depth <= size){
-    Macro tmp = Workers.get(size - depth).Macro;
-    if(tmp != null){ return tmp.Args; }
-  }
-  return null;
+Worker popWorker(){
+  return Workers.remove(Workers.size() - 1);
 }
 
 void doSwitch(String line, TokenReturn token, int depth_){

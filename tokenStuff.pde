@@ -36,7 +36,7 @@ TokenReturn getNextToken(String line, int index){
           
           case '\\':
             gotString = true;
-            TokenReturn output = cleanEscape(line, index, 0);
+            TokenReturn output = cleanEscape(line, index);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -82,7 +82,7 @@ TokenReturn getNextToken(String line, int index){
           
           case '\\': // escaped open-paren are still handled by cleanEscape() obviously...
             gotString = true;
-            TokenReturn output = cleanEscape(line, index, 0);
+            TokenReturn output = cleanEscape(line, index);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -106,7 +106,7 @@ TokenReturn getNextToken(String line, int index){
   return new TokenReturn(token, index);
 }
 
-TokenReturn cleanEscape(String line, int index, int depth){
+TokenReturn cleanEscape(String line, int index){
   //println("[" + line + "]{" + index + "}");
   if(line.length() > 0 && index < line.length() && line.charAt(index) == '\\'){ index++; } // eat the incoming '\\'
   
@@ -202,7 +202,7 @@ TokenReturn cleanEscape(String line, int index, int depth){
             break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index, depth);
+            TokenReturn output = cleanEscape(line, index);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -218,10 +218,10 @@ TokenReturn cleanEscape(String line, int index, int depth){
   switch(type){
     case Argument: // macro argument
       //println("cleanEscape:Argument " + token);
-      token = getVariable(token, false, depth);
+      token = getVariable(token, false);
       break;
     case Variable: // global variable
-      token = getVariable(token, true, depth);
+      token = getVariable(token, true);
       break;
     case Function: // built-in function
       token = parseFunction(token);

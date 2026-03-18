@@ -6,8 +6,8 @@ boolean checkIf(String line, int index, boolean default_){
 }
 
 boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, boolean default_){
-  VariableReturn firstVar = parseVariables(firstToken.string, 0);
-  VariableReturn secondVar = parseVariables(secondToken.string, 0);
+  VariableReturn firstVar = parseVariables(firstToken.string);
+  VariableReturn secondVar = parseVariables(secondToken.string);
   //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
   
