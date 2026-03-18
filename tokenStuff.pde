@@ -52,6 +52,13 @@ class Token2{
   Variable[] Variables;
   int nextIndex;
   
+  Token2(){}
+  
+  Token2(TokenType t, String n){
+    Type = t;
+    Value = n;
+  }
+  
   Token2(TokenType t, String n, Variable[] v, int r){
     Type = t;
     Value = n;
@@ -128,6 +135,16 @@ class Token{
 
 Token[] tokenListToArray(ArrayList<Token> list){
   Token[] out = new Token[list.size()];
+  
+  for(int i = 0; i < out.length; i++){ // Token t : list
+    out[i] = list.get(i);
+  }
+  
+  return out;
+}
+
+Token2[] token2ListToArray(ArrayList<Token2> list){
+  Token2[] out = new Token2[list.size()];
   
   for(int i = 0; i < out.length; i++){ // Token t : list
     out[i] = list.get(i);

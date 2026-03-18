@@ -1,62 +1,10 @@
-//boolean checkIf(String line, int index){
-//  TokenReturn firstVar = getNextToken(line, index);
-//  TokenReturn action = getNextToken(line, firstVar.nextIndex);
-//  TokenReturn secondVar = getNextToken(line, action.nextIndex);
-  
-//  VariableReturn var1 = parseVariable(firstVar.string);
-//  VariableReturn var2 = parseVariable(secondVar.string);
-  
-//  String v1 = getVariable(var1, null, null);
-//  String v2 = getVariable(var2, null, null);
-  
-//  IntReturn i1 = tryInt(v1);
-//  IntReturn i2 = tryInt(v2);
-  
-//  switch(action.string){
-//    case "==":
-//      if(i1.valid && i2.valid){ return i1.value == i2.value; } // check if integers are equal
-//      else{ return v1.equals(v2); } // check if strings are equal
-    
-//    case "!=":
-//      if(i1.valid && i2.valid){ return i1.value != i2.value; }
-//      else{ return !v1.equals(v2); }
-    
-//    case ">":
-//      if(i1.valid && i2.valid){ return i1.value > i2.value; }
-//      break;
-    
-//    case "<":
-//      if(i1.valid && i2.valid){ return i1.value < i2.value; }
-//      break;
-    
-//    case ">=":
-//      if(i1.valid && i2.valid){ return i1.value >= i2.value; }
-//      break;
-    
-//    case "<=":
-//      if(i1.valid && i2.valid){ return i1.value <= i2.value; }
-//      break;
-    
-//    default:
-//      return false;
-//  }
-  
-//  return false;
-//}
-
 boolean checkIf(String line, int index){
   Token2 firstVar = getNextVariable(line, index);
-  Token2 action2 = getNextVariable(line, firstVar.nextIndex);
-  //TokenReturn action = getNextToken(line, firstVar.nextIndex);
-  Token2 secondVar = getNextVariable(line, action2.nextIndex);
-  TokenReturn action = new TokenReturn(action2.Value, 0);
-  
-  //println(line);
-  //println("{" + firstVar.Value + "@" + firstVar.nextIndex + " [" + action.string + "@" + action2.nextIndex + "] " + secondVar.Value + "@" + secondVar.nextIndex + "}");
+  Token2 action = getNextVariable(line, firstVar.nextIndex);
+  Token2 secondVar = getNextVariable(line, action.nextIndex);
   
   if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-    //println("number");
-    switch(action.string){
+    switch(action.Value){
       case "==":
         return firstVar.Integer == secondVar.Integer; // check if integers are equal
       
@@ -79,17 +27,14 @@ boolean checkIf(String line, int index){
         return false;
     }
   }else{
-    //println("string");
-    switch(action.string){
+    switch(action.Value){
       case "==":
-        //println(getVariable(firstVar, null, null) + action.string + getVariable(secondVar, null, null));
         return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
       
       case "!=":
         return !getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null));
       
       default:
-        //println("bad string comparison action! [" + action.string + "]");
         return false;
     }
   }

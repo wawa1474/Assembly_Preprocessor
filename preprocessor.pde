@@ -100,7 +100,6 @@ void processInput(){
             break;
           case ".if":
             boolean ifTrue = checkIf(line, token.nextIndex);
-            //println(ifTrue);
             if(ifTrue){ curDepth++; }
             skip = true;
             state = ifTrue ? 1 : 2;
@@ -147,7 +146,6 @@ void processInput(){
             break;
           case ".elseif":
             boolean ifTrue = checkIf(line, token.nextIndex);
-            //println(ifTrue);
             skip = true;
             state = ifTrue ? 1 : 2;
             break;

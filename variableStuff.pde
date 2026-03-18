@@ -132,7 +132,7 @@ Token2 getNextVariable(String line, int index){
         }else{
           vars.add(new Variable(vType, token));
           value += "\\%{" + (vars.size()-1) + "}";
-          index--;//token = "" + c;
+          index--;
           token = "";
           state = 0;
         }
@@ -247,56 +247,14 @@ Token2 getNextVariable(String line, int index){
   return new Token2(type, value, integer, varListToArray(vars), index);
 }
 
-//VariableReturn parseVariable(String line){
-//  String value = "";
-//  boolean global = false;
-//  int state = 0;
-  
-//  for(int i = 0; i < line.length(); i++){
-//    char c = line.charAt(i);
-    
-//    switch(state){
-//      case 0: // build prefix
-//        if(c == '%'){
-//          state = 1;
-//        }
-//        break;
-      
-//      case 1: // eat extra '%'
-//        if(c == '%'){
-//          global = true;
-//        }else{
-//          i--;
-//        }
-//        state = 2;
-//        break;
-      
-//      case 2: // build value
-//        if(isAlpha(c) || isNumber(c) || c == '_'){
-//          value += c;
-//        }else{
-//          state = -1;
-//        }
-//        break;
-//    }
-//  }
-  
-//  if(value.equals("")){
-//    return new VariableReturn(TokenType.External, line);
-//  }else{
-//    return new VariableReturn(global ? TokenType.Variable : TokenType.Argument, value);
-//  }
-//}
-
 String getVariable(Token2 variable_, Macro macro_, String[] macroArgs_){
   String output = variable_.Value;
-  if(variable_.Variables.length == 0){ return output; }
+  if(variable_.Variables == null || variable_.Variables.length == 0){ return output; }
   
   for(int i = 0; i < variable_.Variables.length; i++){
     Variable v = variable_.Variables[i];
     switch(v.type){
       case Macro_Arg:
-        //println("Macro_Arg");
         if(macro_ != null){
           for(int a = 0; a < macro_.Arguments.length; a++){
             if(macro_.Arguments[a].name.equals(v.value)){
@@ -310,8 +268,6 @@ String getVariable(Token2 variable_, Macro macro_, String[] macroArgs_){
         }
       
       case Global_Var:
-        //println("Global_Var: " + i + ", " + v.value + " = " + _Vars.get(v.value));
-        //println("\\%{" + i + "} '==' " + output.replace("\\%{" + i + "}", _Vars.get(v.value)));
         output = output.replace("\\%{" + i + "}", _Vars.get(v.value));
         break;
       
@@ -320,30 +276,5 @@ String getVariable(Token2 variable_, Macro macro_, String[] macroArgs_){
     }
   }
   
-  //println("output = " + output);
   return output;
-}
-
-String getVariable(VariableReturn variable_, Macro macro_, String[] macroArgs_){
-  switch(variable_.type){
-    case External:
-      return variable_.variable;
-    case Variable:
-      return _Vars.get(variable_.variable);
-    case Argument:
-      if(macro_ != null){
-        for(int a = 0; a < macro_.Arguments.length; a++){
-          if(macro_.Arguments[a].name.equals(variable_.variable)){
-            if(a >= macroArgs_.length){
-              return macro_.Arguments[a].defualt;
-            }else{
-              return variable_.variable.replace("%", macroArgs_[a]);
-            }
-          }
-        }
-      }
-      return "";
-    default:
-      return "";
-  }
 }
