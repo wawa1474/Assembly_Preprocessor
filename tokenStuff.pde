@@ -195,6 +195,13 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             type = VariableType.Builtin;
             state = 1;
             break;
+          case '~': // transitory macro variable
+            //ArrayList<StringDict> _TmpMacroVars;
+            //when a macro is encountered, a new StringDict is pushed to _TmpMacroVars
+            //from there, any number of TMVs can be made and used
+            //when the macro ends, popFileIfLastLine()? or popMacroArgs()? removes the last StringDict from _TmpMacroVars
+            //this allows and endless number of temporary variables that are contained within their own macro instance
+            break;
           case '(': // escaped open-paren means we need to do infixToRPN stuff
             // doing infix to RPN conversion and then emitting the result is useful for asm-time forth stuff
             //token += lineToRPN(line, index);

@@ -3,6 +3,7 @@ String _outputFile;
 boolean _exit = true;
 StringDict _Vars; // variables that can be changed
 StringDict _Equates; // variables that are set once and can't be changed
+ArrayList<StringDict> _TmpMacroVars; // transitory variables that are deleted at the end of a macro
 HashMap<String, StringList> Stacks = new HashMap<String, StringList>(); // hashmap of data stacks for use in complex preprocessing
 
 boolean maintainComments = false; // should comments be passed on, or cleaned up
