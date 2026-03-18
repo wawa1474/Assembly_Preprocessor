@@ -83,6 +83,7 @@ void setup(){
   }
   
   println(parseVariable("le(%%lastWord`16)", true));
+  println(getMacroArgs("dfw \"DOCON\", DOCON, 0x00"));
   
   exit();
 }
@@ -100,7 +101,7 @@ void processInput(){
   defines = new IntDict();
   
   boolean skip = false;
-  while(tmpFileHolder.indexArray < 140){//tmpFileHolder.contents.length){
+  while(tmpFileHolder.indexArray < 150){//tmpFileHolder.contents.length){
     skip = false;
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
@@ -114,6 +115,7 @@ void processInput(){
     if(firstToken.equals(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
       println((tmpFileHolder.indexArray-1) + " : " + line);
       buildMacro(loadStrings(baseDirectory + split(line, " ")[1]));
+      skip = true;
     }else if(firstToken.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
       println((tmpFileHolder.indexArray-1) + " : " + line);
     }
@@ -216,6 +218,10 @@ class Argument{
   Argument(String n, String d){
     name = n;
     defualt = d;
+  }
+  
+  String toString(){
+    return "{" + name + "} = {" + defualt + "}";
   }
 }
 

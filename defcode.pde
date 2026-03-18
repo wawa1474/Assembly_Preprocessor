@@ -56,6 +56,7 @@ void buildMacro(String[] file){
               stop = true;
             }else{
               tokRet.string = tokRet.string.replace(",","");
+              println("{[{[" + tokRet.string + "}]}]");
               tmpSL.append(tokRet.string);
             }
             break;
@@ -110,16 +111,66 @@ String[] parseMacro(Macro macro, String line){
   StringList output = new StringList();
   String cur = "";
   
+  output.append(";" + line);
+  
+  String[] args = getMacroArgs(line);
+  
   for(int i = 0; i < macro.Tokens.length; i++){
     println(macro.Tokens[i]);
-    
-    if(macro.Tokens[i].Str.equals("\\n")){
-      output.append(cur);
-      cur = "";
-    }else if(macro.Tokens[i].Str.equals("\\t")){
-      cur += "\t";
-    }else{
-      cur += macro.Tokens[i].Str + " ";
+    Token t = macro.Tokens[i];
+    switch(t.Type){
+      case External:
+        switch(t.Str){
+          case "\\n":
+            output.append(cur);
+            cur = "";
+            break;
+          case "\\t":
+            cur += "\t";
+            break;
+          default:
+            cur += macro.Tokens[i].Str + " ";
+            break;
+        }
+        break;
+      case Argument:
+        printArray(macro.Arguments);
+        printArray(args);
+        for(int a = 0; a < macro.Arguments.length; a++){
+          if(macro.Arguments[a].name.equals(t.Value)){
+            println("{[{[" + t.Str + "}]}]");
+            cur += t.Str.replace("%", args[a]);
+            break;
+          }
+        }
+        //println("failed to find arg: " + t.Value);
+        break;
+      case Label:
+        break;
+      case Variable:
+        cur += t.Str.replace("%", _Vars.get(t.Value));
+        break;
+      case Include:
+        break;
+      case Let: // TODO: .let needs to handle variables and arguments!
+        println("var {" + t.Str + "} and {" + t.Value + "}");
+        cur += ";.let " + t.Str + " " + t.Value;
+        String v = _Vars.get(t.Value);
+        if(v != null){
+          println("set var {" + t.Str + "} to {" + v + "}");
+          _Vars.set(t.Str, v);
+        }else{
+          for(int a = 0; a < macro.Arguments.length; a++){
+            if(macro.Arguments[a].name.equals(t.Value)){
+              println("set var {" + t.Str + "} to {" + args[a] + "}");
+              _Vars.set(t.Str, args[a]);
+              break;
+            }
+          }
+        }
+        break;
+      default:
+        break;
     }
   }
   output.append(cur);
@@ -159,10 +210,12 @@ Macro cleanMacro(Macro macro){
           state = 0;
         }else if(s.contains("%%")){
           tmpT = parseVariable(s, true);
+          println("{[{[" + tmpT.Value + "}]}]");
           newline = false;
           push = true;
         }else if(s.contains("%")){
           tmpT = parseVariable(s, false);
+          println("{[{[" + tmpT.Value + "}]}]");
           newline = false;
           push = true;
         }else{
@@ -239,6 +292,7 @@ Token parseVariable(String line, boolean variable){
     value += c;
     c = line.charAt(++index);
   }
+  if((isAlpha(c) || isNumber(c) || c == '_')){ value += c; }
   
   while(index < line.length() - 1){ // get all characters after the value
     suffix += c;
@@ -246,6 +300,7 @@ Token parseVariable(String line, boolean variable){
   }
   suffix += c;
   
+  println(line + " =>= " + value);
   return new Token(variable ? TokenType.Variable : TokenType.Argument, prefix + "%" + suffix, value);
 }
 
@@ -285,6 +340,29 @@ TokenReturn getNextToken(String line, int index){
   }
   //print("[" + firstToken + "]");
   return new TokenReturn(firstToken, index);
+}
+
+String[] getMacroArgs(String line){
+  StringList args = new StringList();
+  
+  TokenReturn tokRet = getNextToken(line, 0); // eat macro name
+  
+  boolean stop = false;
+  while(!stop){
+    tokRet = getNextToken(line,tokRet.nextIndex);
+    String tok = tokRet.string;
+    if((tokRet.nextIndex >= line.length() && tok.equals("")) || tok.charAt(0) == ';'){
+      stop = true;
+    }else{
+      int lastComma = tok.lastIndexOf(',');
+      if(lastComma == tok.length() - 1){
+        tok = tok.substring(0,lastComma);
+      }
+      args.append(tok);
+    }
+  }
+  
+  return args.toArray();
 }
 
 class TokenReturn{
