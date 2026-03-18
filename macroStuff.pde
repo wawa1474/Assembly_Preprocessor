@@ -77,7 +77,9 @@ String[] getMacroArgs(String line, int index){
             
           
           case '\\':
-            state = 2;
+            TokenReturn output = cleanEscape(line, index);
+            index = output.nextIndex;
+            token += output.string;
             break;
           
           case '(':
@@ -97,60 +99,6 @@ String[] getMacroArgs(String line, int index){
             if(isNumber(c) || isAlpha(c)){ prevNeedSpace = true; }
             else{ prevNeedSpace = false; }
             break;
-        }
-        break;
-      
-      case 2: // build value
-        if(c == 'u'){
-          state = 3;
-        }else{
-          switch(c){
-            case '0': // NULL
-              token += "\\u{00}";
-              break;
-            case 'a': // BELL
-              token += "\\u{07}";
-              break;
-            case 'b': // BACKSPACE
-              token += "\\u{08}";
-              break;
-            case 'e': // ESCAPE SEQUENCE
-              token += "\\u{1B}";
-              break;
-            case 'f': // FORM FEED
-              token += "\\u{0C}";
-              break;
-            case 'n': // NEWLINE
-              token += "\\u{0A}";
-              break;
-            case 'r': // CARRIAGE RETURN
-              token += "\\u{0D}";
-              break;
-            case 't': // TAB
-              token += "\\u{09}";
-              break;
-            case 'v': // VERTICAL TAB
-              token += "\\u{0B}";
-              break;
-            default:
-              token += "\\u{" + hex(c) + "}";
-              break;
-          }
-          state = 0;
-        }
-        break;
-      
-      case 3: // start unicode
-        if(c == '{'){
-          token += "\\u{";
-          state = 4;
-        }
-        break;
-      
-      case 4: // build unicode
-        token += c;
-        if(c == '}'){
-          state = 0;
         }
         break;
     }

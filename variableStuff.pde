@@ -159,7 +159,8 @@ String getVariable(String name, boolean global, int depth){
         String[] def = curMacro.file.PathArray[a].split("=");
         if(def[0].equals(name)){
           if(a >= lineMacroArgs.length || lineMacroArgs[a].length() == 0){ // ["this","is","a"], ["this","","","token"]
-            return def[1];
+            if(def.length > 1){ return def[1]; }
+            else{ return "\\!{macro arg '" + name + "' does not have a default value!}"; }
           }else{
             if(lineMacroArgs[a].contains("%")){ return parseVariables(lineMacroArgs[a], depth+1).toString(); }
             else{ return parseVariables(lineMacroArgs[a], depth).toString(); }
@@ -169,7 +170,7 @@ String getVariable(String name, boolean global, int depth){
     }
   }
   
-  return "%{" + name + "}?";
+  return "\\!{unknown arg/var '" + name + "'}";
 }
 
 /*
@@ -214,7 +215,9 @@ VariableReturn parseVariables(String line, int depth){
             break;
           
           case '\\':
-            state = 20;
+            TokenReturn output = cleanEscape(line, i);
+            i = output.nextIndex;
+            token += output.string;
             break;
           
           default:
@@ -244,61 +247,6 @@ VariableReturn parseVariables(String line, int depth){
           value += getVariable(token, isGlobalVar, depth);
           i--;
           token = "";
-          state = 0;
-        }
-        break;
-      
-      case 20: // build value
-        if(c == 'u'){
-          token += "\\" + c;
-          state = 30;
-        }else{
-          switch(c){
-            case '0': // NULL
-              token += "\\u{00}";
-              break;
-            case 'a': // BELL
-              token += "\\u{07}";
-              break;
-            case 'b': // BACKSPACE
-              token += "\\u{08}";
-              break;
-            case 'e': // ESCAPE SEQUENCE
-              token += "\\u{1B}";
-              break;
-            case 'f': // FORM FEED
-              token += "\\u{0C}";
-              break;
-            case 'n': // NEWLINE
-              token += "\\u{0A}";
-              break;
-            case 'r': // CARRIAGE RETURN
-              token += "\\u{0D}";
-              break;
-            case 't': // TAB
-              token += "\\u{09}";
-              break;
-            case 'v': // VERTICAL TAB
-              token += "\\u{0B}";
-              break;
-            default:
-              token += "\\u{" + hex(c) + "}";
-              break;
-          }
-          state = 0;
-        }
-        break;
-      
-      case 30: // start unicode
-        if(c == '{'){
-          token += c;
-          state = 40;
-        }
-        break;
-      
-      case 40: // build unicode
-        token += c;
-        if(c == '}'){
           state = 0;
         }
         break;
