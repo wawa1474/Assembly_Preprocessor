@@ -1,15 +1,15 @@
 import java.util.UUID; // used for generation of unique local labels
 import java.util.Map; // used for handling of _TmpGlobalVars
 
-StringList _output;
+StringList _output = new StringList();
 String _outputFile;
 boolean _exit = true;
-StringDict _Vars; // variables that can be changed
+StringDict _Vars = new StringDict(); // variables that can be changed
 StringDict _Equates; // variables that are set once and can't be changed
-StringDict _TmpMacroVars; // transitory variables that are deleted at the end of a macro
-ArrayList<StringDict> _TmpMacroVarsArr; // transitory variables that are deleted at the end of a macro
+StringDict _TmpMacroVars = new StringDict(); // transitory variables that are deleted at the end of a macro
+ArrayList<StringDict> _TmpMacroVarsArr = new ArrayList<StringDict>(); // transitory variables that are deleted at the end of a macro
 HashMap<String, String> _TmpGlobalVars = new HashMap<String, String>(); // ditto, but a way to easily save and restore global variables
-ArrayList<HashMap<String, String>> _TmpGlobalVarsArr; // ditto, but a way to easily save and restore global variables
+ArrayList<HashMap<String, String>> _TmpGlobalVarsArr = new ArrayList<HashMap<String, String>>(); // ditto, but a way to easily save and restore global variables
 HashMap<String, StringList> Stacks = new HashMap<String, StringList>(); // hashmap of data stacks for use in complex preprocessing
 String storageOrigin = ""; // for use with .org and .dfs, allowing automatic address assignment for assembly variables
 int storageOffset = 0;      // ditto
@@ -57,7 +57,7 @@ IntList _repeat_Args = new IntList(); // stack for repeat arguments
 String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
 String _version_minor = "1";
-String _version_patch = "0";
+String _version_patch = "1";
 String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 void setup(){
@@ -89,9 +89,6 @@ void setup(){
     println("\tOutput filename will be <input-filename>.obj");
     println("\t#include's will be opened and concatenated into a single output file.");
   }else{
-    _Vars = new StringDict();
-    _output = new StringList();
-    
     _output.append("; This .obj file was produced by: " + _program_name + " " + _VERSION); // append some data to the start of the output file
     _output.append("; " + getLabelUUID());
     _output.append(""); _output.append("");

@@ -323,6 +323,7 @@ boolean checkMacros(String macro, String line, int index){
   if(tmp != null){
     //println("checkMacro: " + macro);
     MacroArgsStack.add(CurrentMacroArgs);
+    pushTmpVars();
     CurrentMacroArgs = getMacroArgs(line, index);
     //printArray(CurrentMacroArgs);
     Workers.add(new Worker(CurrentWorker));

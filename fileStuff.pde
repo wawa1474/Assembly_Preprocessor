@@ -232,6 +232,7 @@ void getNewFile(PathReturn base, PathReturn file){
   if(CurrentWorker != null){ Workers.add(new Worker(CurrentWorker)); }
   else{ CurrentWorker = new Worker(); }
   CurrentWorker.loadFile(base, file);
+  pushTmpVars();
 }
 
 void getNewFile(PathReturn base, String line){
@@ -250,5 +251,6 @@ void popFileIfLastLine(){
       _output.clear(); // clear output for next file
     }
     CurrentWorker = new Worker(popWorker());
+    popTmpVars();
   }
 }

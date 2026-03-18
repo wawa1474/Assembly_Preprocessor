@@ -96,6 +96,11 @@ String parseFunction(String input){
       updateVariable(args[1].Name, args[2].Name);
       break;
     
+    case "popTmp": // pop a tmp var from the stack early
+      updateVariable(args[1].Name, _TmpGlobalVars.get(args[1].Name));
+      _TmpGlobalVars.remove(args[1].Name);
+      break;
+    
     case "db": // Define Byte
       output = ext_db;
       for(int i = 1; i < args.length; i++){
