@@ -1,37 +1,18 @@
-class RepeatInfo{
-  int Start;
-  TokenReturn firstToken;
-  TokenReturn Action;
-  TokenReturn secondToken;
-  
-  RepeatInfo(int s, String line, int index){
-    Start = s;
-    firstToken = getNextToken(line, index);
-    Action = getNextToken(line, firstToken.nextIndex);
-    secondToken = getNextToken(line, Action.nextIndex);
-    //println("[RepeatInfo] @ " + s + " == " + line + ": " + firstToken + ", "  + Action + ", "  + secondToken);
-  }
-  
-  boolean checkInfo(){
-    //println("[checkInfo] == " + checkIf(firstToken, Action.string, secondToken));
-    return checkIf(firstToken, Action.string, secondToken);
-  }
-}
-
-boolean checkIf(String line, int index){
+boolean checkIf(String line, int index, boolean default_){
   TokenReturn firstToken = getNextToken(line, index);
   TokenReturn action = getNextToken(line, firstToken.nextIndex);
   TokenReturn secondToken = getNextToken(line, action.nextIndex);
-  return checkIf(firstToken, action.string, secondToken);
+  return checkIf(firstToken, action.string, secondToken, default_);
 }
 
-boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken){
+boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, boolean default_){
   VariableReturn firstVar = parseVariables(firstToken.string);
   VariableReturn secondVar = parseVariables(secondToken.string);
   //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
+  if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
   
   if(firstVar.Number && secondVar.Number){
-    return checkCondition(firstVar.Integer, action, secondVar.Integer);
+    return checkCondition(firstVar.Integer, action, secondVar.Integer, default_);
   }else{
     switch(action){
       case "==":
@@ -44,12 +25,12 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken){
         return _Vars.hasKey(firstToken.string.replace("%%",""));
       
       default:
-        return false;
+        return default_;
     }
   }
 }
 
-boolean checkCondition(int firstVar, String action, int secondVar){
+boolean checkCondition(int firstVar, String action, int secondVar, boolean default_){
   switch(action){
     case "==":
       return firstVar == secondVar; // check if integers are equal
@@ -70,7 +51,7 @@ boolean checkCondition(int firstVar, String action, int secondVar){
       return firstVar <= secondVar;
     
     default:
-      return false;
+      return default_;
   }
 }
 
@@ -87,7 +68,7 @@ boolean checkCase(String line, int index){
           case "]": // end of value list
           case "..": // denotes value range {Ruby range syntax} ([1..4] == [1,2,3,4])([1,2,10..13] == [1,2,10,11,12,13])([1..4,10..8] == [1,2,3,4,10,9,8])
           default: // must be a single value
-            return checkIf(new TokenReturn(peekMacroArgs()[0], 0), "==", token);
+            return checkIf(new TokenReturn(peekMacroArgs()[0], 0), "==", token, false);
         }
     }
   }

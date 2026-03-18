@@ -27,7 +27,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             break;
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
+            processInput(depth_+1, checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False);
             break;
           case ".endif":
             return;
@@ -43,7 +43,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           case ".repeat":
-            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            _repeat_Args.push(getIndex());
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
@@ -57,7 +57,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
+            processInput(depth_+1, checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False);
             break;
           case ".else":
           case ".elseif":
@@ -79,7 +79,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           case ".repeat":
-            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            _repeat_Args.push(getIndex());
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
@@ -99,7 +99,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             break;
           case ".elseif":
             if(curDepth == depth_){
-              state = checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False;
+              state = checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False;
             }
             break;
           case ".endif":
@@ -129,7 +129,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".case":
             token = getNextToken(line, token.nextIndex);
-            if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex))){
+            if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex), false)){
               state = ParseState.Switch_Taken;
             }
             break;
@@ -148,7 +148,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
+            processInput(depth_+1, checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False);
             break;
           case ".case":
           case ".default":
@@ -173,7 +173,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           case ".repeat":
-            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            _repeat_Args.push(getIndex());
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
@@ -207,7 +207,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             break;
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
+            processInput(depth_+1, checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False);
             break;
           case ".endif":
             return;
@@ -222,17 +222,16 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           case ".repeat":
-            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            _repeat_Args.push(getIndex());
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
-          case ".endrp":
-            RepeatInfo tmp = _repeat_Args.get(_repeat_Args.size() - 1);
-            if(tmp.checkInfo()){
-              _repeat_Args.remove(_repeat_Args.size() - 1);
+          case ".until":
+            if(checkIf(line, token.nextIndex, true)){
+              _repeat_Args.pop();
               return;
             }else{
-              setIndex(tmp.Start);
+              setIndex(_repeat_Args.get(_repeat_Args.size() - 1));
             }
             break;
           default:
