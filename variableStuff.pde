@@ -98,6 +98,16 @@ void parseLet(String line, int index){
 }
 
 void parseLet(String variable, String action, TokenReturn secondToken){
+  switch(action){
+    case "++":
+      updateVariable(variable, str(parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0").Integer + 1));
+      return;
+    
+    case "--":
+      updateVariable(variable, str(parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0").Integer - 1));
+      return;
+  }
+  
   VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0");
   VariableReturn secondVar = parseVariables(secondToken.string);
   if(hyperVerboseOutput){ println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")"); }

@@ -259,11 +259,15 @@ String parseStackFunction(String input){
             output = g_PEEK(sName);
             break;
           
-          case "NOS":
+          case "NOS": // (NOS TOS - NOS TOS [NOS])
             output = g_PEEK(sName, 1);
             break;
           
-          case "clear": // (TOS - TOS [TOS])
+          case "3RD": // (3RD NOS TOS - 3RD NOS TOS [3RD])
+            output = g_PEEK(sName, 2);
+            break;
+          
+          case "clear": // (3RD NOS TOS - )
             g_CLEAR(sName);
             break;
           
