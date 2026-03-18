@@ -81,7 +81,6 @@ class Token2{
       default:
         return "[" + Type.name() + "] " + Identifier;
     }
-    //return "";
   }
 }
 
@@ -117,15 +116,8 @@ class Token{
   }
   
   String toString(){
-    if(Type == TokenType.Argument || Type == TokenType.Variable){
-      return "{" + Type.name() + "} " + Identifier.replace("%", VarSrc);
-    //if(Type == TokenType.Macro){
-    //  return "{Macro} " + macro.argString();
-    }else if(Type == TokenType.Let){
-      return "{Let} " + Identifier + " = " + VarSrc.replace("%", VarDest);
-    }else{
-      return "{" + Type.name() + "} " + Identifier;
-    }
+    //if(Type == TokenType.Argument || Type == TokenType.Variable){
+    return "{" + Type.name() + "} " + Identifier;
   }
 }
 
@@ -162,7 +154,6 @@ TokenReturn getWhitespaceToken(String line, int index){
 }
 
 TokenReturn getNextToken(String line, int index){
-  //print("getNextToken from " + line + " @ " + index);
   String token = "";
   int state = 0;
   boolean inString = false;
@@ -233,8 +224,6 @@ TokenReturn getNextToken(String line, int index){
             case 'v': // VERTICAL TAB
               token += "\\u{0B}";
               break;
-            //case 'x': // HEX INPUT
-            //  break;
             default:
               token += "\\u{" + hex(c) + "}";
               break;
@@ -264,6 +253,5 @@ TokenReturn getNextToken(String line, int index){
     index++;
   }
   
-  //println(" got " + token);
   return new TokenReturn(token, index);
 }

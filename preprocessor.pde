@@ -32,10 +32,8 @@ void setup(){
   println("sketchPath() = " + sketchPath());
   
   if(args != null){ // allows input from command line
-    //println(args.length);
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
-      //println(arg);
       if(arg.contains("--input")){
         PathReturn filename = splitFilepath(split(arg, '=')[1]);
         println("Input: " + filename + filename.Reverse);
@@ -66,20 +64,11 @@ void setup(){
   exit();
 }
 
-/*
-  preprocessor will work through a file until it hits a #include
-  at which point, it will load and push the included file
-  and begin working through the new file until reaching another include or it reaches the end of the file
-  if it reaches the end of the current file, pop it from the stack
-  and continue working on existing files
-  if no more files exist, then we are done!
-*/
 void processInput(){
   _output = new StringList();
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-    //println(_tmpFileHolder.indexArray + " : " + line);
     TokenReturn token = getNextToken(line,0);
     boolean skip = false;
     
@@ -111,9 +100,7 @@ void processInput(){
       _output.append(line);
     }
     
-    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1){
-      tryPop();
-    }
+    popFileIfLastLine();
   }
   
   printArray(_Vars);

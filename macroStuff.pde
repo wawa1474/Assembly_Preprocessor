@@ -87,7 +87,6 @@ void buildMacro(String[] file){
     boolean stop = false;
     while(!stop){
       if(tokRet.string != null){
-        //print("{" + token.Token + "} @ " + token.nextIndex);
         switch(state){
           case 0:
             switch(tokRet.string){
@@ -114,7 +113,6 @@ void buildMacro(String[] file){
               stop = true;
             }else{
               tokRet.string = tokRet.string.replace(",","");
-              //println("{[{[" + tokRet.string + "}]}]");
               tmpSL.append(tokRet.string);
             }
             break;
@@ -129,7 +127,6 @@ void buildMacro(String[] file){
               tmpTL.clear();
               state = 0;
             }else{
-              //println("buildMacro{" + tokRet.string + "}");
               tmpTL.add(new Token(tokRet.string));
               state = 3;
             }
@@ -145,7 +142,6 @@ void buildMacro(String[] file){
             state = 0;
             break;
         }
-        //print("{" + tokRet.string + "} ");
       }
       
       tokRet = getNextToken(file[i],tokRet.nextIndex);
@@ -160,9 +156,6 @@ void buildMacro(String[] file){
     }else if(state == 3){
       tmpTL.add(new Token("\\n"));
     }
-    //print("{" + token.Token + "} ");
-    //println();
-    //println("{" + token.Token + "} " + file[i]);
   }
 }
 
@@ -170,7 +163,6 @@ boolean checkMacros(String macro, String line){
   for(int i = 0; i < _Macros.size(); i++){
     Macro tmp = _Macros.get(i);
     if(tmp.name.equals(macro)){
-      //println(line);
       _output.append(parseMacro(tmp, line));
       return true;
     }
@@ -182,13 +174,9 @@ String[] parseMacro(Macro macro, String line){
   StringList output = new StringList();
   String cur = "";
   
-  //output.append(";" + line);
-  
   String[] macroArgs = getMacroArgs(line);
   
   for(int i = 0; i < macro.Tokens.length; i++){
-    //println(macro.Tokens[i]);
-    //cur += macro.Tokens[i];
     Token t = macro.Tokens[i];
     switch(t.Type){
       case External:
@@ -206,11 +194,8 @@ String[] parseMacro(Macro macro, String line){
         }
         break;
       case Argument:
-        //printArray(macro.Arguments);
-        //printArray(args);
         for(int a = 0; a < macro.Arguments.length; a++){
           if(macro.Arguments[a].name.equals(t.VarSrc)){
-            //println("{[{[" + t.Str + "}]}]");
             if(a >= macroArgs.length){
               cur += macro.Arguments[a].defualt;
             }else{
@@ -219,8 +204,6 @@ String[] parseMacro(Macro macro, String line){
             break;
           }
         }
-        //cur+=getVariable(new VariableReturn(TokenType.Argument, t.Value), macro, macroArgs);
-        //println("failed to find arg: " + t.Value);
         break;
       case Label:
         break;
@@ -230,16 +213,12 @@ String[] parseMacro(Macro macro, String line){
       case Include:
         break;
       case Let: // TODO: .let needs to handle variables and arguments!
-        //println("var {" + t.Variable + "} and {" + t.Str.replace("%", t.Value) + "}");
-        //cur += ";.let " + t.Variable + " " + t.Str.replace("%", t.Value);
         String v = _Vars.get(t.VarSrc);
         if(v != null){
-          //println("set var {" + t.Variable + "} to {" + t.Value + "}");
           _Vars.set(t.VarDest, t.Identifier.replace("%", t.VarSrc));
         }else{
           for(int a = 0; a < macro.Arguments.length; a++){
             if(macro.Arguments[a].name.equals(t.VarSrc)){
-              //println("set var {" + t.Str + "} to {" + args[a] + "}");
               _Vars.set(t.VarDest, t.Identifier.replace("%", macroArgs[a]));
               break;
             }
@@ -274,7 +253,6 @@ Macro cleanMacro(Macro macro){
   boolean newline = false;
   for(int i = 0; i < macro.Tokens.length; i++){
     String s = macro.Tokens[i].Identifier;
-    //println("{{{" + s + "}}}");
     boolean push = false;
     switch(state){
       case 0:
@@ -287,12 +265,10 @@ Macro cleanMacro(Macro macro){
           state = 0;
         }else if(s.contains("%%")){
           tmpT = parseVariable(s, TokenType.Variable);
-          //println("{[{[" + tmpT.Value + "}]}]");
           newline = false;
           push = true;
         }else if(s.contains("%")){
           tmpT = parseVariable(s, TokenType.Argument);
-          //println("{[{[" + tmpT.Value + "}]}]");
           newline = false;
           push = true;
         }else{
@@ -325,7 +301,6 @@ Macro cleanMacro(Macro macro){
     }
     
     if(push){
-      //println("cleanMacro{" + tmpT + "}");
       tmpTL.add(tmpT);
       tmpT = new Token();
       state = 0;

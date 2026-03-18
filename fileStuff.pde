@@ -6,7 +6,7 @@ class PathReturn{ // "../../path/to/file/code.asm"
   
   PathReturn(){}
   
-  PathReturn(PathReturn input){
+  PathReturn(PathReturn input){ // has any one ever said that Java's pass-by-reference vs. pass-by-value sucks?
     PathArray = new String[input.PathArray.length];
     for(int i = 0; i < input.PathArray.length; i++){
       PathArray[i] = input.PathArray[i];
@@ -25,26 +25,20 @@ class PathReturn{ // "../../path/to/file/code.asm"
   }
   
   void setPath(PathReturn directory, PathReturn file){
-    //println("directory name: " + directory.Name);
-    //println("setPath dir: " + directory.getPath());
-    //println("setPath: " + directory + ", " + file + " [" + file.Reverse + "]");
     int dirLength = directory.PathArray.length - file.Reverse;
     String[] tmp = new String[dirLength + file.PathArray.length];
-    //print("building path: ");
+    
     for(int i = 0; i < dirLength; i++){
-      //print(directory.PathArray[i] + "/");
       tmp[i] = directory.PathArray[i];
     }
     for(int i = 0; i < file.PathArray.length; i++){
-      //print(file.PathArray[i] + "/");
       tmp[dirLength + i] = file.PathArray[i];
     }
-    //println();
+    
     PathArray = tmp;
     Name = file.Name;
     Extension = file.Extension;
     Reverse = file.Reverse;
-    //println("setPath got: " + toString());
   }
   
   String getPathPartial(){
@@ -181,6 +175,7 @@ PathReturn splitFilepath(String file){
   // ./path/to/file.ext
   // /path/to/file.ext
   // path/to/file.ext
+  // path/to
   
   for(int i = 0; i < file.length(); i++){
     char c = file.charAt(i);
@@ -301,13 +296,12 @@ void getNewFile(PathReturn base, PathReturn file){
 void getNewFile(PathReturn base, String line){
   _FileStack.push(_tmpFileHolder);
   getNewFile(base, splitFilepath(line.replace("\"", "")));
-  _tmpFileHolder.indexArray = -1; // needs to be -1 due to an ++ at end of main loop
-  //println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + _tmpFileHolder.file);
+  _tmpFileHolder.indexArray = -1; // needs to be -1 due to a ++ at end of main loop
 }
 
-void tryPop(){
+void popFileIfLastLine(){
   while(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
-    print("pop file: " + _tmpFileHolder.file);
+    println("pop file: " + _tmpFileHolder.file);
     _tmpFileHolder = _FileStack.pop();
     println(" for: " + _tmpFileHolder.file);
   }

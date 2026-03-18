@@ -2,22 +2,16 @@ boolean checkIf(String line, int index){
   Token2 firstVar = getNextVariable(line, index);
   TokenReturn action = getNextToken(line, firstVar.nextIndex);
   Token2 secondVar = getNextVariable(line, action.nextIndex);
-  //println("checkIf2 " + firstVar + " " + action.string + " " + secondVar);
-  //println("checkIf2 " + firstVar.Type.name() + " " + action.string + " " + secondVar.Type.name());
   
   if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-    //println("checkIf1 " + firstVar + " " + action.string + " " + secondVar);
     return checkCondition(firstVar.Integer, action, secondVar.Integer);
   }else{
     firstVar = getNextVariable(getVariable(firstVar, null, null), 0);
     secondVar = getNextVariable(getVariable(secondVar, null, null), 0);
-    //println("checkIf2 " + firstVar + " " + action.string + " " + secondVar);
-    //println("checkIf2 " + firstVar.Type.name() + " " + action.string + " " + secondVar.Type.name());
+    
     if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-      //println("checkIf3 " + firstVar + " " + action.string + " " + secondVar);
       return checkCondition(firstVar.Integer, action, secondVar.Integer);
     }else{
-      //println("checkIf4 " + getVariable(firstVar, null, null) + " " + action.string + " " + getVariable(secondVar, null, null));
       switch(action.string){
         case "==":
           return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
@@ -30,8 +24,6 @@ boolean checkIf(String line, int index){
       }
     }
   }
-  
-  //return false;
 }
 
 boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
@@ -60,18 +52,14 @@ boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
 }
 
 void parseIf(String line_, int index_, int depth){ // current depth of if statements for debuging
-  //println("init line: " + _tmpFileHolder.indexArray + " : " + line_);
   int state = checkIf(line_, index_) ? 1 : 2; // state machines FTW!
-  //println("init state: " + state + " @ " + depth);
   _tmpFileHolder.indexArray++; // skip the .if line
   boolean skip = false;
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-    //println(_tmpFileHolder.indexArray + " : " + line);
     TokenReturn token = getNextToken(line,0);
     
-    //println("state: " + state);
     switch(state){
       case 0:
         switch(token.string){
@@ -95,7 +83,6 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             break;
           default:
             skip = checkMacros(token.string, line);
-            //println("skip0: " + skip);
             break;
         }
         break;
@@ -112,7 +99,6 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             state = 5;
             break;
           case ".endif":
-            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
             return;
           case ".include":
@@ -130,9 +116,7 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             skip = true;
             break;
           default:
-            // append line
             skip = checkMacros(token.string, line);
-            //println("skip1: " + skip);
             break;
         }
         break;
@@ -153,7 +137,6 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             state = ifTrue ? 1 : 2;
             break;
           case ".endif":
-            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
             return;
           default:
@@ -169,7 +152,6 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             skip = true;
             break;
           case ".endif":
-            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
             return;
           case ".include":
@@ -187,9 +169,7 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             skip = true;
             break;
           default:
-            // append line
             skip = checkMacros(token.string, line);
-            //println("skip3: " + skip);
             break;
         }
         break;
@@ -197,7 +177,6 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
       case 5: // eat all until .endif
         switch(token.string){
           case ".endif":
-            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
             return;
           default:
@@ -211,8 +190,6 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
       _output.append(line);
     }
     
-    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
-      tryPop();
-    }
+    popFileIfLastLine();
   }
 }
