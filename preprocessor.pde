@@ -139,16 +139,18 @@ void processInput(){
             //}
             break;
           default:
-            for(int i = 0; i < _Macros.size(); i++){
-              Macro tmp = _Macros.get(i);
-              if(tmp.name.equals(token.string)){
-                //println(line);
-                _output.append(parseMacro(tmp, line));
-                skip = true;
-              }
-            }
+            //for(int i = 0; i < _Macros.size(); i++){
+            //  Macro tmp = _Macros.get(i);
+            //  if(tmp.name.equals(token.string)){
+            //    //println(line);
+            //    _output.append(parseMacro(tmp, line));
+            //    skip = true;
+            //  }
+            //}
+            skip = checkMacros(token.string, line);
             break;
         }
+        break;
       
       case 1: // if statement true
         switch(token.string){
@@ -162,8 +164,10 @@ void processInput(){
             curDepth--;
             skip = true;
             state = 0;
+            break;
           default:
             // append line
+            skip = checkMacros(token.string, line);
             break;
         }
         break;
@@ -184,6 +188,7 @@ void processInput(){
             curDepth--;
             skip = true;
             state = 0;
+            break;
           default:
             skip = true;
             break;
@@ -196,8 +201,10 @@ void processInput(){
             curDepth--;
             skip = true;
             state = 0;
+            break;
           default:
             // append line
+            skip = checkMacros(token.string, line);
             break;
         }
         break;
@@ -208,6 +215,7 @@ void processInput(){
             curDepth--;
             skip = true;
             state = 0;
+            break;
           default:
             skip = true;
             break;

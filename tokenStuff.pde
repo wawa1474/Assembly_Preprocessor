@@ -159,9 +159,6 @@ TokenReturn getNextToken(String line, int index){
               break;
             //case 'x': // HEX INPUT
             //  break;
-            case '"': // Escaped Quote
-              token += "\\\"";
-              break;
             default:
               token += "\\u{" + hex(c) + "}";
               break;

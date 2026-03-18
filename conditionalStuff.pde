@@ -48,6 +48,7 @@ void parseIf(int curDepth){
   int state = 0; // state machines FTW!
   //int curDepth = 0; // current depth of if statements
   int depth = 0; // added depth of if statements to ignore (when condition is false)
+  boolean skip = false;
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
@@ -55,7 +56,122 @@ void parseIf(int curDepth){
     
     switch(state){
       case 0:
-        
+        switch(token.string){
+          case ".if":
+            boolean ifTrue = checkIf(line, token.nextIndex);
+            if(ifTrue){ curDepth++; }
+            skip = true;
+            state = ifTrue ? 1 : 2;
+            //boolean con = true;
+            //boolean eat = false;
+            //println((_tmpFileHolder.indexArray) + " : " + line + " = " + ifTrue);
+            //if(ifTrue){
+            //  while(con == true && _tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+            //    _tmpFileHolder.indexArray++;
+            //    line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+            //    token = getNextToken(line, 0);
+            //    switch(token.string){
+            //      case ".if": // needs to be recursive! or state-based with a depth counter!
+            //      case ".else":
+            //      case ".elseif":
+            //        eat = true;
+            //        break;
+            //      case ".endif":
+            //        con = false;
+            //        eat = false;
+            //        break;
+            //      default:
+            //        _output.append(line);
+            //        break;
+            //    }
+            //  }
+            //  if(eat){
+            //    while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+            //      _tmpFileHolder.indexArray++;
+            //      line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+            //      token = getNextToken(line, 0);
+            //      if(token.string.equals(".endif")){
+            //        break;
+            //      }
+            //    }
+            //  }
+            //}
+            break;
+          default:
+            for(int i = 0; i < _Macros.size(); i++){
+              Macro tmp = _Macros.get(i);
+              if(tmp.name.equals(token.string)){
+                //println(line);
+                _output.append(parseMacro(tmp, line));
+                skip = true;
+              }
+            }
+            break;
+        }
+      
+      case 1: // if statement true
+        switch(token.string){
+          //case ".if": // not gonna worry about nested if statements for now...
+          case ".else":
+          case ".elseif":
+            skip = true;
+            state = 5;
+            break;
+          case ".endif":
+            curDepth--;
+            skip = true;
+            state = 0;
+          default:
+            // append line
+            break;
+        }
+        break;
+      
+      case 2: // if statement false
+        switch(token.string){
+          //case ".if":
+          case ".else":
+            skip = true;
+            state = 3;
+            break;
+          case ".elseif":
+            boolean ifTrue = checkIf(line, token.nextIndex);
+            skip = true;
+            state = ifTrue ? 1 : 2;
+            break;
+          case ".endif":
+            curDepth--;
+            skip = true;
+            state = 0;
+          default:
+            skip = true;
+            break;
+        }
+        break;
+      
+      case 3: // append all until .endif
+        switch(token.string){
+          case ".endif":
+            curDepth--;
+            skip = true;
+            state = 0;
+          default:
+            // append line
+            break;
+        }
+        break;
+      
+      case 5: // eat all until .endif
+        switch(token.string){
+          case ".endif":
+            curDepth--;
+            skip = true;
+            state = 0;
+          default:
+            skip = true;
+            break;
+        }
+        break;
     }
   }
 }

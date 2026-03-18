@@ -165,6 +165,18 @@ void buildMacro(String[] file){
   }
 }
 
+boolean checkMacros(String macro, String line){
+  for(int i = 0; i < _Macros.size(); i++){
+    Macro tmp = _Macros.get(i);
+    if(tmp.name.equals(macro)){
+      //println(line);
+      _output.append(parseMacro(tmp, line));
+      return true;
+    }
+  }
+  return false;
+}
+
 String[] parseMacro(Macro macro, String line){
   StringList output = new StringList();
   String cur = "";
