@@ -7,6 +7,7 @@ enum ParseState{
   Switch_Taken,
   Switch_Skip,
   Repeat_Loop,
+  Multiline_Comment,
 }
 
 void processInput(int depth_, ParseState state_){ // current depth of if statements for debuging
@@ -47,6 +48,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
@@ -83,6 +87,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
@@ -106,6 +113,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             curDepth--;
             if(curDepth < depth_){ return; }
             break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
           default:
             break;
         }
@@ -119,6 +129,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".endif":
             curDepth--;
             if(curDepth < depth_){ return; }
+            break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
             break;
           default:
             break;
@@ -139,6 +152,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".endsw":
             popSwitchArg();
             return;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
           default:
             break;
         }
@@ -177,6 +193,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             incIndex();
             processInput(depth_+1, ParseState.Repeat_Loop);
             break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
@@ -194,6 +213,9 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
               popSwitchArg();
               return;
             }
+            break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
             break;
           default:
             break;
@@ -234,8 +256,23 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
               setIndex(_repeat_Args.get(_repeat_Args.size() - 1));
             }
             break;
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
+            break;
+        }
+        break;
+      
+      case Multiline_Comment:
+        switch(token.string){
+          case "/*":
+            processInput(depth_+1, ParseState.Multiline_Comment);
+            break;
+          case "*/":
+            return;
+          default:
             break;
         }
         break;

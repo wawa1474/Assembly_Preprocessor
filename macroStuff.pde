@@ -25,24 +25,146 @@ void buildMacro(String line_, int index){
 }
 
 String[] getMacroArgs(String line, int index){
+  //println("getMacroArgs: " + line);
   StringList Args = new StringList();
-  TokenReturn token = new TokenReturn(index);
+  String token = "";
+  boolean inString = false;
   int state = 0;
+  boolean prevNeedSpace = false;
+  int parenDepth = 0;
   
-  for(; token.nextIndex < line.length() && state != -1;){
-    token = getNextToken(line, token.nextIndex);
-    if(token.string.equals(";")){
-      state = -1;
-    }else{
-      Args.append(
-        token.string.lastIndexOf(',') == token.string.length() - 1 // "arg," -> "arg"
-          ? token.string.substring(0, token.string.length() - 1)
-          : token.string
-      );
+  for(; index < line.length() && state != -1; index++){
+    char c = line.charAt(index);
+    //print(c);
+    
+    switch(state){
+      case 0:
+        switch(c){
+          case ';':
+            if(inString){
+              token += c;
+            }else{
+              Args.append(token);
+              token = "";
+              state = -1;
+            }
+            break;
+          
+          case ',': // each, , of, these, are, tokens = ["each", "", "of", "these", "are", "tokens"]
+            if(!inString){
+              Args.append(token);
+              token = "";
+            }else{
+              token += c;
+            }
+            break;
+          
+          //case ' ':
+          //  if(prevNeedSpace){
+          //    token += c;
+          //    prevNeedSpace = false;
+          //  }
+          //  break;
+          
+          case ' ': // each of these are tokens
+            if(!inString){
+              if(token.length() != 0){ Args.append(token); } // don't, split, on,[ ]after, comma
+              token = "";
+            }else{
+              token += c;
+            }
+            break;
+            
+          
+          case '\\':
+            state = 2;
+            break;
+          
+          case '(':
+            token += c;
+            if(!inString){ parenDepth++; }
+            break;
+          
+          case ')':
+            token += c;
+            if(!inString){ parenDepth--; }
+            break;
+          
+          case '"':
+            inString = !inString;
+          default:
+            token += c;
+            if(isNumber(c) || isAlpha(c)){ prevNeedSpace = true; }
+            else{ prevNeedSpace = false; }
+            break;
+        }
+        break;
+      
+      case 2: // build value
+        if(c == 'u'){
+          state = 3;
+        }else{
+          switch(c){
+            case '0': // NULL
+              token += "\\u{00}";
+              break;
+            case 'a': // BELL
+              token += "\\u{07}";
+              break;
+            case 'b': // BACKSPACE
+              token += "\\u{08}";
+              break;
+            case 'e': // ESCAPE SEQUENCE
+              token += "\\u{1B}";
+              break;
+            case 'f': // FORM FEED
+              token += "\\u{0C}";
+              break;
+            case 'n': // NEWLINE
+              token += "\\u{0A}";
+              break;
+            case 'r': // CARRIAGE RETURN
+              token += "\\u{0D}";
+              break;
+            case 't': // TAB
+              token += "\\u{09}";
+              break;
+            case 'v': // VERTICAL TAB
+              token += "\\u{0B}";
+              break;
+            default:
+              token += "\\u{" + hex(c) + "}";
+              break;
+          }
+          state = 0;
+        }
+        break;
+      
+      case 3: // start unicode
+        if(c == '{'){
+          token += "\\u{";
+          state = 4;
+        }
+        break;
+      
+      case 4: // build unicode
+        token += c;
+        if(c == '}'){
+          state = 0;
+        }
+        break;
     }
   }
+  //println();
+  if(token.length() != 0){ Args.append(token); }
   
-  return Args.toArray();
+  String[] output = new String[Args.size()];
+  for(int i = 0; i < output.length; i++){
+    output[i] = Args.get(i).strip();
+  }
+  
+  //printArray(output);
+  return output;//Args.toArray();
 }
 
 void finalizeNewMacro(){
