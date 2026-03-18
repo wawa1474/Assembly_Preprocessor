@@ -194,10 +194,10 @@ String getVariable(String name, boolean global, int depth){
   if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
   }else if(!global){
-    MacroArg[] lineMacroArgs = CurrentMacroArgs;//(depth == 0 || MacroArgsStack.size() - depth <= 0 ? CurrentMacroArgs : MacroArgsStack.get(MacroArgsStack.size() - depth));
+    MacroArg[] lineMacroArgs = CurrentMacroArgs;//depth == 0 ? CurrentMacroArgs : peekMacroArgs(depth - 1);
     //print("lineMacroArgs: ");printArray(lineMacroArgs);
     if(lineMacroArgs != null && CurrentWorker.Macro != null){
-      MacroArg[] curMacro = CurrentWorker.Macro.Args;//(depth == 0 || Workers.size() - depth <= 0 ? CurrentWorker.Macro.Args : Workers.get(Workers.size() - depth).Macro.Args);
+      MacroArg[] curMacro = CurrentWorker.Macro.Args;//depth == 0 ? CurrentWorker.getArgs() : peekWorkerMacroArgs(depth);
       //print("curMacro: ");print("<" + curMacro.length + ">");printArray(curMacro);
       for(int a = 0; a < curMacro.length; a++){
         if(curMacro[a].Name.equals(name)){
@@ -205,8 +205,11 @@ String getVariable(String name, boolean global, int depth){
             if(curMacro[a].Value != null){ return curMacro[a].Value; }
             else{ return "\\!{macro arg '" + name + "' does not have a default value!}"; }
           }else{
-            if(lineMacroArgs[a].Name.contains("%")){ return parseVariables(lineMacroArgs[a].Name, depth+1).toString(); }
-            else{ return parseVariables(lineMacroArgs[a].Name, depth).toString(); }
+            // I think I broke the 'if' at some point by changing how variables are handled...
+            // or maybe it never worked?
+            //if(lineMacroArgs[a].Name.contains("%")){ return parseVariables(lineMacroArgs[a].Name, depth+1).toString(); }
+            //else{ return parseVariables(lineMacroArgs[a].Name, depth).toString(); }
+            return parseVariables(lineMacroArgs[a].Name, depth).toString();
           }
         }
       }

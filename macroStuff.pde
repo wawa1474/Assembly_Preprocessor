@@ -86,6 +86,11 @@ class Worker{
   String getOrigin(){
     return Type == WorkerType.Macro ? Macro.OriginFile + " @ " + Macro.OriginLine + " : " : "";
   }
+  
+  MacroArg[] getArgs(){
+    if(Macro != null){ return Macro.Args; }
+    return null;
+  }
 }
 
 class MacroArg{
@@ -310,11 +315,11 @@ boolean checkMacros(String macro, String line, int index){
   if(tmp != null){
     //println("checkMacro: " + macro);
     //_Files_Type = _Files_Macros; // now handled by worker.type
+    MacroArgsStack.add(CurrentMacroArgs);
+    CurrentMacroArgs = getMacroArgs(line, index, 0); // MacroArgsStack.add(getMacroArgsHash(line, index, 0)); // pushMacroArgs(getMacroArgs(line, index, 0));
     Workers.add(new Worker(CurrentWorker)); // _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
     CurrentWorker = new Worker(tmp); // _tmpFileHolder = new FileHolder(tmp);
     setIndex(-1); // needs to be -1 due to a ++ at end of main loop
-    if(CurrentMacroArgs != null){ MacroArgsStack.add(CurrentMacroArgs); }
-    CurrentMacroArgs = getMacroArgs(line, index, 0); // MacroArgsStack.add(getMacroArgsHash(line, index, 0)); // pushMacroArgs(getMacroArgs(line, index, 0));
     //printArray(CurrentMacroArgs);
     return true;
   }

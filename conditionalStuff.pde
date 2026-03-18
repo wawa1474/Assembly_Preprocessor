@@ -75,7 +75,7 @@ boolean checkCase(String line, int index){
             state = 1;
             break;
           default: // must be a single value
-            if(peekMacroArgs(0) != null){ return checkIf(new TokenReturn(peekMacroArgs(0)[0].Name, 0), "==", token, false); }
+            if(CurrentMacroArgs != null){ return checkIf(new TokenReturn(CurrentMacroArgs[0].Name, 0), "==", token, false); }
             else{ return false; }
         }
         break;
