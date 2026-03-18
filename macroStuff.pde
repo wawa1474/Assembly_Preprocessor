@@ -3,6 +3,7 @@ ArrayList<MacroArg[]> MacroArgsStack = new ArrayList<MacroArg[]>(); // stack of 
 HashMap<String, Macro> Macros = new HashMap<String, Macro>(); // hashmap of defined macros
 
 ArrayList<Worker> Workers = new ArrayList<Worker>(); // how do we handle which file/macro we're currently working on!?
+Worker CurrentWorker;
 
 enum WorkerType{
   Macro,
@@ -15,6 +16,33 @@ class Worker{
   int CharacterIndex; // which character are we working on
   Macro Macro; // storage for current macro...
   FileHolder File; // or current file.
+  
+  Worker(){}
+  
+  Worker(Worker w_){
+    Type = w_.Type;
+    LineIndex = w_.LineIndex;
+    CharacterIndex = w_.CharacterIndex;
+    switch(Type){
+      case Macro:
+        Macro = new Macro(w_.Macro);
+        break;
+      
+      case File:
+        File = new FileHolder(w_.File);
+        break;
+    }
+  }
+  
+  Worker(Macro m_){
+    Type = WorkerType.Macro;
+    Macro = m_;
+  }
+  
+  Worker(FileHolder f_){
+    Type = WorkerType.File;
+    File = f_;
+  }
 }
 
 class MacroArg{
@@ -42,6 +70,15 @@ class Macro{ // MacroFile combined class? plus a pun...
   MacroArg[] Args; // array of defined macro arguments
   String[] Content; // content / code of macro...
   int[] ContentLine; // and which lines of Origin file each was on.
+  
+  Macro(Macro m_){
+    Name = m_.Name;
+    Args = m_.Args;
+    Content = m_.Content;
+    OriginFile = m_.OriginFile;
+    OriginLine = m_.OriginLine;
+    ContentLine = m_.ContentLine;
+  }
   
   Macro(String n_, MacroArg[] a_, String[] c_, int[] k_, String f_, int l_){
     Name = n_;
@@ -211,6 +248,19 @@ MacroArg[] getMacroArgsHash(String line, int index, int depth){
   return (MacroArg[])args.toArray();
 }
 
+boolean checkMacrosHash(String macro, String line, int index){
+  Macro tmp = Macros.get(macro);
+  if(tmp != null){
+    //_Files_Type = _Files_Macros; // now handled by worker.type
+    Workers.add(new Worker(CurrentWorker)); // _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
+    CurrentWorker = new Worker(tmp); // _tmpFileHolder = new FileHolder(tmp);
+    setIndex(-1); // needs to be -1 due to a ++ at end of main loop
+    MacroArgsStack.add(getMacroArgsHash(line, index, 0)); // pushMacroArgs(getMacroArgs(line, index, 0));
+    return true;
+  }
+  return false;
+}
+
 void buildMacro(String line_, int index){
   println("Start Macro!");
   TokenReturn token = getNextToken(line_, index);
@@ -352,20 +402,6 @@ boolean checkMacros(String macro, String line, int index){
       pushMacroArgs(getMacroArgs(line, index, 0));
       return true;
     }
-  }
-  return false;
-}
-
-HashMap<String, FileHolder> macroMap = new HashMap<String, FileHolder>(); // do we instead use a hashmap for macros?
-boolean checkMacrosHash(String macro, String line, int index){
-  FileHolder tmp = macroMap.get(macro);
-  if(tmp != null){
-    _Files_Type = _Files_Macros;
-    _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
-    _tmpFileHolder = new FileHolder(tmp);
-    setIndex(-1); // needs to be -1 due to a ++ at end of main loop
-    pushMacroArgs(getMacroArgs(line, index, 0));
-    return true;
   }
   return false;
 }
