@@ -51,29 +51,30 @@ boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
   }
 }
 
-void parseIf(String line_, int index_, int depth){ // current depth of if statements for debuging
+void parseIf(String line_, int index_, int depth_){ // current depth of if statements for debuging
   int state = checkIf(line_, index_) ? 1 : 2; // state machines FTW!
   _tmpFileHolder.indexArray++; // skip the .if line
-  boolean skip = false;
+  int curDepth = 1;
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
     TokenReturn token = getNextToken(line,0);
+    boolean skip = true;
+    //println("parseIf [" + curDepth + "|" + depth_ + "|" + _tmpFileHolder.indexArray + "] " + line);
     
     switch(state){
       case 0:
         switch(token.string){
           case ".include": // .include macro|file "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
-            skip = true;
             break;
           case ".if":
-            parseIf(line, token.nextIndex, depth+1);
-            skip = true;
+            parseIf(line, token.nextIndex, depth_+1);
             break;
+          case ".endif":
+            return;
           case ".let":
             parseLet(line, token.nextIndex);
-            skip = true;
             break;
           default:
             skip = checkMacros(token.string, line);
@@ -84,24 +85,19 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
       case 1: // if statement true
         switch(token.string){
           case ".if":
-            parseIf(line, token.nextIndex, depth+1);
-            skip = true;
+            parseIf(line, token.nextIndex, depth_+1);
             break;
           case ".else":
           case ".elseif":
-            skip = true;
             state = 5;
             break;
           case ".endif":
-            skip = true;
             return;
           case ".include": // .include macro|file "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
-            skip = true;
             break;
           case ".let":
             parseLet(line, token.nextIndex);
-            skip = true;
             break;
           default:
             skip = checkMacros(token.string, line);
@@ -112,23 +108,22 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
       case 2: // if statement false
         switch(token.string){
           case ".if":
-            parseIf(line, token.nextIndex, depth+1);
-            skip = true;
+            curDepth++;
             break;
           case ".else":
-            skip = true;
-            state = 3;
+            if(curDepth == 1){ state = 3; }
             break;
           case ".elseif":
-            boolean ifTrue = checkIf(line, token.nextIndex);
-            skip = true;
-            state = ifTrue ? 1 : 2;
+            if(curDepth == 1){
+              boolean ifTrue = checkIf(line, token.nextIndex);
+              state = ifTrue ? 1 : 2;
+            }
             break;
           case ".endif":
-            skip = true;
-            return;
+            curDepth--;
+            if(curDepth <= 0){ return; }
+            break;
           default:
-            skip = true;
             break;
         }
         break;
@@ -136,19 +131,15 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
       case 3: // append all until .endif
         switch(token.string){
           case ".if":
-            parseIf(line, token.nextIndex, depth+1);
-            skip = true;
+            parseIf(line, token.nextIndex, depth_+1);
             break;
           case ".endif":
-            skip = true;
             return;
           case ".include": // .include macro|file "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
-            skip = true;
             break;
           case ".let":
             parseLet(line, token.nextIndex);
-            skip = true;
             break;
           default:
             skip = checkMacros(token.string, line);
@@ -158,11 +149,14 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
       
       case 5: // eat all until .endif
         switch(token.string){
+          case ".if":
+            curDepth++;
+            break;
           case ".endif":
-            skip = true;
-            return;
+            curDepth--;
+            if(curDepth <= 0){ return; }
+            break;
           default:
-            skip = true;
             break;
         }
         break;

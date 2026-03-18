@@ -70,20 +70,18 @@ void processInput(){
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
     TokenReturn token = getNextToken(line,0);
-    boolean skip = false;
+    boolean skip = true;
+    //println("processInput [" + _tmpFileHolder.indexArray + "] " + line);
     
     switch(token.string){
       case ".include": // .include macro|file "path/name.ext"
         checkIncludeFile(line, token.nextIndex);
-        skip = true;
         break;
       case ".if":
         parseIf(line, token.nextIndex, 0);
-        skip = true;
         break;
       case ".let":
         parseLet(line, token.nextIndex);
-        skip = true;
         break;
       default:
         skip = checkMacros(token.string, line); // will skip outputting a raw macro line, but otherwise will append all lines
