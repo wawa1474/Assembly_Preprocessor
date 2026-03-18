@@ -9,7 +9,7 @@ boolean checkIf(String line, int index, boolean default_){
 boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, TokenReturn thirdToken, boolean default_){
   VariableReturn firstVar = parseVariables(firstToken.string);
   VariableReturn secondVar = parseVariables(secondToken.string);
-  println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
+  //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
   
   if(firstVar.Number && secondVar.Number){

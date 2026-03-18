@@ -58,7 +58,7 @@ String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
 String _version_minor = "2";
 String _version_patch = "0";
-String _version_preRelease = "7";
+String _version_preRelease = "8";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch};
 void setup(){
@@ -68,15 +68,36 @@ void setup(){
   if(args != null){ // allows input from command line
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
-      if(arg.contains("--input")){
-        PathReturn filename = splitFilepath(split(arg, '=')[1]);
-        CurrentDirectory = filename;
-        println("Input: " + filename + " [" + filename.Reverse + "]");
-        _outputFile = filename.getPath() + filename.Name + ".obj";
-        getNewFile(splitFilepath(sketchPath()), filename);
-        _exit = false;
-      }else if(arg.contains("--help")){
-        _exit = true;
+      print(arg);
+      switch(arg){
+        case "--input":
+          arg = args[++i]; // get source file
+          PathReturn filename = splitFilepath(arg + ".asm");
+          CurrentDirectory = filename;
+          println(" " + filename + " [" + filename.Reverse + "]");
+          _outputFile = filename.getPath() + filename.Name + ".obj";
+          getNewFile(splitFilepath(sketchPath()), filename);
+          _exit = false;
+          break;
+        
+        case "--var":
+          arg = args[++i]; // get name=value
+          print(" " + arg);
+          String[] pair = split(arg, '=');
+          if(pair.length != 2){
+            println(" - bad var assignment! - " + arg);
+          }else{
+            println(" - assigned var - " + pair[0] + " to " + pair[1]);
+            updateVariable(pair[0], pair[1]);
+          }
+          break;
+        
+        case "--help":
+          _exit = true;
+          break;
+        
+        default:
+          println(" = unknown arg!");
       }
     }
   }
