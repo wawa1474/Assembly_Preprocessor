@@ -122,6 +122,10 @@ String parseFunction(String input){
       }
       break;
     
+    case "stripStr":
+      output = stripStr(args[1].Name); // strip leading and trailing "
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}

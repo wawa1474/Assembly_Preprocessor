@@ -56,8 +56,8 @@ IntList _repeat_Args = new IntList(); // stack for repeat arguments
 
 String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
-String _version_minor = "1";
-String _version_patch = "1";
+String _version_minor = "2";
+String _version_patch = "0";
 String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 void setup(){

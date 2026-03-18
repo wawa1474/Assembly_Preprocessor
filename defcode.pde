@@ -1,3 +1,8 @@
+String stripStr(String input){
+  input = input.startsWith("\"") ? input.substring(1) : input; // strip leading and trailing "
+  return input.endsWith("\"") ? input.substring(0, input.length()-1) : input;
+}
+
 String getLabelUUID(){
   return UUID.randomUUID().toString().replace('-', '_');
 }

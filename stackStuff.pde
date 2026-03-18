@@ -9,7 +9,7 @@ ParseState checkElseIf(String line, TokenReturn token){
 
 ParseState checkCase(String line, TokenReturn token, ParseState state){
   token = getNextToken(line, token.nextIndex);
-  if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex), false)){
+  if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex), null, false)){
     return ParseState.Switch_Taken;
   }
   return state;

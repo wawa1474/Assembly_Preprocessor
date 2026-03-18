@@ -2,17 +2,19 @@ boolean checkIf(String line, int index, boolean default_){
   TokenReturn firstToken = getNextToken(line, index);
   TokenReturn action = getNextToken(line, firstToken.nextIndex);
   TokenReturn secondToken = getNextToken(line, action.nextIndex);
-  return checkIf(firstToken, action.string, secondToken, default_);
+  TokenReturn thirdToken = getNextToken(line, secondToken.nextIndex);
+  return checkIf(firstToken, action.string, secondToken, thirdToken, default_);
 }
 
-boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, boolean default_){
+boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, TokenReturn thirdToken, boolean default_){
   VariableReturn firstVar = parseVariables(firstToken.string);
   VariableReturn secondVar = parseVariables(secondToken.string);
+      VariableReturn thirdVar = parseVariables(thirdToken.string);
   //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
   
   if(firstVar.Number && secondVar.Number){
-    return checkCondition(firstVar, action, secondVar, default_);
+    return checkCondition(firstVar, action, secondVar, thirdVar, default_);
   }else{
     switch(action){
       case "==":
@@ -30,26 +32,37 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
   }
 }
 
-boolean checkCondition(VariableReturn firstVar, String action, VariableReturn secondVar, boolean default_){
+boolean checkCondition(VariableReturn firstVar, String action, VariableReturn secondVar, VariableReturn thirdVar, boolean default_){
   float comp = compare(firstVar, secondVar);
+  boolean invert = false;
   switch(action){
-    case "==":
+    case "==": // same
       return comp == 0;
     
-    case "!=":
+    case "!=": // not same
       return comp != 0;
     
-    case ">":
+    case ">": // greater than
       return comp > 0;
     
-    case "<":
+    case "<": // less than
       return comp < 0;
     
-    case ">=":
+    case ">=": // greater than or equal
       return comp >= 0;
     
-    case "<=":
+    case "<=": // less than or equal
       return comp <= 0;
+    
+    case "<!>": // not between
+      invert = true;
+    case "<>": // between
+      if(thirdVar.Type != VariableType.Integer && thirdVar.Type != VariableType.Float){
+        return default_; // NAN
+      }else{
+        float comp2 = compare(firstVar, thirdVar);
+        return (comp < 0 && comp2 > 0) ^ invert; // v2 < v1 < v3
+      }
     
     default:
       return default_;
@@ -75,7 +88,7 @@ boolean checkCase(String line, int index){
             state = 1;
             break;
           default: // must be a single value
-            if(CurrentMacroArgs != null){ return checkIf(new TokenReturn(CurrentMacroArgs[0].Name, 0), "==", token, false); }
+            if(CurrentMacroArgs != null){ return checkIf(new TokenReturn(CurrentMacroArgs[0].Name, 0), "==", token, null, false); }
             else{ return false; }
         }
         break;

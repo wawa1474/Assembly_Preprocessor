@@ -142,8 +142,7 @@ void updateVariable(String var_, String value_){
   _Vars.set(var_, value_);
   
   if(var_.startsWith("__")){
-    value_ = value_.startsWith("\"") ? value_.substring(1) : value_; // strip leading and trailing "
-    value_ = value_.endsWith("\"") ? value_.substring(0, value_.length()-1) : value_;
+    value_ = stripStr(value_); // strip leading and trailing "
     switch(var_){
       case "__ext_db": ext_db = value_; break;
       case "__ext_db_wrapStart": ext_db_wrapStart = value_; break;
