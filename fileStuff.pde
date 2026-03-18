@@ -12,13 +12,17 @@ class PathReturn{ // "../../path/to/file/code.asm"
   }
   
   PathReturn(PathReturn input){ // has any one ever said that Java's pass-by-reference vs. pass-by-value sucks?
-    PathArray = new String[input.PathArray.length];
-    for(int i = 0; i < input.PathArray.length; i++){
-      PathArray[i] = input.PathArray[i];
+    if(input != null){
+      if(input.PathArray != null){
+        PathArray = new String[input.PathArray.length];
+        for(int i = 0; i < input.PathArray.length; i++){
+          PathArray[i] = input.PathArray[i];
+        }
+      }
+      Name = input.Name;
+      Extension = input.Extension;
+      Reverse = input.Reverse;
     }
-    Name = input.Name;
-    Extension = input.Extension;
-    Reverse = input.Reverse;
   }
   
   PathReturn(String n, String[] p, int r){
@@ -75,12 +79,16 @@ class FileHolder{
   }
   
   FileHolder(FileHolder input){
-    file = new PathReturn(input.file);
-    contents = new String[input.contents.length];
-    for(int i = 0; i < input.contents.length; i++){
-      contents[i] = input.contents[i];
+    if(input != null){
+      file = new PathReturn(input.file);
+      if(input.contents != null){
+        contents = new String[input.contents.length];
+        for(int i = 0; i < input.contents.length; i++){
+          contents[i] = input.contents[i];
+        }
+      }
+      indexArray = input.indexArray;
     }
-    indexArray = input.indexArray;
   }
   
   void setPath(PathReturn directory, PathReturn file_){
@@ -229,9 +237,9 @@ boolean checkFileName(){
 }
 
 void getNewFile(PathReturn base, PathReturn file){
-  if(_tmpFileHolder.contents != null && checkFileName()){
+  //if(_tmpFileHolder.contents != null && checkFileName()){ // I think we need to ALWAYS push 'old' file to stack...
     _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
-  }
+  //}
   _tmpFileHolder.setPath(base, file);
   _tmpFileHolder.load();
 }

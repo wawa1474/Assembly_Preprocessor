@@ -344,9 +344,9 @@ boolean checkMacros(String macro, String line, int index){
   for(int i = 0; i < _Files[_Files_Macros].size(); i++){
     if(_Files[_Files_Macros].get(i).file.Name.equals(macro)){ // this is some hairy indirection...
       _Files_Type = _Files_Macros;
-      if(_tmpFileHolder.contents != null && checkFileName()){ // this might be causing issues...
+      //if(_tmpFileHolder.contents != null && checkFileName()){ // this might be causing issues...
         _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
-      }
+      //}
       _tmpFileHolder = new FileHolder(_Files[_Files_Macros].get(i));
       setIndex(-1); // needs to be -1 due to a ++ at end of main loop
       pushMacroArgs(getMacroArgs(line, index, 0));
