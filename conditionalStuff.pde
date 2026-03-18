@@ -16,6 +16,9 @@ boolean checkIf(String line, int index){
       case "!=":
         return !firstVar.String.equals(secondVar.String);
       
+      case "": // check if var is defined
+        return _Vars.hasKey(firstToken.string.replace("%%",""));
+      
       default:
         return false;
     }
