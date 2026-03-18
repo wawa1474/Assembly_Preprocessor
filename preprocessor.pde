@@ -65,6 +65,14 @@ void setup(){
   exit();
 }
 
+/*
+  preprocessor will work through a file until it hits a #include
+  at which point, it will load and push the included file
+  and begin working through the new file until reaching another include or it reaches the end of the file
+  if it reaches the end of the current file, pop it from the stack
+  and continue working on existing files
+  if no more files exist, then we are done!
+*/
 void processInput(){
   _output = new StringList();
   
@@ -88,19 +96,7 @@ void processInput(){
             break;
           case "#include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            /*
-              preprocessor will work through a file until it hits a #include
-              at which point, it will load and push the included file
-              and begin working through the new file until reaching another include or it reaches the end of the file
-              if it reaches the end of the current file, pop it from the stack
-              and continue working on existing files
-              if no more files exist, then we are done!
-            */
-            println("push file");
-            //_tmpFileHolder.indexArray++;
-            _FileStack.push(_tmpFileHolder);
-            getNewFile(_tmpFileHolder.baseDirectory, splitFilepath(getNextToken(line, token.nextIndex).string.replace("\"", "")));
-            _tmpFileHolder.indexArray--;
+            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
             skip = true;
             break;
           case ".if":
@@ -134,6 +130,9 @@ void processInput(){
             skip = true;
             break;
           case "#include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
             break;
           default:
             // append line
@@ -178,6 +177,9 @@ void processInput(){
             skip = true;
             break;
           case "#include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
             break;
           default:
             // append line

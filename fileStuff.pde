@@ -245,12 +245,14 @@ PathReturn splitFilepath(String file){
   return output;
 }
 
-void getNewFile(String base, PathReturn file){
+void getNewFile(String base, String line){
+  PathReturn file = splitFilepath(line.replace("\"", ""));
+  _FileStack.push(_tmpFileHolder);
   _tmpFileHolder.file = file;
   _tmpFileHolder.filename = file.getAll();
   _tmpFileHolder.baseDirectory = base + file.getPath();
   _tmpFileHolder.contents = loadStrings(base + file);
-  _tmpFileHolder.indexArray = 0;
+  _tmpFileHolder.indexArray = -1; // needs to be -1 due to an ++ at end of main loop
   _tmpFileHolder.indexChar = 0;
   println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + base + file);
 }

@@ -62,16 +62,8 @@ void parseIf(int curDepth){
             break;
           case "#include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            /*
-              preprocessor will work through a file until it hits a #include
-              at which point, it will load and push the included file
-              and begin working through the new file until reaching another include or it reaches the end of the file
-              if it reaches the end of the current file, pop it from the stack
-              and continue working on existing files
-              if no more files exist, then we are done!
-            */
-            //_FileStack.push(_tmpFileHolder);
-            //getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, firstToken.nextIndex).string.replace("\"", ""));
+            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
             break;
           case ".if":
             boolean ifTrue = checkIf(line, token.nextIndex);
@@ -104,6 +96,9 @@ void parseIf(int curDepth){
             skip = true;
             break;
           case "#include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
             break;
           default:
             // append line
@@ -148,6 +143,9 @@ void parseIf(int curDepth){
             skip = true;
             break;
           case "#include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
             break;
           default:
             // append line
