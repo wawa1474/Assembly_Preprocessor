@@ -4,7 +4,12 @@ class PathReturn{ // "../../path/to/file/code.asm"
   String Extension; // "asm"
   int Reverse; // "2"
   
-  PathReturn(){}
+  PathReturn(){
+    PathArray = new String[0];
+    Name = "";
+    Extension = "";
+    Reverse = 0;
+  }
   
   PathReturn(PathReturn input){ // has any one ever said that Java's pass-by-reference vs. pass-by-value sucks?
     PathArray = new String[input.PathArray.length];
@@ -93,6 +98,11 @@ class FileHolder{
     indexArray = input.indexArray;
   }
   
+  void setPath(PathReturn directory, PathReturn file_){
+    if(file == null){ file = new PathReturn(); }
+    file.setPath(directory, file_);
+  }
+  
   String getLine(int l){
     if(l < contents.length){
       return contents[l];
@@ -129,56 +139,10 @@ class FileHolder{
   }
 }
 
-class FileStack{
-  ArrayList<FileHolder> files;
-  int size;
-  
-  FileStack(){
-    files = new ArrayList<FileHolder>();
-    size = 0;
-  }
-  
-  void push(FileHolder f){
-    FileHolder tmp = new FileHolder(f);
-    files.add(tmp);
-    size++;
-  }
-  
-  FileHolder pop(){
-    size--;
-    FileHolder out = new FileHolder(files.get(size));
-    files.remove(size);
-    return out;
-  }
-  
-  String getLine(int l){
-    return files.get(size - 1).getLine(l);
-  }
-  
-  String getLine(){
-    return files.get(size - 1).getLine();
-  }
-  
-  String getNextLine(){
-    return files.get(size - 1).getNextLine();
-  }
-  
-  void nextLine(){
-    files.get(size - 1).indexArray++;
-  }
-  
-  int linesLeft(){
-    return files.get(size - 1).linesLeft();
-  }
-}
-
 void checkIncludeFile(String line, int index){
   TokenReturn token = getNextToken(line,index);
   switch(token.string){
     case "macro":
-      println((getIndex()) + " : " + line);
-      buildMacro(loadStrings(getFile().file.getPath() + getNextToken(line, token.nextIndex).string));
-      break;
     case "file":
       println("push file: " + (getIndex()) + " : " + line);
       getNewFile(getFile().file, getNextToken(line, token.nextIndex).string);
@@ -312,16 +276,25 @@ PathReturn splitFilepath(String file){
   return output;
 }
 
+boolean checkFileName(){
+  if(_Files[_Files_Inputs].size() > 0){
+    return !_tmpFileHolder.file.Name.equals(_Files[_Files_Inputs].get(_Files[_Files_Inputs].size() - 1).file.Name);
+  }else{
+    return true;
+  }
+}
+
 void getNewFile(PathReturn base, PathReturn file){
-  if(_tmpFileHolder.file == null){ _tmpFileHolder.file = new PathReturn(); }
-  _tmpFileHolder.file.setPath(base, file);
+  if(_tmpFileHolder.contents != null && checkFileName()){
+    _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
+  }
+  _tmpFileHolder.setPath(base, file);
   _tmpFileHolder.load();
   println("getNewFile: [" + getLineLength() + "] " + _tmpFileHolder.file);
 }
 
 void getNewFile(PathReturn base, String line){
   //_FileStack.push(_tmpFileHolder);
-  _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
   getNewFile(base, splitFilepath(line.replace("\"", "")));
   setIndex(-1); // needs to be -1 due to a ++ at end of main loop
 }
@@ -336,9 +309,10 @@ void popFileIfLastLine(){
   //  _Files_Type = _Files_Inputs;
   //}
   while(getIndex() >= getLineLength() - 1 && _Files[_Files_Inputs].size() > 0){ // _FileStack.size > 0){
-    println("pop file: " + _tmpFileHolder.file);
+    println("pop file: [" + _Files[_Files_Inputs].size() + "] " + getFile().file);
     //_tmpFileHolder = _FileStack.pop();
+    _Files_Type = _Files_Inputs;
     _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].remove(_Files[_Files_Inputs].size() - 1));
-    println(" for: " + _tmpFileHolder.file);
+    println(" for: " + getFile().file);
   }
 }

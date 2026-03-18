@@ -6,18 +6,18 @@ boolean checkIf(String line, int index){
   if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
     return checkCondition(firstVar.Integer, action, secondVar.Integer);
   }else{
-    firstVar = getNextVariable(getVariable(firstVar, null, null), 0);
-    secondVar = getNextVariable(getVariable(secondVar, null, null), 0);
+    firstVar = getNextVariable(getVariable(firstVar), 0);
+    secondVar = getNextVariable(getVariable(secondVar), 0);
     
     if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
       return checkCondition(firstVar.Integer, action, secondVar.Integer);
     }else{
       switch(action.string){
         case "==":
-          return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
+          return getVariable(firstVar).equals(getVariable(secondVar)); // check if strings are equal
         
         case "!=":
-          return !getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null));
+          return !getVariable(firstVar).equals(getVariable(secondVar));
         
         default:
           return false;
@@ -80,7 +80,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             buildMacro(line, token.nextIndex);
             break;
           default:
-            skip = checkMacros(token.string, line);//checkMacros(token.string, line, token.nextIndex);//
+            skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
@@ -106,7 +106,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             buildMacro(line, token.nextIndex);
             break;
           default:
-            skip = checkMacros(token.string, line);//checkMacros(token.string, line, token.nextIndex);//
+            skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
@@ -151,7 +151,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             buildMacro(line, token.nextIndex);
             break;
           default:
-            skip = checkMacros(token.string, line);//checkMacros(token.string, line, token.nextIndex);//
+            skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;

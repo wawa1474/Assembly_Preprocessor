@@ -1,25 +1,23 @@
 StringList _output;
 String _outputFile;
 boolean _exit = true;
-//FileStack _FileStack; // stack to hold loaded files
 FileHolder _tmpFileHolder = new FileHolder(); // tmp variable to hold current working file
-ArrayList<Macro> _Macros;
 StringDict _Vars;
 
 ArrayList<FileHolder>[] _Files = new ArrayList[2]; // macros as arrays of strings would allow reuse of main parsing loop...
 String _macro_Name = "";
-//String[] _macro_Args;
+String[] _macro_Args;
 ArrayList<String[]> _macro_Args2 = new ArrayList<String[]>();
 StringList _macro_Content = new StringList();
 final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;
 int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
-int _Files_Current = 0; // contains the current macro, or last pushed file
+//int _Files_Current = 0; // contains the current macro, or last pushed file
 // /\ these might want to be pushed/popped to allow recusrive macro stuff...
 
-String getNextLine(){
-  return _Files[_Files_Type].get(_Files_Current).getNextLine();
-}
+//String getNextLine(){
+//  return _Files[_Files_Type].get(_Files_Current).getNextLine();
+//}
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -45,13 +43,15 @@ String getNextLine(){
 String _VERSION = "V1234";
 void setup(){
   println("sketchPath() = " + sketchPath());
+  _Files[0] = new ArrayList<FileHolder>();
+  _Files[1] = new ArrayList<FileHolder>();
   
   if(args != null){ // allows input from command line
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
       if(arg.contains("--input")){
         PathReturn filename = splitFilepath(split(arg, '=')[1]);
-        println("Input: " + filename + filename.Reverse);
+        println("Input: " + filename + " [" + filename.Reverse + "]");
         _outputFile = filename.getPath() + filename.Name + ".obj";
         getNewFile(splitFilepath(sketchPath()), filename);
         _exit = false;
@@ -70,22 +70,18 @@ void setup(){
     println("\tOutput filename will be <input-filename>.obj");
     println("\t#include's will be opened and concatenated into a single output file.");
   }else{
-    //_FileStack = new FileStack();
-    _Macros = new ArrayList<Macro>();
     _Vars = new StringDict();
-    _Files[0] = new ArrayList<FileHolder>();
-    _Files[1] = new ArrayList<FileHolder>();
     
     processInput();
     
     
     println("Total Macros: " + _Files[_Files_Macros].size());
-    if(_Files[_Files_Macros].size() > 0){
-      FileHolder tmp = _Files[_Files_Macros].get(_Files[_Files_Macros].size() - 1);
-      println("Macro Name: " + tmp.file.Name);
-      print("Macro Args: ");printArray(tmp.file.PathArray);
-      print("Macro Contents: ");printArray(tmp.contents);
-    }
+    //if(_Files[_Files_Macros].size() > 0){
+    //  FileHolder tmp = _Files[_Files_Macros].get(_Files[_Files_Macros].size() - 1);
+    //  println("Macro Name: " + tmp.file.Name);
+    //  print("Macro Args: ");printArray(tmp.file.PathArray);
+    //  print("Macro Contents: ");printArray(tmp.contents);
+    //}
   }
   
   exit();
@@ -142,8 +138,7 @@ void processInput(){
         parseLet(line, token.nextIndex);
         break;
       default:
-        skip = checkMacros(token.string, line); // will skip outputting a raw macro line, but otherwise will append all lines
-        //checkMacros(token.string, line, token.nextIndex);//
+        skip = checkMacros(token.string, line, token.nextIndex); // will skip outputting a raw macro line, but otherwise will append all lines
         break;
     }
     

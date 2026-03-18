@@ -15,49 +15,6 @@ void parseLet(String line, int index){
   _Vars.set(variable.string, value.Identifier);
 }
 
-Token parseVariable(String line, TokenType variable){
-  String prefix = "";
-  String value = "";
-  String suffix = "";
-  int state = 0;
-  
-  for(int i = 0; i < line.length(); i++){
-    char c = line.charAt(i);
-    
-    switch(state){
-      case 0: // build prefix
-        if(c != '%'){
-          prefix += c;
-        }else{
-          state = 1;
-        }
-        break;
-      
-      case 1: // eat extra '%'
-        if(c != '%'){
-          value += c;
-          state = 2;
-        }
-        break;
-      
-      case 2: // build value
-        if(isAlpha(c) || isNumber(c) || c == '_'){
-          value += c;
-        }else{
-          suffix += c;
-          state = 3;
-        }
-        break;
-      
-      case 3: // build suffix
-        suffix += c;
-        break;
-    }
-  }
-  
-  return new Token(variable, prefix + "%" + suffix, value);
-}
-
 Variable[] varListToArray(ArrayList<Variable> list){
   Variable[] out = new Variable[list.size()];
   
@@ -257,7 +214,7 @@ Token2 getNextVariable(String line, int index){
   return new Token2(type, value, integer, varListToArray(vars), index);
 }
 
-String getVariable(Token2 variable_, Macro macro_, String[] macroArgs_){
+String getVariable(Token2 variable_){
   String output = variable_.Identifier;
   if(variable_.Variables == null || variable_.Variables.length == 0){ return output; }
   
@@ -265,17 +222,18 @@ String getVariable(Token2 variable_, Macro macro_, String[] macroArgs_){
     Variable v = variable_.Variables[i];
     switch(v.type){
       case Macro_Arg:
-        if(macro_ != null){
-          for(int a = 0; a < macro_.Arguments.length; a++){
-            if(macro_.Arguments[a].name.equals(v.value)){
-              if(a >= macroArgs_.length){
-                output = output.replace("\\%{" + i + "}", macro_.Arguments[a].defualt);
-              }else{
-                output = output.replace("\\%{" + i + "}", macroArgs_[a]);
-              }
+        String[] lineMacroArgs = peekMacroArgs();
+        FileHolder curMacro = getFile();
+        for(int a = 0; a < curMacro.file.PathArray.length; a++){
+          if(curMacro.file.PathArray[a].equals(v.value)){
+            if(a >= lineMacroArgs.length){
+              output = output.replace("\\%{" + i + "}", curMacro.file.PathArray[a].split("=")[1]);
+            }else{
+              output = output.replace("\\%{" + i + "}", curMacro.file.PathArray[a]);
             }
           }
         }
+        break;
       
       case Global_Var:
         output = output.replace("\\%{" + i + "}", _Vars.get(v.value));
