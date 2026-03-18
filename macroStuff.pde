@@ -6,7 +6,7 @@ void buildMacro(String line_, int index){
   int state = 0;
   incIndex(); // skip .macro line
   
-  for(; getIndex() < getLineLength() && state != -1; incIndex()){
+  for(; getIndex() < getFileLength() && state != -1; incIndex()){
     String line = getLine();
     token = getNextToken(line,0);
     
@@ -34,7 +34,6 @@ String[] getMacroArgs(String line, int index){
     if(token.string.equals(";")){
       state = -1;
     }else{
-      //if(token.string.lastIndexOf(',') == token.string.length() - 1){ println("[" + getIndex() + "] " + line); }
       Args.append(
         token.string.lastIndexOf(',') == token.string.length() - 1 // "arg," -> "arg"
           ? token.string.substring(0, token.string.length() - 1)
@@ -73,8 +72,6 @@ boolean checkMacros(String macro, String line, int index){
   for(int i = 0; i < _Files[_Files_Macros].size(); i++){
     if(_Files[_Files_Macros].get(i).file.Name.equals(macro)){ // this is some hairy indirection...
       _Files_Type = _Files_Macros;
-      //_output.append("; " + line);
-      //println("push file for macro: " + line + " on line: " + getIndex());
       if(_tmpFileHolder.contents != null && checkFileName()){
         _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
       }

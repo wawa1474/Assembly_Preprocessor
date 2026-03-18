@@ -53,19 +53,7 @@ String cleanComments(String line){
   return output;
 }
 
-class IntReturn{
-  int value;
-  boolean valid;
-  
-  IntReturn(){}
-  
-  IntReturn(int v, boolean b){
-    value = v;
-    valid = b;
-  }
-}
-
-IntReturn tryInt(String in){
+VariableReturn tryInt(String in){
   String output = "";
   int state = 0;
   boolean valid = true;
@@ -154,7 +142,6 @@ IntReturn tryInt(String in){
   }
   
   int value = 0;
-  //println(value + " : " + valid);
   if(valid){
     switch(state){
       case 2: // hexadecimal
@@ -175,5 +162,5 @@ IntReturn tryInt(String in){
     }
   }
   
-  return new IntReturn(value, valid);
+  return new VariableReturn("" + value, value, valid);
 }

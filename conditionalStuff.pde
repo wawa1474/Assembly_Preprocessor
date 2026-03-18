@@ -1,27 +1,23 @@
 boolean checkIf(String line, int index){
-  Token2 firstVar = getNextVariable(line, index);
-  TokenReturn action = getNextToken(line, firstVar.nextIndex);
-  Token2 secondVar = getNextVariable(line, action.nextIndex);
+  TokenReturn firstToken = getNextToken(line, index);
+  TokenReturn action = getNextToken(line, firstToken.nextIndex);
+  TokenReturn secondToken = getNextToken(line, action.nextIndex);
   
-  if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
+  VariableReturn firstVar = parseVariables(firstToken.string);
+  VariableReturn secondVar = parseVariables(secondToken.string);
+  
+  if(firstVar.Number && secondVar.Number){
     return checkCondition(firstVar.Integer, action, secondVar.Integer);
   }else{
-    firstVar = getNextVariable(getVariable(firstVar), 0);
-    secondVar = getNextVariable(getVariable(secondVar), 0);
-    
-    if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-      return checkCondition(firstVar.Integer, action, secondVar.Integer);
-    }else{
-      switch(action.string){
-        case "==":
-          return getVariable(firstVar).equals(getVariable(secondVar)); // check if strings are equal
-        
-        case "!=":
-          return !getVariable(firstVar).equals(getVariable(secondVar));
-        
-        default:
-          return false;
-      }
+    switch(action.string){
+      case "==":
+        return firstVar.String.equals(secondVar.String); // check if strings are equal
+      
+      case "!=":
+        return !firstVar.String.equals(secondVar.String);
+      
+      default:
+        return false;
     }
   }
 }
@@ -56,16 +52,15 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
   incIndex(); // skip the .if line
   int curDepth = depth_;
   
-  for(; getIndex() < getLineLength(); incIndex()){
+  for(; getIndex() < getFileLength(); incIndex()){
     String line = getLine();
     TokenReturn token = getNextToken(line,0);
     boolean skip = true;
-    //println("parseIf [" + curDepth + "|" + depth_ + "|" + _tmpFileHolder.indexArray + "] " + line);
     
     switch(state){
       case 0:
         switch(token.string){
-          case ".include": // .include macro|file "path/name.ext"
+          case ".include": // .include "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
             break;
           case ".if":
@@ -96,7 +91,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             break;
           case ".endif":
             return;
-          case ".include": // .include macro|file "path/name.ext"
+          case ".include": // .include "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
             break;
           case ".let":
@@ -141,7 +136,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             break;
           case ".endif":
             return;
-          case ".include": // .include macro|file "path/name.ext"
+          case ".include": // .include "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
             break;
           case ".let":
@@ -172,8 +167,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
     }
     
     if(!skip){
-      //println("[" + getIndex() + "] " + cleanComments(parseVariables(line)));
-      _output.append(cleanComments(parseVariables(line)));
+      _output.append(cleanComments(parseVariables(line).String));
     }
     
     popFileIfLastLine();

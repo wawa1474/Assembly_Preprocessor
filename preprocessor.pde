@@ -12,22 +12,14 @@ StringList _macro_Content = new StringList();
 final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;
 int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
-//int _Files_Current = 0; // contains the current macro, or last pushed file
-// /\ these might want to be pushed/popped to allow recusrive macro stuff...
-
-//String getNextLine(){
-//  return _Files[_Files_Type].get(_Files_Current).getNextLine();
-//}
-
-//@echo off
-//java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
+// /\ this might want to be pushed/popped to allow recursive macro stuff...
 
 //processing-java's directory must be added to PATH
-//--sketch refers the the directory, not the file
+//--sketch refers to the directory, not the file
 //anything after --run is passed as args
 //processing-java.exe --sketch=%~dp0 --run 123 123
 
-// takes in .asm files (w/ includes) and outputs .obj files
+// takes in .asm files (w/ includes) and outputs single .obj file
 
 /*
   has to handle includes as well, but should be able to be told not to bother
@@ -40,6 +32,7 @@ int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
       f32(1234.5678) 32 bit floating point number - Float (4 bytes)
       f64(1234.5678) 64 bit floating point number - Double (8 bytes)
 */
+
 String _VERSION = "V1234";
 void setup(){
   println("sketchPath() = " + sketchPath());
@@ -111,21 +104,20 @@ String getLine(){
   return _tmpFileHolder.contents[_tmpFileHolder.indexArray];
 }
 
-int getLineLength(){
+int getFileLength(){
   return _tmpFileHolder.contents.length;
 }
 
 void processInput(){
   _output = new StringList();
   
-  for(; getIndex() < getLineLength(); incIndex()){
+  for(; getIndex() < getFileLength(); incIndex()){
     String line = getLine();
     TokenReturn token = getNextToken(line,0);
     boolean skip = true;
-    //println("processInput [" + _tmpFileHolder.indexArray + "] " + line);
     
     switch(token.string){
-      case ".include": // .include macro|file "path/name.ext"
+      case ".include": // .include "path/name.ext"
         checkIncludeFile(line, token.nextIndex);
         break;
       case ".macro":
@@ -143,8 +135,7 @@ void processInput(){
     }
     
     if(!skip){
-      //println("[" + getIndex() + "] " + cleanComments(parseVariables(line)));
-      _output.append(cleanComments(parseVariables(line)));
+      _output.append(cleanComments(parseVariables(line).String));
     }
     
     popFileIfLastLine();

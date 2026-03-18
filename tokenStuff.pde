@@ -1,22 +1,3 @@
-enum TokenType{
-  Null,
-  External, // assembly things that the preprocessor doesn't deal with
-  Argument, // macro argument used within macro definition
-  Label, // label used within macro definition
-  Variable, // variable used within macro definition
-  Include, // include used within macro definition
-  Let, // let variable be value used within macro definition
-  Newline, // end of line
-  Macro,
-  EndMacro,
-  If,
-  ElseIf,
-  Else,
-  EndIf,
-  Comment,
-  Number,
-}
-
 class TokenReturn{
   String string;
   int nextIndex;
@@ -28,63 +9,6 @@ class TokenReturn{
   TokenReturn(String t, int n){
     string = t;
     nextIndex = n;
-  }
-}
-
-enum VarType{
-  Null,
-  Macro_Arg, // value pulled from macro argument
-  Global_Var // value pulled from global variable
-}
-
-class Variable{
-  VarType type;
-  String value;
-  
-  Variable(){}
-  
-  Variable(VarType t, String v){
-    type = t;
-    value = v;
-  }
-}
-
-class Token2{
-  TokenType Type = TokenType.Null;
-  String Identifier;
-  int Integer;
-  Variable[] Variables;
-  int nextIndex;
-  
-  Token2(){}
-  
-  Token2(TokenType t, String n){
-    Type = t;
-    Identifier = n;
-  }
-  
-  Token2(TokenType t, String n, Variable[] v, int r){
-    Type = t;
-    Identifier = n;
-    Variables = v;
-    nextIndex = r;
-  }
-  
-  Token2(TokenType t, String n, int i, Variable[] v, int r){
-    Type = t;
-    Identifier = n;
-    Integer = i;
-    Variables = v;
-    nextIndex = r;
-  }
-  
-  String toString(){
-    switch(Type){
-      case Number:
-        return "[" + Type.name() + "] " + Integer;
-      default:
-        return "[" + Type.name() + "] " + Identifier;
-    }
   }
 }
 
