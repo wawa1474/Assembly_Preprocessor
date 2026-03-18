@@ -29,7 +29,8 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".include": checkIncludeFile(line, token.nextIndex); break;
           case ".if": doIf(line, token, depth_); break;
-          case ".let": parseLet(line, token.nextIndex); break;
+          case ".let": parseLet(line, token.nextIndex); break; // let/set? - set a variable that can be modified
+          case ".equ": break; // equate - set a variable that can't be modified
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
           case ".repeat": doRepeat(depth_); break;

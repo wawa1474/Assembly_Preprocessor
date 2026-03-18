@@ -5,6 +5,14 @@
 String testRPN_input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ** \\&{token_prec} + \\#{random,10,\\&{token_prec}})"; // infix notation to be converted
 // 123 2 45 + 2.3 5 / 0.2 ^ * * 1 - 5 1 5 - \\&{token_prec} ** * % \\#{random,10,50} +
 
+// we only have to perform infix to RPN conversion for our own code (or for "\("), otherwise we can simply emit the unconverted line
+
+/*
+5 - 5, 5-5, 5 -5, 5- 5 = minus
+5 - -5 = minus & unary negate
+(-5) = unary negate
+*/
+
 void testRPN(){
   if(_Vars == null){ _Vars = new StringDict(); }
   println("input:" + testRPN_input);

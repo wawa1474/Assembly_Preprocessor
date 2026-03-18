@@ -192,6 +192,7 @@ TokenReturn cleanEscape(String line, int index){
             state = 1;
             break;
           case '(': // escaped open-paren means we need to do infixToRPN stuff
+            // doing infix to RPN conversion and then emitting the result is useful for asm-time forth stuff
             //token += lineToRPN(line, index);
             break;
           default:

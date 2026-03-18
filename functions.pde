@@ -13,8 +13,30 @@ String parseFunction(String input){
   //}
   
   switch(args[0].Name){
+    case "push": // why yes, my preprocessor is turing complete...
+    case "pop":
+    case "rot": // (n1 n2 n3 - n2 n3 n1)
+    case "-rot": // (n1 n2 n3 - n3 n1 n2)
+    case "tuck": // (v1 - v2 v1)
+    case "nip": // (v1 v2 - v2)
+    case "under": // (v1 v2 - v1 v1 v2)
+    case "pick": // (a1 - v1)
+    case "swap": // (v1 v2 - v2 v1)
+    case "drop": // (v1 v2 - v1)
+    case "dup": // (v1 - v1 v1)
+    case "over": // (v1 v2 - v1 v2 v1)
+    case "2swap": // (v1 v2 v3 v4 - v3 v4 v1 v2)
+    case "2drop": // (v1 v2 -)
+    case "2dup": // (v1 v2 - v1 v2 v1 v2)
+    case "2over": // (v1 v2 v3 v4 - v1 v2 v3 v4 v1 v2)
+      break;
+    
     case "strlen":
       output += args[1].Name.length();
+      break;
+    
+    case "str":
+      output += "\"" + args[1].Name + "\"";
       break;
     
     case "random":
@@ -73,6 +95,11 @@ String parseFunction(String input){
         default: output += "\\!{toInt, input has NAN type}"; break;
       }
       break;
+    
+    case "formatStr":
+      // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
+      // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}
+      // may need to change how args[] is populated, so that we can know indices...
   }
   
   return output;
