@@ -3,6 +3,19 @@ String stripStr(String input){
   return input.endsWith("\"") ? input.substring(0, input.length()-1) : input;
 }
 
+String[] splitVersion(String input){
+  input = input.toLowerCase();
+  input = input.startsWith("v") ? input.substring(1) : input; // strip leading 'V'
+  
+  String[] tmp = split(input, "."); // 2.2.0-pr.1 -> [2, 2, 0-pr, 1]
+  
+  if(tmp.length > 3){
+    tmp[2] = split(tmp[2], "-")[0];
+  }
+  
+  return tmp;
+}
+
 String getLabelUUID(){
   return UUID.randomUUID().toString().replace('-', '_');
 }

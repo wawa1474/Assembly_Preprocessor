@@ -126,6 +126,34 @@ String parseFunction(String input){
       output = stripStr(args[1].Name); // strip leading and trailing "
       break;
     
+    case "checkVer":
+      args[1].Name = stripStr(args[1].Name);
+      args[2].Name = stripStr(args[2].Name);
+      boolean cond = true;
+      String[] v1 = splitVersion(args[2].Name);
+      if(args.length > 3){
+        args[3].Name = stripStr(args[3].Name);
+        if(hyperVerboseOutput){ println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name); }
+        String[] v2 = splitVersion(args[3].Name);
+        for(int i = 0; i < v1.length; i++){
+          String a1 = _version[i] != null ? _version[i] : "0";
+          String a2 = v1[i] != null ? v1[i] : "0";
+          String a3 = v2[i] != null ? v2[i] : "0";
+          if(hyperVerboseOutput){ println(a1 + " " + args[1].Name + " " + a2 + " " + a3 + " = " + cond); }
+          cond &= checkCondition(parseVariables(a1), args[1].Name, parseVariables(a2), parseVariables(a3), false);
+        }
+      }else{
+        if(hyperVerboseOutput){ println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name); }
+        for(int i = 0; i < v1.length; i++){
+          String a1 = _version[i] != null ? _version[i] : "0";
+          String a2 = v1[i] != null ? v1[i] : "0";
+          if(hyperVerboseOutput){ println(a1 + " " + args[1].Name + " " + a2 + " = " + cond); }
+          cond &= checkCondition(parseVariables(a1), args[1].Name, parseVariables(a2), null, false);
+        }
+      }
+      output = str(cond);
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}

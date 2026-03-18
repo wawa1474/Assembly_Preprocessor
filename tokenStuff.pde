@@ -240,7 +240,7 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index, false);
+            TokenReturn output = cleanEscape(line, index, outputEscape); // if we're not stripping escape tokens, then don't do it on recurse
             index = output.nextIndex;
             token += output.string;
             break;

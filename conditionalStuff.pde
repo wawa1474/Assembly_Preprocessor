@@ -57,7 +57,7 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
     case "<!>": // not between
       invert = true;
     case "<>": // between
-      if(thirdVar.Type != VariableType.Integer && thirdVar.Type != VariableType.Float){
+      if(thirdVar.Number != true){
         return default_; // NAN
       }else{
         float comp2 = compare(firstVar, thirdVar);
