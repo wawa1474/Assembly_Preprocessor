@@ -91,9 +91,8 @@ class Token2{
 class Token{
   TokenType Type = TokenType.Null;
   String Identifier;
-  String Value;
-  String Variable;
-  Macro macro;
+  String VarSrc;
+  String VarDest;
   int nextIndex;
   
   Token(){}
@@ -110,23 +109,23 @@ class Token{
   Token(TokenType t, String s, String v){
     Type = t;
     Identifier = s;
-    Value = v;
+    VarSrc = v;
   }
   
   Token(TokenType t, String s, String v, int r){
     Type = t;
     Identifier = s;
-    Value = v;
+    VarSrc = v;
     nextIndex = r;
   }
   
   String toString(){
     if(Type == TokenType.Argument || Type == TokenType.Variable){
-      return "{" + Type.name() + "} " + Identifier.replace("%", Value);
+      return "{" + Type.name() + "} " + Identifier.replace("%", VarSrc);
     //if(Type == TokenType.Macro){
     //  return "{Macro} " + macro.argString();
     }else if(Type == TokenType.Let){
-      return "{Let} " + Identifier + " = " + Value.replace("%", Variable);
+      return "{Let} " + Identifier + " = " + VarSrc.replace("%", VarDest);
     }else{
       return "{" + Type.name() + "} " + Identifier;
     }

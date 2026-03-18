@@ -74,6 +74,7 @@ void processInput(){
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+    println(_tmpFileHolder.indexArray + " : " + line);
     TokenReturn token = getNextToken(line,0);
     boolean skip = false;
     
@@ -82,7 +83,7 @@ void processInput(){
         switch(token.string){
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
+            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line, token.nextIndex).string));
             skip = true;
             break;
           case "#include":
@@ -95,8 +96,12 @@ void processInput(){
               and continue working on existing files
               if no more files exist, then we are done!
             */
-            //_FileStack.push(_tmpFileHolder);
-            //getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, firstToken.nextIndex).string.replace("\"", ""));
+            println("push file");
+            //_tmpFileHolder.indexArray++;
+            _FileStack.push(_tmpFileHolder);
+            getNewFile(_tmpFileHolder.baseDirectory, splitFilepath(getNextToken(line, token.nextIndex).string.replace("\"", "")));
+            _tmpFileHolder.indexArray--;
+            skip = true;
             break;
           case ".if":
             boolean ifTrue = checkIf(line, token.nextIndex);
@@ -199,7 +204,7 @@ void processInput(){
       _output.append(line);
     }
     
-    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length && _FileStack.size > 0){
+    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
       print("pop file: " + _tmpFileHolder.filename);
       _tmpFileHolder = _FileStack.pop();
       println(" for: " + _tmpFileHolder.filename);

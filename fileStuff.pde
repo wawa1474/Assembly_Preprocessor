@@ -88,6 +88,7 @@ class FileStack{
   void push(FileHolder f){
     FileHolder tmp = new FileHolder();
     tmp.baseDirectory = f.baseDirectory;
+    tmp.file = f.file;
     tmp.contents = f.contents;
     tmp.filename = f.filename;
     tmp.indexArray = f.indexArray;
@@ -98,7 +99,16 @@ class FileStack{
   
   FileHolder pop(){
     size--;
-    return files.remove(size);
+    FileHolder tmp = files.get(size);
+    FileHolder out = new FileHolder();
+    out.file = tmp.file;
+    out.baseDirectory = tmp.baseDirectory;
+    out.contents = tmp.contents;
+    out.filename = tmp.filename;
+    out.indexArray = tmp.indexArray;
+    out.indexChar = tmp.indexChar;
+    files.remove(size);
+    return out;
   }
   
   String getLine(int l){
@@ -236,11 +246,11 @@ PathReturn splitFilepath(String file){
 }
 
 void getNewFile(String base, PathReturn file){
-  println("getNewFile: " + base + file);
   _tmpFileHolder.file = file;
   _tmpFileHolder.filename = file.getAll();
-  _tmpFileHolder.baseDirectory = file.getPath();
+  _tmpFileHolder.baseDirectory = base + file.getPath();
   _tmpFileHolder.contents = loadStrings(base + file);
   _tmpFileHolder.indexArray = 0;
   _tmpFileHolder.indexChar = 0;
+  println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + base + file);
 }

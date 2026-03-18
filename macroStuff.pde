@@ -209,7 +209,7 @@ String[] parseMacro(Macro macro, String line){
         //printArray(macro.Arguments);
         //printArray(args);
         for(int a = 0; a < macro.Arguments.length; a++){
-          if(macro.Arguments[a].name.equals(t.Value)){
+          if(macro.Arguments[a].name.equals(t.VarSrc)){
             //println("{[{[" + t.Str + "}]}]");
             if(a >= macroArgs.length){
               cur += macro.Arguments[a].defualt;
@@ -225,22 +225,22 @@ String[] parseMacro(Macro macro, String line){
       case Label:
         break;
       case Variable:
-        cur += t.Identifier.replace("%", _Vars.get(t.Value));
+        cur += t.Identifier.replace("%", _Vars.get(t.VarSrc));
         break;
       case Include:
         break;
       case Let: // TODO: .let needs to handle variables and arguments!
         //println("var {" + t.Variable + "} and {" + t.Str.replace("%", t.Value) + "}");
         //cur += ";.let " + t.Variable + " " + t.Str.replace("%", t.Value);
-        String v = _Vars.get(t.Value);
+        String v = _Vars.get(t.VarSrc);
         if(v != null){
           //println("set var {" + t.Variable + "} to {" + t.Value + "}");
-          _Vars.set(t.Variable, t.Identifier.replace("%", t.Value));
+          _Vars.set(t.VarDest, t.Identifier.replace("%", t.VarSrc));
         }else{
           for(int a = 0; a < macro.Arguments.length; a++){
-            if(macro.Arguments[a].name.equals(t.Value)){
+            if(macro.Arguments[a].name.equals(t.VarSrc)){
               //println("set var {" + t.Str + "} to {" + args[a] + "}");
-              _Vars.set(t.Variable, t.Identifier.replace("%", macroArgs[a]));
+              _Vars.set(t.VarDest, t.Identifier.replace("%", macroArgs[a]));
               break;
             }
           }
@@ -310,14 +310,14 @@ Macro cleanMacro(Macro macro){
         break;
       
       case 1:
-        tmpT.Variable = s;
+        tmpT.VarDest = s;
         state = 2;
         break;
       
       case 2:
         Token tmp = parseVariable(s, TokenType.Let); // TODO: rework parseVariable to work for .let
         tmpT.Identifier = tmp.Identifier;
-        tmpT.Value = tmp.Value;
+        tmpT.VarSrc = tmp.VarSrc;
         newline = true;
         push = true;
         break;
