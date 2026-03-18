@@ -127,10 +127,11 @@ void finalizeNewMacro(){
 }
 
 boolean checkMacros(String macro, String line, int index){
+  //hm.get("");
   for(int i = 0; i < _Files[_Files_Macros].size(); i++){
     if(_Files[_Files_Macros].get(i).file.Name.equals(macro)){ // this is some hairy indirection...
       _Files_Type = _Files_Macros;
-      if(_tmpFileHolder.contents != null && checkFileName()){
+      if(_tmpFileHolder.contents != null && checkFileName()){ // this might be causing issues...
         _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
       }
       _tmpFileHolder = new FileHolder(_Files[_Files_Macros].get(i));
@@ -138,6 +139,20 @@ boolean checkMacros(String macro, String line, int index){
       pushMacroArgs(getMacroArgs(line, index, 0));
       return true;
     }
+  }
+  return false;
+}
+
+HashMap<String, FileHolder> macroMap = new HashMap<String, FileHolder>(); // do we instead use a hashmap for macros?
+boolean chackMacrosHash(String macro, String line, int index){
+  FileHolder tmp = macroMap.get(macro);
+  if(tmp != null){
+    _Files_Type = _Files_Macros;
+    _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
+    _tmpFileHolder = new FileHolder(tmp);
+    setIndex(-1); // needs to be -1 due to a ++ at end of main loop
+    pushMacroArgs(getMacroArgs(line, index, 0));
+    return true;
   }
   return false;
 }
