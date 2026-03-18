@@ -82,7 +82,7 @@ void setup(){
     processInput();
   }
   
-  println(parseVariable("le(%%lastWord`16)", true));
+  println(parseVariable("le(%%lastWord`16)", TokenType.Variable));
   println(getMacroArgs("dfw \"DOCON\", DOCON, 0x00"));
   
   exit();
@@ -101,14 +101,14 @@ void processInput(){
   defines = new IntDict();
   
   boolean skip = false;
-  while(tmpFileHolder.indexArray < 150){//tmpFileHolder.contents.length){
+  while(tmpFileHolder.indexArray < tmpFileHolder.contents.length){ //1890){//
     skip = false;
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
     
     String firstToken = getNextToken(line, 0).string;
     
-    //print(tmpFileHolder.indexArray);
+    println(tmpFileHolder.indexArray + " : " + line);
     //printArray(cleanTokens(splitToken(line)));
     //println();
     
@@ -229,6 +229,7 @@ class Token{
   TokenType Type = TokenType.Null;
   String Str;
   String Value;
+  String Variable;
   Macro macro;
   
   Token(){}
@@ -258,7 +259,7 @@ class Token{
     //if(Type == TokenType.Macro){
     //  return "{Macro} " + macro.argString();
     }else if(Type == TokenType.Let){
-      return "{Let} " + Str + " = " + Value;
+      return "{Let} " + Str + " = " + Value.replace("%", Variable);
     //}else if(Type == TokenType.GlobalLabel || Type == TokenType.Argument){
     //  return "{" + Type.name() + "} " + Value;
     }else{

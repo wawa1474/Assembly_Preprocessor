@@ -56,7 +56,7 @@ void buildMacro(String[] file){
               stop = true;
             }else{
               tokRet.string = tokRet.string.replace(",","");
-              println("{[{[" + tokRet.string + "}]}]");
+              //println("{[{[" + tokRet.string + "}]}]");
               tmpSL.append(tokRet.string);
             }
             break;
@@ -87,7 +87,7 @@ void buildMacro(String[] file){
             state = 0;
             break;
         }
-        print("{" + tokRet.string + "} ");
+        //print("{" + tokRet.string + "} ");
       }
       
       tokRet = getNextToken(file[i],tokRet.nextIndex);
@@ -103,7 +103,7 @@ void buildMacro(String[] file){
       tmpTL.add(new Token("\\n"));
     }
     //print("{" + token.Token + "} ");
-    println();
+    //println();
     //println("{" + token.Token + "} " + file[i]);
   }
 }
@@ -130,17 +130,30 @@ String[] parseMacro(Macro macro, String line){
             cur += "\t";
             break;
           default:
-            cur += macro.Tokens[i].Str + " ";
+            if(t.Str.contains("\\")){
+              cur += cleanEscape(t.Str);
+            }else{
+              cur += t.Str + " ";
+            }
             break;
         }
         break;
       case Argument:
-        printArray(macro.Arguments);
-        printArray(args);
+        //printArray(macro.Arguments);
+        //printArray(args);
         for(int a = 0; a < macro.Arguments.length; a++){
           if(macro.Arguments[a].name.equals(t.Value)){
-            println("{[{[" + t.Str + "}]}]");
-            cur += t.Str.replace("%", args[a]);
+            //println("{[{[" + t.Str + "}]}]");
+            if(a >= args.length){
+              cur += macro.Arguments[a].defualt;
+            }else{
+              if(args[a].contains("\\")){
+                cur += t.Str.replace("%", cleanEscape(args[a]));
+              }else{
+                cur += t.Str.replace("%", args[a]);
+              }
+              //cur += t.Str.replace("%", args[a]);
+            }
             break;
           }
         }
@@ -154,17 +167,17 @@ String[] parseMacro(Macro macro, String line){
       case Include:
         break;
       case Let: // TODO: .let needs to handle variables and arguments!
-        println("var {" + t.Str + "} and {" + t.Value + "}");
-        cur += ";.let " + t.Str + " " + t.Value;
+        println("var {" + t.Variable + "} and {" + t.Str.replace("%", t.Value) + "}");
+        cur += ";.let " + t.Variable + " " + t.Str.replace("%", t.Value);
         String v = _Vars.get(t.Value);
         if(v != null){
-          println("set var {" + t.Str + "} to {" + v + "}");
-          _Vars.set(t.Str, v);
+          println("set var {" + t.Variable + "} to {" + t.Value + "}");
+          _Vars.set(t.Variable, t.Str.replace("%", t.Value));
         }else{
           for(int a = 0; a < macro.Arguments.length; a++){
             if(macro.Arguments[a].name.equals(t.Value)){
               println("set var {" + t.Str + "} to {" + args[a] + "}");
-              _Vars.set(t.Str, args[a]);
+              _Vars.set(t.Variable, t.Str.replace("%", args[a]));
               break;
             }
           }
@@ -198,7 +211,7 @@ Macro cleanMacro(Macro macro){
   boolean newline = false;
   for(int i = 0; i < macro.Tokens.length; i++){
     String s = macro.Tokens[i].Str;
-    println("{{{" + s + "}}}");
+    //println("{{{" + s + "}}}");
     boolean push = false;
     switch(state){
       case 0:
@@ -210,13 +223,13 @@ Macro cleanMacro(Macro macro){
           newline = false;
           state = 0;
         }else if(s.contains("%%")){
-          tmpT = parseVariable(s, true);
-          println("{[{[" + tmpT.Value + "}]}]");
+          tmpT = parseVariable(s, TokenType.Variable);
+          //println("{[{[" + tmpT.Value + "}]}]");
           newline = false;
           push = true;
         }else if(s.contains("%")){
-          tmpT = parseVariable(s, false);
-          println("{[{[" + tmpT.Value + "}]}]");
+          tmpT = parseVariable(s, TokenType.Argument);
+          //println("{[{[" + tmpT.Value + "}]}]");
           newline = false;
           push = true;
         }else{
@@ -234,12 +247,14 @@ Macro cleanMacro(Macro macro){
         break;
       
       case 1:
-        tmpT.Str = s;
+        tmpT.Variable = s;
         state = 2;
         break;
       
       case 2:
-        tmpT.Value = s;
+        Token tmp = parseVariable(s, TokenType.Let); // TODO: rework parseVariable to work for .let
+        tmpT.Str = tmp.Str;
+        tmpT.Value = tmp.Value;
         newline = false;
         push = true;
         break;
@@ -274,36 +289,100 @@ boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
-Token parseVariable(String line, boolean variable){ // TODO: REWRITE THIS THIS TOTAL PIECE OF **** (sometimes doubles characters!!)
+String cleanEscape(String line){
   String prefix = "";
+  char value = ' ';
   String suffix = "";
+  int state = 0;
+  int unicode = 0;
+  
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    
+    switch(state){
+      case 0: // build prefix
+        if(c != '\\'){
+          prefix += c;
+        }else{
+          state = 1;
+        }
+        break;
+      
+      case 1: // build value
+        if(c == 'u'){
+          state = 3;
+        }else{
+          value = c;
+          state = 2;
+        }
+        break;
+      
+      case 2: // build suffix
+        suffix += c;
+        break;
+      
+      case 3: // start unicode
+        if(c == '{'){
+          state = 4;
+        }
+        break;
+      
+      case 4: // build unicode
+        if(c != '}'){
+          unicode = (unicode << 4) + (c - '0');
+        }else{
+          suffix += c;
+          state = 2;
+        }
+        break;
+    }
+  }
+  
+  return prefix + "\\u{" + hex(value,2) + "}" + suffix;
+}
+
+Token parseVariable(String line, TokenType variable){
+  String prefix = "";
   String value = "";
-  int index = 0;
+  String suffix = "";
+  int state = 0;
   
-  char c = line.charAt(index);
-  while(c != '%' && index < line.length() - 1){ // get all characters preceding the value
-    prefix += c;
-    c = line.charAt(++index);
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    
+    switch(state){
+      case 0: // build prefix
+        if(c != '%'){
+          prefix += c;
+        }else{
+          state = 1;
+        }
+        break;
+      
+      case 1: // eat extra '%'
+        if(c != '%'){
+          value += c;
+          state = 2;
+        }
+        break;
+      
+      case 2: // build value
+        if(isAlpha(c) || isNumber(c) || c == '_'){
+          value += c;
+        }else{
+          suffix += c;
+          state = 3;
+        }
+        break;
+      
+      case 3: // build suffix
+        suffix += c;
+        break;
+    }
   }
-  
-  while(c == '%' && index < line.length() - 1){ // eat all '%'
-    c = line.charAt(++index);
-  }
-  
-  while((isAlpha(c) || isNumber(c) || c == '_') && index < line.length() - 1){ // get all characters in the value
-    value += c;
-    c = line.charAt(++index);
-  }
-  if((isAlpha(c) || isNumber(c) || c == '_')){ value += c; }
-  
-  while(index < line.length() - 1){ // get all characters after the value
-    suffix += c;
-    c = line.charAt(++index);
-  }
-  suffix += c;
   
   println(line + " =>= " + prefix + "%" + suffix + " : " + value);
-  return new Token(variable ? TokenType.Variable : TokenType.Argument, prefix + "%" + suffix, value);
+  return new Token(variable, prefix + "%" + suffix, value);
 }
 
 TokenReturn getNextToken(String line, int index, boolean space){
@@ -323,11 +402,16 @@ TokenReturn getNextToken(String line, int index, boolean space){
 }
 
 TokenReturn getNextToken(String line, int index){
+  println("getNextToken from " + line + " @ " + index);
   String firstToken = "";
   int len = line.length();
-  if(len > 0 && index < len){
+  if(len == 1){
+    firstToken = line;
+    index++;
+  }else if(len > 0 && index < len){
     char c = line.charAt(index);
     while(index < len && isWhitespace(c)){ // eat leading whitespace
+      println(index + 1);
       c = line.charAt(++index);
     }
     if(index < len){
