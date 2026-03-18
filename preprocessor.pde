@@ -35,12 +35,10 @@ void setup(){
       String arg = args[i];
       //println(arg);
       if(arg.contains("--input")){
-        String tmp = split(arg, '=')[1];
-        PathReturn filename = splitFilepath(tmp);
-        print("File: ");println(filename);
-        String[] stmp = split(tmp, ".\\");
-        _outputFile = split(stmp[stmp.length-1], '.')[0] + ".obj";
-        getNewFile("", tmp);
+        PathReturn filename = splitFilepath(split(arg, '=')[1]);
+        println("Input: " + filename);
+        _outputFile = filename.getPath() + filename.Name + ".obj";
+        getNewFile("", filename);
         _exit = false;
       }else if(arg.contains("--help")){
         _exit = true;
@@ -209,18 +207,21 @@ void processInput(){
   saveStrings(_outputFile, _output.toArray());
 }
 
-void getNewFile(String base, String file){
+void getNewFile(String base, PathReturn file){
   println("getNewFile: " + base + file);
-  _tmpFileHolder.filename = file;
-  String b = file;
-  _tmpFileHolder.baseDirectory = b.substring(0, 1 + (b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\")));
-  println(_tmpFileHolder.baseDirectory);
+  _tmpFileHolder.file = file;
+  _tmpFileHolder.filename = file.getAll();
+  //String b = file;
+  //_tmpFileHolder.baseDirectory = b.substring(0, 1 + (b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\")));
+  _tmpFileHolder.baseDirectory = file.getPath();
+  //println(_tmpFileHolder.baseDirectory);
   _tmpFileHolder.contents = loadStrings(base + file);
   _tmpFileHolder.indexArray = 0;
   _tmpFileHolder.indexChar = 0;
 }
 
 class FileHolder{
+  PathReturn file;
   String filename;
   String baseDirectory;
   String[] contents;

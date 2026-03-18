@@ -703,12 +703,28 @@ class PathReturn{ // "../../path/to/file/code.asm"
     return output;
   }
   
-  String toString(){
+  String getPathPartial(){
+    String output = "";
+    for(int i = Reverse; i < PathArray.length; i++){
+      output += PathArray[i] + "\\";
+    }
+    return output;
+  }
+  
+  String getFile(){
+    return Name + "." + Extension;
+  }
+  
+  String getAll(){
     String output = "";
     for(int i = 0; i < Reverse; i++){
       output += "..\\";
     }
-    return output + getPath() + Name + "." + Extension;
+    return output + toString();
+  }
+  
+  String toString(){
+    return getPath() + getFile();
   }
 }
 
