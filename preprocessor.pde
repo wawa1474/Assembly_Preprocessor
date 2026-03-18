@@ -1,11 +1,10 @@
 StringList _output;
-ArrayList<FileHolder> _FileHolder; // array of all loaded files
-IntList _FileStack; // stack to push file indeces to as #include's are encountered
+String _outputFile;
 boolean _exit = true;
-FileHolder _tmpFileHolder = new FileHolder();
+FileStack _FileStack; // stack to hold loaded files
+FileHolder _tmpFileHolder = new FileHolder(); // tmp variable to hold current working file
 ArrayList<Macro> _Macros;
 StringDict _Vars;
-String baseDirectory = "";
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -36,7 +35,12 @@ void setup(){
       String arg = args[i];
       //println(arg);
       if(arg.contains("--input")){
-        _tmpFileHolder.filename = split(arg, '=')[1];
+        String tmp = split(arg, '=')[1];
+        String[] filename = splitFilepath(tmp);
+        print("File: ");printArray(filename);
+        String[] stmp = split(tmp, ".\\");
+        _outputFile = split(stmp[stmp.length-1], '.')[0] + ".obj";
+        getNewFile("", tmp);
         _exit = false;
       }else if(arg.contains("--help")){
         _exit = true;
@@ -44,6 +48,7 @@ void setup(){
     }
   }
   
+  println(sketchPath());
   if(_exit){
     println("Assembly Preprocessor " + _VERSION);
     println();
@@ -53,8 +58,7 @@ void setup(){
     println("\tOutput filename will be <input-filename>.obj");
     println("\t#include's will be opened and concatenated into a single output file.");
   }else{
-    _FileHolder = new ArrayList<FileHolder>();
-    _FileStack = new IntList();
+    _FileStack = new FileStack();
     _Macros = new ArrayList<Macro>();
     _Vars = new StringDict(); //ArrayList<Variable>();
     //for(int i = tmpFileHolder.filename.length() - 1; i >= 0; i--){
@@ -68,9 +72,7 @@ void setup(){
     //    break;
     //  }
     //}
-    String b = _tmpFileHolder.filename;
-    baseDirectory = b.substring(0, 1 + (b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\")));
-    println(baseDirectory);
+    
     processInput();
   }
   
@@ -81,13 +83,6 @@ void setup(){
 }
 
 void processInput(){
-  println(_tmpFileHolder.filename);
-  _tmpFileHolder.contents = loadStrings(_tmpFileHolder.filename);
-  String[] stmp = split(_tmpFileHolder.filename, ".\\");
-  _tmpFileHolder.output = split(stmp[stmp.length-1], '.')[0] + ".obj";
-  _tmpFileHolder.indexArray = 0;
-  _tmpFileHolder.indexChar = 0;
-  
   _output = new StringList();
   
   boolean skip = false;
@@ -104,7 +99,7 @@ void processInput(){
     
     if(firstToken.string.equals(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
       println((_tmpFileHolder.indexArray-1) + " : " + line);
-      buildMacro(loadStrings(baseDirectory + split(line, " ")[1]));
+      buildMacro(loadStrings(_tmpFileHolder.baseDirectory + split(line, " ")[1]));
       skip = true;
     }else if(firstToken.string.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
       println((_tmpFileHolder.indexArray-1) + " : " + line);
@@ -116,6 +111,8 @@ void processInput(){
         and continue working on existing files
         if no more files exist, then we are done!
       */
+      //_FileStack.push(_tmpFileHolder);
+      //getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, firstToken.nextIndex).string.replace("\"", ""));
     }else if(firstToken.string.equals(".if")){
       boolean ifTrue = checkIf(line, firstToken.nextIndex);
       boolean con = true;
@@ -198,17 +195,34 @@ void processInput(){
     if(!skip){
       _output.append(line);
     }
+    
+    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length && _FileStack.size > 0){
+      print("pop file: " + _tmpFileHolder.filename);
+      _tmpFileHolder = _FileStack.pop();
+      println(" for: " + _tmpFileHolder.filename);
+    }
   }
   
   printArray(_Vars);
   
-  println(_tmpFileHolder.output);
-  saveStrings(_tmpFileHolder.output, _output.toArray());
+  println(_outputFile);
+  saveStrings(_outputFile, _output.toArray());
+}
+
+void getNewFile(String base, String file){
+  println("getNewFile: " + base + file);
+  _tmpFileHolder.filename = file;
+  String b = file;
+  _tmpFileHolder.baseDirectory = b.substring(0, 1 + (b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\")));
+  println(_tmpFileHolder.baseDirectory);
+  _tmpFileHolder.contents = loadStrings(base + file);
+  _tmpFileHolder.indexArray = 0;
+  _tmpFileHolder.indexChar = 0;
 }
 
 class FileHolder{
   String filename;
-  String output;
+  String baseDirectory;
   String[] contents;
   int indexArray;
   int indexChar;
@@ -221,7 +235,10 @@ class FileHolder{
   }
   
   String getLine(){
-    return contents[indexArray];
+    if(indexArray < contents.length){
+      return contents[indexArray];
+    }
+    return null;
   }
   
   String getNextLine(){
@@ -230,6 +247,10 @@ class FileHolder{
       return contents[indexArray];
     }
     return null;
+  }
+  
+  void nextLine(){
+    indexArray++;
   }
   
   int linesLeft(){
@@ -247,7 +268,13 @@ class FileStack{
   }
   
   void push(FileHolder f){
-    files.add(f);
+    FileHolder tmp = new FileHolder();
+    tmp.baseDirectory = f.baseDirectory;
+    tmp.contents = f.contents;
+    tmp.filename = f.filename;
+    tmp.indexArray = f.indexArray;
+    tmp.indexChar = f.indexChar;
+    files.add(tmp);
     size++;
   }
   
@@ -266,6 +293,10 @@ class FileStack{
   
   String getNextLine(){
     return files.get(size - 1).getNextLine();
+  }
+  
+  void nextLine(){
+    files.get(size - 1).indexArray++;
   }
   
   int linesLeft(){

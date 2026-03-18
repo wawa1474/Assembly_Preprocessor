@@ -576,6 +576,36 @@ String[] getMacroArgs(String line){
   return args.toArray();
 }
 
+String[] splitFilepath(String file){
+  String[] output = new String[3];
+  String tmp = "";
+  
+  for(int i = 0; i < file.length(); i++){
+    char c = file.charAt(i);
+    switch(c){
+      case '\\':
+      case '/':
+        if(output[0] == null){ output[0] = ""; }
+        output[0] += tmp + '\\'; // build up path
+        tmp = "";
+        break;
+      case '.':
+        if(output[1] == null){ output[1] = ""; }
+        output[1] += tmp + '.'; // build up file name
+        tmp = "";
+        break;
+      default:
+        tmp += c;
+        break;
+    }
+  }
+  output[0] = output[0].substring(0,output[0].lastIndexOf('\\'));
+  output[1] = output[1].substring(0,output[1].lastIndexOf('.'));
+  output[2] = tmp; // handle file extention
+  
+  return output;
+}
+
 class TokenReturn{
   String string;
   int nextIndex;
