@@ -1,22 +1,43 @@
 enum VariableType{
   Integer,
+  Float,
   String,
   Variable,
 }
 
 class VariableReturn{
+  VariableType Type;
   String String;
   int Integer;
+  float Float;
   boolean Number;
   
-  VariableReturn(String s, int i, boolean b){
+  VariableReturn(String s){
+    String = s;
+    Type = VariableType.String;
+  }
+  
+  VariableReturn(String s, int i){
     String = s;
     Integer = i;
-    Number = b;
+    Number = true;
+    Type = VariableType.Integer;
+  }
+  
+  VariableReturn(String s, float f){
+    String = s;
+    Float = f;
+    Number = true;
+    Type = VariableType.Float;
   }
   
   String toString(){
-    return Number ? "" + Integer : String;
+    switch(Type){
+      case Integer: return "" + Integer;
+      case Float: return "" + Float;
+      case String: return String;
+      default: return "";
+    }
   }
 }
 
@@ -34,7 +55,23 @@ void parseLet(String variable, String action, TokenReturn secondToken){
   //println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   
   if(firstVar.Number && secondVar.Number){
-    _Vars.set(variable, "" + parseLet(firstVar.Integer, action, secondVar.Integer));
+    switch(firstVar.Type){
+      case Integer:
+        switch(secondVar.Type){
+          case Integer: _Vars.set(variable, "" + parseLet(firstVar.Integer, action, secondVar.Integer)); break;
+          case Float: _Vars.set(variable, "" + parseLet(firstVar.Integer, action, secondVar.Float)); break;
+          default: break;
+        }
+        break;
+      case Float:
+        switch(secondVar.Type){
+          case Integer: _Vars.set(variable, "" + parseLet(firstVar.Float, action, secondVar.Integer)); break;
+          case Float: _Vars.set(variable, "" + parseLet(firstVar.Float, action, secondVar.Float)); break;
+          default: break;
+        }
+        break;
+      default: break;
+    }
   }else{
     switch(action){
       case "+":
@@ -77,6 +114,28 @@ int parseLet(int firstVar, String action, int secondVar){
     
     case "^=":
       return firstVar ^ secondVar;
+    
+    default:
+      return secondVar;
+  }
+}
+
+float parseLet(float firstVar, String action, float secondVar){
+  switch(action){
+    case "+=":
+      return firstVar + secondVar; // check if integers are equal
+    
+    case "-=":
+      return firstVar - secondVar;
+    
+    case "*=":
+      return firstVar * secondVar;
+    
+    case "/=":
+      return firstVar / secondVar;
+    
+    case "%=":
+      return firstVar % secondVar;
     
     default:
       return secondVar;
@@ -238,5 +297,5 @@ VariableReturn parseVariables(String line){
     if(tmp.Number){ return tmp; }
   }
   
-  return new VariableReturn(value, 0, false);
+  return new VariableReturn(value);
 }

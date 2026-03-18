@@ -12,7 +12,24 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
   if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
   
   if(firstVar.Number && secondVar.Number){
-    return checkCondition(firstVar.Integer, action, secondVar.Integer, default_);
+    switch(firstVar.Type){
+      case Integer:
+        switch(secondVar.Type){
+          case Integer: return checkCondition(firstVar.Integer, action, secondVar.Integer, default_);
+          case Float: return checkCondition(firstVar.Integer, action, secondVar.Float, default_);
+          default: break;
+        }
+        break;
+      case Float:
+        switch(secondVar.Type){
+          case Integer: return checkCondition(firstVar.Float, action, secondVar.Integer, default_);
+          case Float: return checkCondition(firstVar.Float, action, secondVar.Float, default_);
+          default: break;
+        }
+        break;
+      default: break;
+    }
+    return default_;
   }else{
     switch(action){
       case "==":
@@ -31,6 +48,31 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
 }
 
 boolean checkCondition(int firstVar, String action, int secondVar, boolean default_){
+  switch(action){
+    case "==":
+      return firstVar == secondVar; // check if integers are equal
+    
+    case "!=":
+      return firstVar != secondVar;
+    
+    case ">":
+      return firstVar > secondVar;
+    
+    case "<":
+      return firstVar < secondVar;
+    
+    case ">=":
+      return firstVar >= secondVar;
+    
+    case "<=":
+      return firstVar <= secondVar;
+    
+    default:
+      return default_;
+  }
+}
+
+boolean checkCondition(float firstVar, String action, float secondVar, boolean default_){
   switch(action){
     case "==":
       return firstVar == secondVar; // check if integers are equal

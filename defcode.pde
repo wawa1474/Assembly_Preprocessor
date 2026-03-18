@@ -75,6 +75,7 @@ VariableReturn tryInt(String in){
   String output = "";
   int state = 0;
   boolean valid = true;
+  boolean isFloat = false;
   
   char c = ' ';
   for(int i = 0; i < in.length(); i++){
@@ -147,6 +148,9 @@ VariableReturn tryInt(String in){
       case 5: // decimal
         if(isNumber(c)){
           output += c;
+        }else if(c == '.'){
+          output += c;
+          isFloat = true;
         }else{
           valid = false;
           state = -1;
@@ -168,22 +172,28 @@ VariableReturn tryInt(String in){
   }
   
   int value = 0;
+  float flo = 0;
   if(valid){
     switch(state){
       case 2: // hexadecimal
-        value = parseInt(output, 16);
+        if(isFloat){ flo = parseFloat(output, 16); }
+        else{ value = parseInt(output, 16); }
         break;
       
       case 3: // binary
-        value = parseInt(output, 2);
+        if(isFloat){ flo = parseFloat(output, 2); }
+        else{ value = parseInt(output, 2); }
         break;
       
       case 4: // octal
-        value = parseInt(output, 8);
+        if(isFloat){ flo = parseFloat(output, 8); }
+        else{ value = parseInt(output, 8); }
         break;
       
       case 5: // decimal
-        value = parseInt(output, 10);
+        if(isFloat){ flo = parseFloat(output, 10); }
+        else{ value = parseInt(output, 10); }
+        
         break;
       
       default: // if a line is just spaces or tabs...
@@ -192,5 +202,9 @@ VariableReturn tryInt(String in){
     }
   }
   
-  return new VariableReturn(in, value, valid);
+  if(valid){
+    if(isFloat){ return new VariableReturn(in, flo); }
+    else{ return new VariableReturn(in, value); }
+  }
+  else{ return new VariableReturn(in); }
 }
