@@ -125,7 +125,7 @@ class FileHolder{
   
   void load(){
     contents = loadStrings(file.getPath() + file.getFile());
-    _tmpFileHolder.indexArray = 0;
+    indexArray = 0;
   }
 }
 
@@ -176,16 +176,16 @@ void checkIncludeFile(String line, int index){
   TokenReturn token = getNextToken(line,index);
   switch(token.string){
     case "macro":
-      println((_tmpFileHolder.indexArray) + " : " + line);
-      buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line, token.nextIndex).string));
+      println((getIndex()) + " : " + line);
+      buildMacro(loadStrings(getFile().file.getPath() + getNextToken(line, token.nextIndex).string));
       break;
     case "file":
-      println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
-      getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
+      println("push file: " + (getIndex()) + " : " + line);
+      getNewFile(getFile().file, getNextToken(line, token.nextIndex).string);
       break;
     default:
-      println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
-      getNewFile(_tmpFileHolder.file, token.string);
+      println("push file: " + (getIndex()) + " : " + line);
+      getNewFile(getFile().file, token.string);
       break;
   }
 }
@@ -316,21 +316,29 @@ void getNewFile(PathReturn base, PathReturn file){
   if(_tmpFileHolder.file == null){ _tmpFileHolder.file = new PathReturn(); }
   _tmpFileHolder.file.setPath(base, file);
   _tmpFileHolder.load();
-  println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + _tmpFileHolder.file);
+  println("getNewFile: [" + getLineLength() + "] " + _tmpFileHolder.file);
 }
 
 void getNewFile(PathReturn base, String line){
-  _FileStack.push(_tmpFileHolder);
+  //_FileStack.push(_tmpFileHolder);
+  _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
   getNewFile(base, splitFilepath(line.replace("\"", "")));
-  _tmpFileHolder.indexArray = -1; // needs to be -1 due to a ++ at end of main loop
+  setIndex(-1); // needs to be -1 due to a ++ at end of main loop
 }
 
 void popFileIfLastLine(){
   // end of macro parsing would result in returning to last file on stack, instead of actually popping anything
   // _Files_Current would = _Files[_Files_Inputs].size - 1, and _Files_Type would = _Files_Inputs
-  while(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
+  //if(_Files_Type == _Files_Macros){
+  //  if(_Files[_Files_Inputs].size() > 0){
+  //    _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].get(_Files[_Files_Inputs].size() - 1));
+  //  }
+  //  _Files_Type = _Files_Inputs;
+  //}
+  while(getIndex() >= getLineLength() - 1 && _Files[_Files_Inputs].size() > 0){ // _FileStack.size > 0){
     println("pop file: " + _tmpFileHolder.file);
-    _tmpFileHolder = _FileStack.pop();
+    //_tmpFileHolder = _FileStack.pop();
+    _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].remove(_Files[_Files_Inputs].size() - 1));
     println(" for: " + _tmpFileHolder.file);
   }
 }

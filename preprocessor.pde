@@ -1,19 +1,21 @@
 StringList _output;
 String _outputFile;
 boolean _exit = true;
-FileStack _FileStack; // stack to hold loaded files
+//FileStack _FileStack; // stack to hold loaded files
 FileHolder _tmpFileHolder = new FileHolder(); // tmp variable to hold current working file
 ArrayList<Macro> _Macros;
 StringDict _Vars;
 
 ArrayList<FileHolder>[] _Files = new ArrayList[2]; // macros as arrays of strings would allow reuse of main parsing loop...
 String _macro_Name = "";
-String[] _macro_Args;
+//String[] _macro_Args;
+ArrayList<String[]> _macro_Args2 = new ArrayList<String[]>();
 StringList _macro_Content = new StringList();
 final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;
 int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
 int _Files_Current = 0; // contains the current macro, or last pushed file
+// /\ these might want to be pushed/popped to allow recusrive macro stuff...
 
 String getNextLine(){
   return _Files[_Files_Type].get(_Files_Current).getNextLine();
@@ -68,7 +70,7 @@ void setup(){
     println("\tOutput filename will be <input-filename>.obj");
     println("\t#include's will be opened and concatenated into a single output file.");
   }else{
-    _FileStack = new FileStack();
+    //_FileStack = new FileStack();
     _Macros = new ArrayList<Macro>();
     _Vars = new StringDict();
     _Files[0] = new ArrayList<FileHolder>();
@@ -89,11 +91,39 @@ void setup(){
   exit();
 }
 
+FileHolder getFile(){
+  return _tmpFileHolder;
+}
+
+int getIndex(){
+  return _tmpFileHolder.indexArray;
+}
+
+void setIndex(int i){
+  _tmpFileHolder.indexArray = i;
+}
+
+void incIndex(){
+  _tmpFileHolder.indexArray++;
+}
+
+void decIndex(){
+  _tmpFileHolder.indexArray--;
+}
+
+String getLine(){
+  return _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+}
+
+int getLineLength(){
+  return _tmpFileHolder.contents.length;
+}
+
 void processInput(){
   _output = new StringList();
   
-  for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
-    String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+  for(; getIndex() < getLineLength(); incIndex()){
+    String line = getLine();
     TokenReturn token = getNextToken(line,0);
     boolean skip = true;
     //println("processInput [" + _tmpFileHolder.indexArray + "] " + line);
@@ -103,7 +133,7 @@ void processInput(){
         checkIncludeFile(line, token.nextIndex);
         break;
       case ".macro":
-        parseMacro(line, token.nextIndex);
+        buildMacro(line, token.nextIndex);
         break;
       case ".if":
         parseIf(line, token.nextIndex, 0);
@@ -113,6 +143,7 @@ void processInput(){
         break;
       default:
         skip = checkMacros(token.string, line); // will skip outputting a raw macro line, but otherwise will append all lines
+        //checkMacros(token.string, line, token.nextIndex);//
         break;
     }
     

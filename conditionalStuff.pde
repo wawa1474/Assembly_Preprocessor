@@ -53,11 +53,11 @@ boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
 
 void parseIf(String line_, int index_, int depth_){ // current depth of if statements for debuging
   int state = checkIf(line_, index_) ? 1 : 2; // state machines FTW!
-  _tmpFileHolder.indexArray++; // skip the .if line
+  incIndex(); // skip the .if line
   int curDepth = depth_;
   
-  for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
-    String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+  for(; getIndex() < getLineLength(); incIndex()){
+    String line = getLine();
     TokenReturn token = getNextToken(line,0);
     boolean skip = true;
     //println("parseIf [" + curDepth + "|" + depth_ + "|" + _tmpFileHolder.indexArray + "] " + line);
@@ -77,10 +77,10 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             parseLet(line, token.nextIndex);
             break;
           case ".macro":
-            parseMacro(line, token.nextIndex);
+            buildMacro(line, token.nextIndex);
             break;
           default:
-            skip = checkMacros(token.string, line);
+            skip = checkMacros(token.string, line);//checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
@@ -103,10 +103,10 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             parseLet(line, token.nextIndex);
             break;
           case ".macro":
-            parseMacro(line, token.nextIndex);
+            buildMacro(line, token.nextIndex);
             break;
           default:
-            skip = checkMacros(token.string, line);
+            skip = checkMacros(token.string, line);//checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
@@ -148,10 +148,10 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             parseLet(line, token.nextIndex);
             break;
           case ".macro":
-            parseMacro(line, token.nextIndex);
+            buildMacro(line, token.nextIndex);
             break;
           default:
-            skip = checkMacros(token.string, line);
+            skip = checkMacros(token.string, line);//checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;

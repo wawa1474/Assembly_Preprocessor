@@ -21,6 +21,10 @@ class TokenReturn{
   String string;
   int nextIndex;
   
+  TokenReturn(int n){
+    nextIndex = n;
+  }
+  
   TokenReturn(String t, int n){
     string = t;
     nextIndex = n;
