@@ -6,12 +6,12 @@ String input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ^ %%token_
 String output = ""; // converted output
 
 void setup2(){
-  if(_Vars == null){ _Vars = new StringDict(); }
-  println("input:" + input);
-  _Vars.set("token_prec", "" + 1337);
-  lineToRPN(input, 0);
-  println("output:" + output);
-  printArray(_Vars);
+  //if(_Vars == null){ _Vars = new StringDict(); }
+  //println("input:" + input);
+  //_Vars.set("token_prec", "" + 1337);
+  //lineToRPN(input, 0);
+  //println("output:" + output);
+  //printArray(_Vars);
 }
 
 int getPrecedence(char c){
@@ -170,7 +170,7 @@ void lineToRPN(String line, int index){
         if(isAlpha(c) || isNumber(c) || c == '_'){
           token += c;
         }else{
-          output += tryInt(getVariable(token, isGlobalVar));
+          output += tryInt(getVariable(token, isGlobalVar, 0));
           token = "";
           i--;
           state = 0;

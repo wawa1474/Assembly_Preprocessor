@@ -52,8 +52,8 @@ void parseLet(String line, int index){
 }
 
 void parseLet(String variable, String action, TokenReturn secondToken){
-  VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0");
-  VariableReturn secondVar = parseVariables(secondToken.string);
+  VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0", 0);
+  VariableReturn secondVar = parseVariables(secondToken.string, 0);
   //println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   
   if(firstVar.Number && secondVar.Number){
@@ -146,12 +146,12 @@ float parseLet(float firstVar, String action, float secondVar){
 }
 
 // TODO: add a depth input + make peekMacroArgs honor that to make macro args resursive...
-String getVariable(String name, boolean global){
+String getVariable(String name, boolean global, int depth){
   //println("getVariable: " + name + ", " + global);
   if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
   }else if(!global){
-    String[] lineMacroArgs = peekMacroArgs(0);
+    String[] lineMacroArgs = peekMacroArgs(depth);
     if(lineMacroArgs != null){
       FileHolder curMacro = getFile();
       //printArray(curMacro.file.PathArray);
@@ -161,7 +161,8 @@ String getVariable(String name, boolean global){
           if(a >= lineMacroArgs.length || lineMacroArgs[a].length() == 0){ // ["this","is","a"], ["this","","","token"]
             return def[1];
           }else{
-            return lineMacroArgs[a];
+            if(lineMacroArgs[a].contains("%")){ return parseVariables(lineMacroArgs[a], depth+1).toString(); }
+            else{ return parseVariables(lineMacroArgs[a], depth).toString(); }
           }
         }
       }
@@ -188,7 +189,7 @@ String getVariable(String name, boolean global){
       built-in functions syntax could be \#{func, (arg, arg2)} or? \#func{arg1, arg2} or? \#func{arg1, arg2}#
       using {} grabs attention better...
 */
-VariableReturn parseVariables(String line){
+VariableReturn parseVariables(String line, int depth){
   //println("parseVariables: " + line);
   String value = "";
   String token = "";
@@ -240,7 +241,7 @@ VariableReturn parseVariables(String line){
         if(isAlpha(c) || isNumber(c) || c == '_'){
           token += c;
         }else{
-          value += getVariable(token, isGlobalVar);
+          value += getVariable(token, isGlobalVar, depth);
           i--;
           token = "";
           state = 0;
@@ -305,7 +306,7 @@ VariableReturn parseVariables(String line){
   }
   
   if(state == 2){
-    value += getVariable(token, isGlobalVar);
+    value += getVariable(token, isGlobalVar, depth);
     token = "";
   }
   
