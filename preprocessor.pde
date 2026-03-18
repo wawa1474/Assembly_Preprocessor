@@ -3,9 +3,10 @@ StringList _output;
 IntDict defines;
 String link = "0";
 boolean _followIncludes = true;
-ArrayList<FileHolder> _FileHolder;
+ArrayList<FileHolder> _FileHolder; // array of all loaded files
+IntList _FileStack; // stack to push file indeces to as #include's are encountered
 boolean _exit = true;
-FileHolder tmpFileHolder = new FileHolder();
+FileHolder _tmpFileHolder = new FileHolder();
 ArrayList<Macro> _Macros;
 //ArrayList<Variable> _Vars;
 StringDict _Vars;
@@ -41,7 +42,7 @@ void setup(){
       String arg = args[i];
       //println(arg);
       if(arg.contains("--input")){
-        tmpFileHolder.filename = split(arg, '=')[1];
+        _tmpFileHolder.filename = split(arg, '=')[1];
         _exit = false;
       }else if(arg.contains("--no-include")){
         _followIncludes = false;
@@ -63,6 +64,7 @@ void setup(){
     println("\tYou can also disable recursing certain includes by preceding it with #no-include. (#no-include \"include.ext\")");
   }else{
     _FileHolder = new ArrayList<FileHolder>();
+    _FileStack = new IntList();
     _Macros = new ArrayList<Macro>();
     _Vars = new StringDict(); //ArrayList<Variable>();
     //for(int i = tmpFileHolder.filename.length() - 1; i >= 0; i--){
@@ -76,7 +78,7 @@ void setup(){
     //    break;
     //  }
     //}
-    String b = tmpFileHolder.filename;
+    String b = _tmpFileHolder.filename;
     baseDirectory = b.substring(0, 1 + (b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\")));
     println(baseDirectory);
     processInput();
@@ -84,45 +86,99 @@ void setup(){
   
   //println(parseVariable("le(%%lastWord`16)", TokenType.Variable));
   //println(getMacroArgs("dfw \"DOCON\", DOCON, 0x00"));
-  
+  //println(parseInt("ghy"));
   exit();
 }
 
 void processInput(){
-  println(tmpFileHolder.filename);
-  tmpFileHolder.contents = loadStrings(tmpFileHolder.filename);
-  String[] stmp = split(tmpFileHolder.filename, ".\\");
-  tmpFileHolder.output = split(stmp[stmp.length-1], '.')[0] + ".obj";
-  tmpFileHolder.followIncludes = _followIncludes;
-  tmpFileHolder.indexArray = 0;
-  tmpFileHolder.indexChar = 0;
+  println(_tmpFileHolder.filename);
+  _tmpFileHolder.contents = loadStrings(_tmpFileHolder.filename);
+  String[] stmp = split(_tmpFileHolder.filename, ".\\");
+  _tmpFileHolder.output = split(stmp[stmp.length-1], '.')[0] + ".obj";
+  _tmpFileHolder.followIncludes = _followIncludes;
+  _tmpFileHolder.indexArray = 0;
+  _tmpFileHolder.indexChar = 0;
   
   _output = new StringList();
   defines = new IntDict();
   
   boolean skip = false;
-  while(tmpFileHolder.indexArray < tmpFileHolder.contents.length){ //1890){//
+  while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){ //1890){//
     skip = false;
-    String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
-    tmpFileHolder.indexArray++;
+    String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+    _tmpFileHolder.indexArray++;
     
-    String firstToken = getNextToken(line, 0).string;
+    TokenReturn firstToken = getNextToken(line, 0);
     
     //println(tmpFileHolder.indexArray + " : " + line);
     //printArray(cleanTokens(splitToken(line)));
     //println();
     
-    if(firstToken.equals(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
-      println((tmpFileHolder.indexArray-1) + " : " + line);
+    if(firstToken.string.equals(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
+      println((_tmpFileHolder.indexArray-1) + " : " + line);
       buildMacro(loadStrings(baseDirectory + split(line, " ")[1]));
       skip = true;
-    }else if(firstToken.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
-      println((tmpFileHolder.indexArray-1) + " : " + line);
+    }else if(firstToken.string.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
+      println((_tmpFileHolder.indexArray-1) + " : " + line);
+      /*
+        preprocessor will work through a file until it hits a #include
+        at which point, it will load and push the included file
+        and begin working through the new file until reaching another include or it reaches the end of the file
+        if it reaches the end of the current file, pop it from the stack
+        and continue working on existing files
+        if no more files exist, then we are done!
+      */
+    }else if(firstToken.string.equals(".if")){
+      boolean ifTrue = checkIf(line, firstToken.nextIndex);
+      boolean con = true;
+      boolean eat = false;
+      println((_tmpFileHolder.indexArray-1) + " : " + line + " = " + ifTrue);
+      if(ifTrue){
+        while(con == true && _tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+          line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+          _tmpFileHolder.indexArray++;
+          firstToken = getNextToken(line, 0);
+          switch(firstToken.string){
+            case ".if": // needs to be recursive!
+            case ".else":
+            case ".elseif":
+              eat = true;
+              break;
+            case ".endif":
+              con = false;
+              eat = false;
+              break;
+            default:
+              _output.append(line);
+              break;
+          }
+        }
+        if(eat){
+          while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+            line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+            _tmpFileHolder.indexArray++;
+            firstToken = getNextToken(line, 0);
+            if(firstToken.string.equals(".endif")){
+              break;
+            }
+          }
+        }
+      }else{
+        while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+          line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+          _tmpFileHolder.indexArray++;
+          firstToken = getNextToken(line, 0);
+          if(firstToken.string.equals(".endif")){
+            break;
+          }
+        }
+      }
+      skip = true;
     }
     
     for(int i = 0; i < _Macros.size(); i++){
       Macro tmp = _Macros.get(i);
-      if(tmp.name.equals(firstToken)){
+      if(tmp.name.equals(firstToken.string)){
         //println(line);
         _output.append(parseMacro(tmp, line));
         skip = true;
@@ -158,8 +214,8 @@ void processInput(){
   
   printArray(_Vars);
   
-  println(tmpFileHolder.output);
-  saveStrings(tmpFileHolder.output, _output.toArray());
+  println(_tmpFileHolder.output);
+  saveStrings(_tmpFileHolder.output, _output.toArray());
 }
 
 class FileHolder{
@@ -169,6 +225,65 @@ class FileHolder{
   String[] contents;
   int indexArray;
   int indexChar;
+  
+  String getLine(int l){
+    if(l < contents.length){
+      return contents[l];
+    }
+    return null;
+  }
+  
+  String getLine(){
+    return contents[indexArray];
+  }
+  
+  String getNextLine(){
+    indexArray++;
+    if(indexArray < contents.length){
+      return contents[indexArray];
+    }
+    return null;
+  }
+  
+  int linesLeft(){
+    return contents.length - indexArray;
+  }
+}
+
+class FileStack{
+  ArrayList<FileHolder> files;
+  int size;
+  
+  FileStack(){
+    files = new ArrayList<FileHolder>();
+    size = 0;
+  }
+  
+  void push(FileHolder f){
+    files.add(f);
+    size++;
+  }
+  
+  FileHolder pop(){
+    size--;
+    return files.remove(size);
+  }
+  
+  String getLine(int l){
+    return files.get(size - 1).getLine(l);
+  }
+  
+  String getLine(){
+    return files.get(size - 1).getLine();
+  }
+  
+  String getNextLine(){
+    return files.get(size - 1).getNextLine();
+  }
+  
+  int linesLeft(){
+    return files.get(size - 1).linesLeft();
+  }
 }
 
 class Macro{

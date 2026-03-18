@@ -114,7 +114,7 @@ String[] parseMacro(Macro macro, String line){
   
   //output.append(";" + line);
   
-  String[] args = getMacroArgs(line);
+  String[] macroArgs = getMacroArgs(line);
   
   for(int i = 0; i < macro.Tokens.length; i++){
     //println(macro.Tokens[i]);
@@ -145,19 +145,20 @@ String[] parseMacro(Macro macro, String line){
         for(int a = 0; a < macro.Arguments.length; a++){
           if(macro.Arguments[a].name.equals(t.Value)){
             //println("{[{[" + t.Str + "}]}]");
-            if(a >= args.length){
+            if(a >= macroArgs.length){
               cur += macro.Arguments[a].defualt;
             }else{
-              if(args[a].contains("\\")){
-                cur += t.Str.replace("%", cleanEscape(args[a]));
+              if(macroArgs[a].contains("\\")){
+                cur += t.Str.replace("%", cleanEscape(macroArgs[a]));
               }else{
-                cur += t.Str.replace("%", args[a]);
+                cur += t.Str.replace("%", macroArgs[a]);
               }
               //cur += t.Str.replace("%", args[a]);
             }
             break;
           }
         }
+        //cur+=getVariable(new VariableReturn(TokenType.Argument, t.Value), macro, macroArgs);
         //println("failed to find arg: " + t.Value);
         break;
       case Label:
@@ -178,7 +179,7 @@ String[] parseMacro(Macro macro, String line){
           for(int a = 0; a < macro.Arguments.length; a++){
             if(macro.Arguments[a].name.equals(t.Value)){
               //println("set var {" + t.Str + "} to {" + args[a] + "}");
-              _Vars.set(t.Variable, t.Str.replace("%", args[a]));
+              _Vars.set(t.Variable, t.Str.replace("%", macroArgs[a]));
               break;
             }
           }
@@ -411,6 +412,104 @@ Token parseVariable(String line, TokenType variable){
   return new Token(variable, prefix + "%" + suffix, value);
 }
 
+VariableReturn parseVariable(String line){
+  String value = "";
+  boolean global = false;
+  int state = 0;
+  
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    
+    switch(state){
+      case 0: // build prefix
+        if(c == '%'){
+          state = 1;
+        }
+        break;
+      
+      case 1: // eat extra '%'
+        if(c == '%'){
+          global = true;
+        }else{
+          i--;
+        }
+        state = 2;
+        break;
+      
+      case 2: // build value
+        if(isAlpha(c) || isNumber(c) || c == '_'){
+          value += c;
+        }else{
+          state = -1;
+        }
+        break;
+    }
+  }
+  
+  if(value.equals("")){
+    return new VariableReturn(TokenType.External, line);
+  }else{
+    return new VariableReturn(global ? TokenType.Variable : TokenType.Argument, value);
+  }
+}
+
+String getVariable(VariableReturn variable_, Macro macro_, String[] macroArgs_){
+  switch(variable_.type){
+    case External:
+      return variable_.variable;
+    case Variable:
+      return _Vars.get(variable_.variable);
+    case Argument:
+      if(macro_ != null){
+        for(int a = 0; a < macro_.Arguments.length; a++){
+          if(macro_.Arguments[a].name.equals(variable_.variable)){
+            if(a >= macroArgs_.length){
+              return macro_.Arguments[a].defualt;
+            }else{
+              if(macroArgs_[a].contains("\\")){
+                return variable_.variable.replace("%", cleanEscape(macroArgs_[a]));
+              }else{
+                return variable_.variable.replace("%", macroArgs_[a]);
+              }
+            }
+          }
+        }
+      }
+      return "";
+    default:
+      return "";
+  }
+}
+
+boolean checkIf(String line, int index){
+  TokenReturn firstVar = getNextToken(line, index);
+  TokenReturn action = getNextToken(line, firstVar.nextIndex);
+  TokenReturn secondVar = getNextToken(line, action.nextIndex);
+  
+  VariableReturn var1 = parseVariable(firstVar.string);
+  VariableReturn var2 = parseVariable(secondVar.string);
+  
+  String v1 = getVariable(var1, null, null);
+  String v2 = getVariable(var2, null, null);
+  
+  switch(action.string){
+    case "==":
+      return v1.equals(v2);
+    case "!=":
+      return !v1.equals(v2);
+    case ">":
+      return parseInt(v1) > parseInt(v2);
+    case "<":
+      return parseInt(v1) < parseInt(v2);
+    case ">=":
+      return parseInt(v1) >= parseInt(v2);
+    case "<=":
+      return parseInt(v1) <= parseInt(v2);
+    default:
+      return false;
+  }
+}
+
 TokenReturn getNextToken(String line, int index, boolean space){
   if(space == false){ return getNextToken(line, index); }
   
@@ -484,5 +583,15 @@ class TokenReturn{
   TokenReturn(String t, int n){
     string = t;
     nextIndex = n;
+  }
+}
+
+class VariableReturn{
+  String variable;
+  TokenType type;
+  
+  VariableReturn(TokenType t, String v){
+    variable = v;
+    type = t;
   }
 }
