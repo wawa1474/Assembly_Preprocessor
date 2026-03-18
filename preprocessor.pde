@@ -73,14 +73,8 @@ void processInput(){
     boolean skip = false;
     
     switch(token.string){
-      case ".include":
-        println((_tmpFileHolder.indexArray) + " : " + line);
-        buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line, token.nextIndex).string));
-        skip = true;
-        break;
-      case "#include":
-        println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
-        getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
+      case ".include": // .include macro|file "path/name.ext"
+        checkIncludeFile(line, token.nextIndex);
         skip = true;
         break;
       case ".if":

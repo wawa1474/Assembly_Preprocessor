@@ -63,14 +63,8 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
     switch(state){
       case 0:
         switch(token.string){
-          case ".include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.file.getPath() + split(line, " ")[1]));
-            skip = true;
-            break;
-          case "#include":
-            println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
+          case ".include": // .include macro|file "path/name.ext"
+            checkIncludeFile(line, token.nextIndex);
             skip = true;
             break;
           case ".if":
@@ -101,14 +95,8 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
           case ".endif":
             skip = true;
             return;
-          case ".include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line,token.nextIndex).string));
-            skip = true;
-            break;
-          case "#include":
-            println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
+          case ".include": // .include macro|file "path/name.ext"
+            checkIncludeFile(line, token.nextIndex);
             skip = true;
             break;
           case ".let":
@@ -154,14 +142,8 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
           case ".endif":
             skip = true;
             return;
-          case ".include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line,token.nextIndex).string));
-            skip = true;
-            break;
-          case "#include":
-            println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
+          case ".include": // .include macro|file "path/name.ext"
+            checkIncludeFile(line, token.nextIndex);
             skip = true;
             break;
           case ".let":

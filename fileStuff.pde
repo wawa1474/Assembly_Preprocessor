@@ -164,6 +164,24 @@ class FileStack{
   }
 }
 
+void checkIncludeFile(String line, int index){
+  TokenReturn token = getNextToken(line,index);
+  switch(token.string){
+    case "macro":
+      println((_tmpFileHolder.indexArray) + " : " + line);
+      buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line, token.nextIndex).string));
+      break;
+    case "file":
+      println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
+      getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
+      break;
+    default:
+      println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
+      getNewFile(_tmpFileHolder.file, token.string);
+      break;
+  }
+}
+
 PathReturn splitFilepath(String file){
   PathReturn output = new PathReturn();
   String tmp = "";
