@@ -97,12 +97,13 @@ class Stack{
 IntList intStack = new IntList();
 Stack stack = new Stack();
 
-void lineToRPN(String line, int index){
+String lineToRPN(String line, int index){
   int state = 0;
   String token = "";
   boolean isGlobalVar = false;
+  int parenDepth = 1; // we start with a depth of 1 due to entering on an escaped open-paren
   
-  for(int i = index; i < line.length(); i++){
+  for(int i = index; i < line.length() && state != -1; i++){
     char c = line.charAt(i);
     //print("{" + c + "}");
     switch(state){
@@ -113,15 +114,20 @@ void lineToRPN(String line, int index){
             break;
           
           case '(': // '(' temporarily resets the top of stack precedence
+            parenDepth++;
             stack.push(new Token(c, -1));
             break;
           
           case ')':
-            while(stack.peek().indentifier != '('){
-              if(output.charAt(output.length() - 1) != ' '){ output += " "; }
-              output += stack.pop().indentifier;
+            parenDepth--;
+            if(parenDepth == 0){ state = -1; }
+            else{
+              while(stack.peek().indentifier != '('){
+                if(output.charAt(output.length() - 1) != ' '){ output += " "; }
+                output += stack.pop().indentifier;
+              }
+              stack.pop();
             }
-            stack.pop();
             break;
           
           case '%': // mod or var
@@ -183,4 +189,6 @@ void lineToRPN(String line, int index){
   while(stack.size() > 0){
     output += " " + stack.pop().indentifier;
   }
+  
+  return output;
 }

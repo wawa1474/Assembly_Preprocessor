@@ -81,7 +81,7 @@ TokenReturn cleanEscape(String line, int index, int depth){
     //print(c);
     switch(state){
       case 0:
-        int tmpState = -1;
+        state = -1; // default is to finish after one character
         switch(c){
           case '0': // NULL
             token += "\\u{00}";
@@ -109,7 +109,7 @@ TokenReturn cleanEscape(String line, int index, int depth){
             break;
           case 'u': // unicode
             token += "\\u";
-            tmpState = 1;
+            state = 1;
             break;
           case 'v': // VERTICAL TAB
             token += "\\u{0B}";
@@ -117,28 +117,30 @@ TokenReturn cleanEscape(String line, int index, int depth){
           case '!': // error output
             token += "\\!";
             type = VariableType.Error;
-            tmpState = 1;
+            state = 1;
             break;
           case '#': // built-in function
             outputEscape = false;
             type = VariableType.Function;
-            tmpState = 1;
+            state = 1;
             break;
           case '%': // macro arg
             outputEscape = false;
             type = VariableType.Argument;
-            tmpState = 1;
+            state = 1;
             break;
           case '&': // global var
             outputEscape = false;
             type = VariableType.Variable;
-            tmpState = 1;
+            state = 1;
+            break;
+          case '(': // escaped open-paren means we need to do infixToRPN stuff
+            //token += lineToRPN(line, index);
             break;
           default:
             token += "\\u{" + hex(c) + "}";
             break;
         }
-        state = tmpState;
         break;
       
       case 1: // start unicode

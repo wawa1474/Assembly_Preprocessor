@@ -64,6 +64,7 @@ float compare(VariableReturn one, VariableReturn two){ // -(one < two), 0(one ==
 boolean checkCase(String line, int index){
   //VariableReturn switchValue = parseVariables(peekMacroArgs()[0]);
   int state = 0;
+  StringList output = new StringList();
   
   TokenReturn token = getNextToken(line, index);
   for(; index < line.length() && state != -1; index++){
@@ -71,12 +72,31 @@ boolean checkCase(String line, int index){
       case 0:
         switch(token.string){
           case "[": // start of value list
-          case "]": // end of value list
-          case "..": // denotes value range {Ruby range syntax} ([1..4] == [1,2,3,4])([1,2,10..13] == [1,2,10,11,12,13])([1..4,10..8] == [1,2,3,4,10,9,8])
+            state = 1;
+            break;
           default: // must be a single value
             if(peekMacroArgs(0) != null){ return checkIf(new TokenReturn(peekMacroArgs(0)[0], 0), "==", token, false); }
             else{ return false; }
         }
+        break;
+      
+      case 1:
+        switch(token.string){
+          case "]": state = -1; break; // end of value list
+          case "..": state = 2; break; // denotes value range
+          case ",": break; // eat value seperator
+          default: output.append(token.string); break; // must be a value
+        }
+        break;
+      
+      case 2: // denotes value range {Ruby range syntax} ([1..4] == [1,2,3,4])([1,2,10..13] == [1,2,10,11,12,13])([1..4,10..8] == [1,2,3,4,10,9,8])
+        if(output.size() > 0){
+          for(int i = int(output.get(output.size()-1)) + 1; i <= int(token.string); i++){ output.append(str(i)); }
+        }else{
+          for(int i = 0; i <= int(token.string); i++){ output.append(str(i)); }
+        }
+        state = 1;
+        break;
     }
   }
   
