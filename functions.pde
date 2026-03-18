@@ -1,7 +1,7 @@
 // built-in functions
 
 String parseFunction(String input){
-  //println("parseFunction: " + input);
+  if(hyperVerboseOutput){ println("parseFunction: " + input); }
   MacroArg[] args = getMacroArgs(input, 0);
   //printArray(args);
   //VariableReturn[] argsInt = new VariableReturn[args.length];

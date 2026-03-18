@@ -176,7 +176,7 @@ void buildMacro(String line_, int index_){
 }
 
 MacroArg[] getMacroArgs(String line, int index){
-  //println("getMacroArgs: " + line);
+  if(hyperVerboseOutput){ println("getMacroArgs: " + line); }
   ArrayList<MacroArg> args = new ArrayList<MacroArg>();
   MacroArg tmp = new MacroArg();
   boolean isDefault = false;

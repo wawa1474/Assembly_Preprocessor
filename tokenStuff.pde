@@ -17,6 +17,7 @@ class TokenReturn{
 }
 
 TokenReturn getNextToken(String line, int index){
+  if(hyperVerboseOutput){ println("getNextToken: \"" + line + "\" @ [" + index + "]"); }
   String token = "";
   int state = 0;
   boolean inString = false;
@@ -44,6 +45,7 @@ TokenReturn getNextToken(String line, int index){
             break;
           
           case '\\':
+            if(hyperVerboseOutput){ println("getNextToken:0:cleanEscape"); }
             gotString = true;
             TokenReturn output = cleanEscape(line, index, false);
             index = output.nextIndex;
@@ -90,6 +92,7 @@ TokenReturn getNextToken(String line, int index){
             break;
           
           case '\\': // escaped open-paren are still handled by cleanEscape() obviously...
+            if(hyperVerboseOutput){ println("getNextToken:1:cleanEscape"); }
             gotString = true;
             TokenReturn output = cleanEscape(line, index, false);
             index = output.nextIndex;
@@ -257,7 +260,7 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
       token = getVariable(token, true); // don't check macro arguments
       break;
     case Function: // built-in function
-      //println("cleanEscape:parseFunction");
+      if(hyperVerboseOutput){ println("cleanEscape:parseFunction = " + runFunction); }
       if(runFunction){ // for some reason (bad programming probably...) parseFunction is being called twice for every function
         token = parseFunction(token);
       }

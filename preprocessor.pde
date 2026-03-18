@@ -8,6 +8,7 @@ HashMap<String, StringList> Stacks = new HashMap<String, StringList>(); // hashm
 boolean maintainComments = false; // should comments be passed on, or cleaned up
 boolean showLines = false; // show all lines, including 'eaten' ones
 boolean concatenateFiles = true; // combine all input files into one output file
+boolean hyperVerboseOutput = false; // will all the println's in the universe be printed? (might be an int in the future...)
 
 PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
@@ -69,6 +70,7 @@ void setup(){
     updateVariable("__concatenateFiles", "true");
     updateVariable("__maintainComments", "false");
     updateVariable("__showLines", "false");
+    updateVariable("__hyperVerboseOutput", "false");
     
     processInput(0, ParseState.Entry);
     

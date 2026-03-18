@@ -22,7 +22,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
       continue;
     }
     boolean skip = true;
-    //println("[" + getIndex() + "]{" + state.name() + "}<" + token.string + "> " + line);
+    if(hyperVerboseOutput){ println("[" + getIndex() + "]{" + state.name() + "}<" + token.string + "> " + line); }
     
     switch(state){
       case Entry:

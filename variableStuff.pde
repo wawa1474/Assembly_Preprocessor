@@ -149,6 +149,7 @@ void updateVariable(String var_, String value_){
     case "__maintainComments": maintainComments = valueBool; break;
     case "__showLines": showLines = valueBool; break;
     case "__concatenateFiles": concatenateFiles = valueBool; break;
+    case "__hyperVerboseOutput": hyperVerboseOutput = valueBool; break;
   }
 }
 
@@ -264,7 +265,7 @@ String getBuiltin(String name){
 */
 
 VariableReturn parseVariables(String line){ // going through entire line to convert remaining bits into final output
-  //println("parseVariables: " + line);
+  if(hyperVerboseOutput){ println("parseVariables: " + line); }
   String value = "";
   
   for(int i = 0; i < line.length(); i++){
@@ -272,7 +273,8 @@ VariableReturn parseVariables(String line){ // going through entire line to conv
     
     switch(c){
       case '\\':
-        TokenReturn output = cleanEscape(line, i);
+        if(hyperVerboseOutput){ println("parseVariables:cleanEscape"); }
+        TokenReturn output = cleanEscape(line, i, true);
         i = output.nextIndex;
         value += output.string;
         break;

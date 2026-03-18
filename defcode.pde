@@ -33,6 +33,7 @@ String octalToHex(String input_){
 }
 
 void outputLine(String line, boolean skip){
+  if(hyperVerboseOutput){ println("outputLine: \"" + line + "\" = " + !skip); }
   boolean empty = isLineEmpty(line);
   if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
   if(!skip && !empty){
