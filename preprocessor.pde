@@ -103,7 +103,7 @@ void processInput(){
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
     
-    String firstToken = getNextToken(line, 0).Token;
+    String firstToken = getNextToken(line, 0).string;
     
     //print(tmpFileHolder.indexArray);
     //printArray(cleanTokens(splitToken(line)));
@@ -114,6 +114,15 @@ void processInput(){
       buildMacro(loadStrings(baseDirectory + split(line, " ")[1]));
     }else if(firstToken.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
       println((tmpFileHolder.indexArray-1) + " : " + line);
+    }
+    
+    for(int i = 0; i < _Macros.size(); i++){
+      Macro tmp = _Macros.get(i);
+      if(tmp.name.equals(firstToken)){
+        println(line);
+        _output.append(parseMacro(tmp, line));
+        skip = true;
+      }
     }
     
     //if(line.contains(".let")){

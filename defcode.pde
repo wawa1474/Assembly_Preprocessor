@@ -285,22 +285,19 @@ void buildMacro(String[] file){
   String tmpS = "";
   ArrayList<Token> tmpTL = new ArrayList<Token>();
   for(int i = 0; i < file.length; i++){
-    TokenReturn token = getNextToken(file[i],0,true);
+    TokenReturn tokRet = getNextToken(file[i],0,true);
     boolean stop = false;
     while(!stop){
-      if(token.Token != null){
-        print("{" + token.Token + "} ");
+      if(tokRet.string != null){
         //print("{" + token.Token + "} @ " + token.nextIndex);
         switch(state){
           case 0:
-            switch(token.Token){
+            switch(tokRet.string){
               case ".macro":
-                print("<.ma>");
                 tmpM = new Macro();
                 state = 1;
                 break;
               case ".let":
-                print("<.lt>");
                 state = 10;
                 break;
               case ";":
@@ -310,48 +307,49 @@ void buildMacro(String[] file){
             break;
           
           case 1:
-            if(tmpM != null){ tmpM.name = token.Token; }
+            if(tmpM != null){ tmpM.name = tokRet.string; }
             state = 2;
             break;
           
           case 2:
-            if(token.Token.equals(";")){
+            if(tokRet.string.equals(";")){
               stop = true;
             }else{
-              tmpSL.append(token.Token);
+              tokRet.string = tokRet.string.replace(",","");
+              tmpSL.append(tokRet.string);
             }
             break;
           
           case 3:
-            if(token.Token.equals(";")){
+            if(tokRet.string.equals(";")){
               stop = true;
-            }else if(token.Token.equals(".endm")){
-              print("<.em>");
+            }else if(tokRet.string.equals(".endm")){
               if(tmpM != null){ tmpM.Tokens = listToArray(tmpTL); }
               _Macros.add(tmpM);
               tmpM = null;
               tmpTL.clear();
               state = 0;
             }else{
-              tmpTL.add(new Token(token.Token));
+              tmpTL.add(new Token(tokRet.string));
               state = 3;
             }
             break;
           
           case 10:
-            tmpS = token.Token;
+            tmpS = tokRet.string;
             state = 11;
             break;
           
           case 11:
-            _Vars.set(tmpS, token.Token);
+            _Vars.set(tmpS, tokRet.string);
             state = 0;
             break;
         }
+        print("{" + tokRet.string + "} ");
       }
       
-      token = getNextToken(file[i],token.nextIndex);
-      if(token.nextIndex >= file[i].length() && token.Token.equals("")){
+      tokRet = getNextToken(file[i],tokRet.nextIndex);
+      if(tokRet.nextIndex >= file[i].length() && tokRet.string.equals("")){
         stop = true; break;
       }
     }
@@ -359,11 +357,32 @@ void buildMacro(String[] file){
       tmpM.args = tmpSL.toArray();
       tmpSL.clear();
       state = 3;
+    }else if(state == 3){
+      tmpTL.add(new Token("\n"));
     }
     //print("{" + token.Token + "} ");
     println();
     //println("{" + token.Token + "} " + file[i]);
   }
+}
+
+String[] parseMacro(Macro macro, String line){
+  StringList output = new StringList();
+  String cur = "";
+  
+  for(int i = 0; i < macro.Tokens.length; i++){
+    if(macro.Tokens[i].Str.equals("\n")){
+      output.append(cur);
+      cur = "";
+    }else if(macro.Tokens[i].Str.equals("\\t")){
+      cur += "\t";
+    }else{
+      cur += macro.Tokens[i].Str + " ";
+    }
+  }
+  output.append(cur);
+  
+  return output.toArray();
 }
 
 void buildMacro(String line){
@@ -604,11 +623,11 @@ TokenReturn getNextToken(String line, int index){
 }
 
 class TokenReturn{
-  String Token;
+  String string;
   int nextIndex;
   
   TokenReturn(String t, int n){
-    Token = t;
+    string = t;
     nextIndex = n;
   }
 }
