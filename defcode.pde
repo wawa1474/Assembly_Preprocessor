@@ -192,5 +192,5 @@ VariableReturn tryInt(String in){
     }
   }
   
-  return new VariableReturn("" + value, value, valid);
+  return new VariableReturn(in, value, valid);
 }

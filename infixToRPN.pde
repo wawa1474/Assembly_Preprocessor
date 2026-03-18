@@ -1,14 +1,17 @@
 // TODO: infixToRPN would allow the preprocessor to do some otherwise difficult/impossible things...
 // Pulled from an ancient project that I left in a ROUGH state...
 //takes infix (normal) notation and converts it to reverse polish notation using a stack
-String input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) / 5 * (1 - 5) ^ %%token_prec)"; // infix notation to be converted
-// 123 2 45 + 2.3 5 / 0.2 ^ * * 5 1 5 - %%token_prec ^ * /
+String input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ^ %%token_prec)"; // infix notation to be converted
+// 123 2 45 + 2.3 5 / 0.2 ^ * * 1 - 5 1 5 - %%token_prec ^ * %
 String output = ""; // converted output
 
 void setup2(){
+  if(_Vars == null){ _Vars = new StringDict(); }
   println("input:" + input);
+  _Vars.set("token_prec", "" + 1337);
   lineToRPN(input, 0);
   println("output:" + output);
+  printArray(_Vars);
 }
 
 int getPrecedence(char c){
@@ -96,6 +99,8 @@ Stack stack = new Stack();
 
 void lineToRPN(String line, int index){
   int state = 0;
+  String token = "";
+  boolean isGlobalVar = false;
   
   for(int i = index; i < line.length(); i++){
     char c = line.charAt(i);
@@ -113,25 +118,27 @@ void lineToRPN(String line, int index){
           
           case ')':
             while(stack.peek().indentifier != '('){
-              output += " " + stack.pop().indentifier;
+              if(output.charAt(output.length() - 1) != ' '){ output += " "; }
+              output += stack.pop().indentifier;
             }
             stack.pop();
             break;
           
+          case '%': // mod or var
+            isGlobalVar = false;
+            state = 1;
+            break;
+          
           default:
-            if(isNumber(c) || isAlpha(c) || c == '.' || c == '%' || c == '_'){
-              //i--;
-              //state = 1;
+            if(isNumber(c) || c == '.'){
               output += c;
-            }else if(isAlpha(c)){
-              //i--;
-              //state = 2;
             }else{
               if(getPrecedence(c) > getPrecedence(stack.peek().indentifier)){
                 stack.push(new Token(c, -1));
               }else{
                 while(getPrecedence(c) < getPrecedence(stack.peek().indentifier)){
-                  output += " " + stack.pop().indentifier;
+                  if(output.charAt(output.length() - 1) != ' '){ output += " "; }
+                  output += stack.pop().indentifier;
                 }
                 stack.push(new Token(c, -1));
               }
@@ -140,45 +147,35 @@ void lineToRPN(String line, int index){
         }
         break;
       
-      //case 1:
-      //  switch(c){
-      //    case ' ':
-      //      output += " ";
-      //      break;
+      case 1:
+        switch(c){
+          case '%': // global variable
+            isGlobalVar = true;
+            state = 2;
+            break;
           
-      //    case '(': // '(' temporarily resets the top of stack precedence
-      //      stack.push(new Token(c, -1));
-      //      break;
+          case ' ': // mod
+            stack.push(new Token('%', -1));
+            state = 0;
+            break;
           
-      //    case ')':
-      //      while(stack.peek().indentifier != '('){
-      //        //print("[" + stack.peek().indentifier + "]");
-      //        output += " " + stack.pop().indentifier;
-      //      }
-      //      stack.pop();
-      //      break;
-          
-      //    default:
-      //      if(isNumber(c) || c == '.'){
-      //        output += c;
-      //      }else if(isAlpha(c)){
-      //        i--;
-      //        state = 2;
-      //      }else{
-      //        if(getPrecedence(c) > getPrecedence(stack.peek().indentifier)){
-      //          stack.push(new Token(c, -1));
-      //        }else{
-      //          while(getPrecedence(c) < getPrecedence(stack.peek().indentifier)){
-      //            output += " " + stack.pop().indentifier;
-      //          }
-      //          stack.push(new Token(c, -1));
-      //        }
-      //        i--;
-      //        state = 0;
-      //      }
-      //      break;
-      //  }
-      //  break;
+          default: // macro argument
+            i--;
+            state = 2;
+            break;
+        }
+        break;
+      
+      case 2:
+        if(isAlpha(c) || isNumber(c) || c == '_'){
+          token += c;
+        }else{
+          output += tryInt(getVariable(token, isGlobalVar));
+          token = "";
+          i--;
+          state = 0;
+        }
+        break;
     }
     //println("[" + i + "] " + output + " : stack == " + stack);
   }

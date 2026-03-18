@@ -1,3 +1,9 @@
+enum VariableType{
+  Integer,
+  String,
+  Variable,
+}
+
 class VariableReturn{
   String String;
   int Integer;
@@ -78,9 +84,9 @@ int parseLet(int firstVar, String action, int secondVar){
 }
 
 String getVariable(String name, boolean global){
-  if(global){
+  if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
-  }else{
+  }else if(!global){
     String[] lineMacroArgs = peekMacroArgs();
     FileHolder curMacro = getFile();
     for(int a = 0; a < curMacro.file.PathArray.length; a++){
