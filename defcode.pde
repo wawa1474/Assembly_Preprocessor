@@ -21,10 +21,18 @@
 static final int Token_null = 0;
 enum TokenType{
   Null,
-  Macro_Start,
+  Macro,
   Macro_Name,
   Macro_Args,
   Macro_End,
+  Directive,
+  Identifier,
+  Argument,
+  Label,
+  GlobalLabel,
+  Number,
+  String,
+  Character,
   Let,
 }
 enum TokenState{
@@ -48,45 +56,179 @@ Token[] listToArray(ArrayList<Token> list){
   return out;
 }
 
-ArrayList<Token> splitToken(String line){
+Token[] splitToken(String line){
+  println("splitToken: " + line);
   line += '\n';
   ArrayList<Token> tokens = new ArrayList<Token>();
   String cur = "";
   //TokenState state = TokenState.Default;
   //TokenState state2 = TokenState.Default;
   int state = 0;
+  int prevState = 0;
   
   int index = 0;
   boolean stop = false;
   char c = ' ';
   while(!stop){
-    if(index < line.length()){ c = line.charAt(index); }
-    if(index == line.length() || isWhitespace(c)){
-    }else{
-      switch(state){
-        case 0: // default
-          if(isNumber(c)){
-            state = 1; // number
-            cur+=c;
-          }else if(isAplha(c) || c == '_'){
-            state = 2; // identifier
-            cur+=c;
-          }else if(c == '.'){ // preprocessor directive
-            state = 3;
-            cur+=c;
-          }
-          break;
-        case 1: // number
-          if(isNumber(c) || c == '.'){
-            state = 1;
-            cur+=c;
-          }
-      }
-      
-      cur += c;
-      index++;
+    //print(index);
+    if(index < line.length()){ c = line.charAt(index); } else { stop = true; }
+    switch(state){
+      case 0: // default
+        if(isNumber(c)){
+          cur+=c;
+          index++;
+          state = 1; // number
+        }else if(isAlpha(c) || c == '_'){
+          cur+=c;
+          index++;
+          state = 2; // identifier
+        }else if(c == '.'){
+          cur+=c;
+          index++;
+          state = 3; // preprocessor directive / label
+        }else if(c == '%'){
+          cur+=c;
+          index++;
+          state = 4; // args
+        }else if(c == '"'){
+          cur+=c;
+          index++;
+          state = 6; // string
+        }else if(c == '\''){
+          cur+=c;
+          index++;
+          state = 7; // character
+        }else if(c == '#' || c == '=' || c == '<' || c == '>' ||
+                 c == '?' || c == '+' || c == '-' || c == '?' ||
+                 c == '!' || c == '`' || c == '@' || c == '$' ||
+                 c == '^' || c == '&' || c == '*' || c == '(' ||
+                 c == ')' || c == '[' || c == ']' || c == '{' ||
+                 c == '}' || c == ':' || c == ',' || c == '/'){ // ignored characters
+          //cur+=c;
+          index++;
+        }else if(c == ';'){
+          stop = true; // comment
+        }else if(isWhitespace(c)){
+          cur = "";
+          index++;
+          //state = state;
+        }
+        break;
+      case 1: // number
+        if(isNumber(c) || c == '.' || c == 'x' || c == 'b' || c == 'o'){ // 0x1234, 0b01010101, 0o177
+          cur+=c;
+          index++;
+          //state = state;
+        }else{
+          tokens.add(new Token(TokenType.Number, cur));
+          cur = "";
+          state = 0; // default
+        }
+        break;
+      case 2: // identifier
+      case 3: // preprocessor directive
+      case 10: // label
+        if(c == '%'){ // .&asdf_asdf2
+          cur+=c;
+          index++;
+          state = 10;
+        }else if(isAlpha(c) || isNumber(c) || c == '_'){ // asdf_asdf2
+          cur+=c;
+          index++;
+          //state = state;
+        }else{
+          tokens.add(new Token(state==2?TokenType.Identifier:state==3?TokenType.Directive:TokenType.Label, cur));
+          cur = "";
+          state = 0; // default
+        }
+        break;
+      case 4: // args
+      case 5: // global label
+        if(isAlpha(c) || isNumber(c) || c == '_'){ // %asdf_asdf2
+          cur+=c;
+          index++;
+          //state = 4; // args
+        }else if(c == '%'){ // global label
+          cur+=c;
+          index++;
+          state = 5; // global label
+        }else{
+          println("add arg/glab: " + cur);
+          tokens.add(new Token(state==4?TokenType.Argument:TokenType.GlobalLabel, cur));
+          cur = "";
+          state = 0; // default
+        }
+        break;
+      case 6: // string
+      case 7: // character
+        if(c == '\\'){ // \", \'
+          cur+=c;
+          index++;
+          prevState = state;
+          state = 8; // escape sequences
+        }else if(c == (state==6?'"':'\'')){ // ", '
+          tokens.add(new Token(state==6?TokenType.String:TokenType.Character, cur));
+          cur = "";
+          index++;
+          state = 0; // default
+        }else{
+          cur+=c;
+          index++;
+          //state = state;
+        }
+        break;
+      case 8: // escape sequences
+      case 9: // unicode
+        if(c == '\\' || c == '"' || c == '\'' || c == 't' || c == 'n' || c == 'r'){ // \\, \", \', \t, \n, \r
+          cur+=c;
+          index++;
+          state = prevState;
+        }else if(state == 8 && c == 'u'){ // \\u{22}
+          index++;
+          state = 9; // unicode
+        }else if(state == 9 && c == '}'){ // \\u{22}
+          cur+=c;
+          index++;
+          state = prevState;
+        }else{
+          cur+=c;
+          index++;
+          //state = state;
+        }
+        break;
     }
   }
+  
+  
+  
+  //while(!stop){
+  //  if(index < line.length()){ c = line.charAt(index); }
+  //  if(index == line.length() || isWhitespace(c)){
+  //  }else{
+  //    switch(state){
+  //      case 0: // default
+  //        if(isNumber(c)){
+  //          state = 1; // number
+  //          cur+=c;
+  //        }else if(isAplha(c) || c == '_'){
+  //          state = 2; // identifier
+  //          cur+=c;
+  //        }else if(c == '.'){ // preprocessor directive
+  //          state = 3;
+  //          cur+=c;
+  //        }
+  //        break;
+  //      case 1: // number
+  //        if(isNumber(c) || c == '.'){
+  //          state = 1;
+  //          cur+=c;
+  //        }
+  //    }
+      
+  //    cur += c;
+  //    index++;
+  //  }
+  //}
   
   //for(int i = 0; i < line.length(); i++){
   //  char c = line.charAt(i);
@@ -152,7 +294,85 @@ ArrayList<Token> splitToken(String line){
   //  }
   //}
   
-  return tokens;
+  return listToArray(tokens);//(Token[])tokens.toArray();
+}
+
+Token[] cleanTokens(Token[] input){ // Input is only a single line's worth of tokens!
+  println("cleanTokens: " + input.length);
+  ArrayList<Token> tokens = new ArrayList<Token>();
+  Token cur = new Token();
+  int state = 0;
+  StringList tmp = new StringList();
+  
+  for(int i = 0; i < input.length; i++){
+    if(state != 8 && state != 9 && input[i].Str.contains("%%")){
+      cur.Type = TokenType.GlobalLabel;
+      cur.Value = input[i].Str;//split(, "%%")[0];
+      tokens.add(cur);
+      cur = new Token();
+    }else if(state != 8 && state != 9 && input[i].Str.contains("%") && !input[i].Str.contains(".%")){
+      cur.Type = TokenType.Argument;
+      cur.Value = input[i].Str;//split(, "%")[0];
+      tokens.add(cur);
+      cur = new Token();
+    }else{
+      switch(state){
+        case 0:
+          switch(input[i].Str){
+            case ".macro":
+              cur.Type = TokenType.Macro;
+              cur.macro = new Macro();
+              state = 1;
+              break;
+            case ".endm":
+              cur.Type = TokenType.Macro_End;
+              tokens.add(cur);
+              cur = new Token();
+              //state = 0;
+              break;
+            case ".let":
+              println("found let");
+              cur.Type = TokenType.Let;
+              state = 8;
+              break;
+            default:
+              tokens.add(input[i]);
+              break;
+          }
+          break;
+        case 1:
+          cur.macro.name = input[i].Str;
+          state = 2;
+          break;
+        case 2:
+          tmp.append(input[i].Str);
+          break;
+        case 8:
+          println(input[i].Str);
+          cur.Str = input[i].Str;
+          state = 9;
+          break;
+        case 9:
+          println(input[i].Str);
+          cur.Value = input[i].Str;
+          tokens.add(cur);
+          cur = new Token();
+          //state = 0;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  
+  switch(state){
+    case 2:
+      cur.macro.args = tmp.toArray();
+      tokens.add(cur);
+      break;
+  }
+  
+  return listToArray(tokens);//(Token[])tokens.toArray();
 }
 
 void buildMacro(String line){
@@ -193,9 +413,9 @@ void buildMacro(String line){
     cur = tmpFileHolder.contents[tmpFileHolder.indexArray++];
   }
   
-  println(name);
-  printArray(args);
-  printArray(output);
+  //println(name);
+ // printArray(args);
+ // printArray(output);
   
   _Macros.add(new Macro(name, output.toArray()));
 }
@@ -338,7 +558,7 @@ String stripLabel(String l){
   return out;
 }
 
-boolean isAplha(char c){
+boolean isAlpha(char c){
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 

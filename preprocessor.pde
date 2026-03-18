@@ -84,32 +84,36 @@ void processInput(){
   defines = new IntDict();
   
   boolean skip = false;
-  while(tmpFileHolder.indexArray < tmpFileHolder.contents.length){
+  while(tmpFileHolder.indexArray < 140){//tmpFileHolder.contents.length){
     skip = false;
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
     
-    if(line.contains(".let")){
-      setVariable(line);
-      continue;
-    }
+    print(tmpFileHolder.indexArray);
+    printArray(cleanTokens(splitToken(line)));
+    println();
     
-    if(line.contains(".macro")){
-      buildMacro(line);
-      continue;
-    }
-    //else if(line.contains("dfw")){
-    //  output_dfw(breakLine(tmpFileHolder.indexArray, "dfw", 4, line));
+    //if(line.contains(".let")){
+    //  setVariable(line);
+    //  continue;
     //}
-    else{
-      for(int i = 0; i < _Macros.size(); i++){
-        Macro m = _Macros.get(i);
-        if(line.contains(m.name)){
-          outputMacro(m, breakLine(tmpFileHolder.indexArray-1, m.name, m.name.length()+1, line));
-          skip = true; break;
-        }
-      }
-    }
+    
+    //if(line.contains(".macro")){
+    //  buildMacro(line);
+    //  continue;
+    //}
+    ////else if(line.contains("dfw")){
+    ////  output_dfw(breakLine(tmpFileHolder.indexArray, "dfw", 4, line));
+    ////}
+    //else{
+    //  for(int i = 0; i < _Macros.size(); i++){
+    //    Macro m = _Macros.get(i);
+    //    if(line.contains(m.name)){
+    //      outputMacro(m, breakLine(tmpFileHolder.indexArray-1, m.name, m.name.length()+1, line));
+    //      skip = true; break;
+    //    }
+    //  }
+    //}
     
     //if(line.contains("defword")){
     //  output_defword(breakLine(i, "defword", 8, line));
@@ -183,8 +187,11 @@ class FileHolder{
 
 class Macro{
   String name;
+  String[] args;
   String[] output;
   Token[] Tokens;
+  
+  Macro(){}
   
   Macro(String n, String[] o){
     name = n;
@@ -195,15 +202,43 @@ class Macro{
     name = n;
     Tokens = t;
   }
+  
+  String argString(){
+    String tmp = name + ": [" + args.length + "] " + args[0];
+    for(int i = 1; i < args.length; i++){
+      tmp += ", " + args[i];
+    }
+    return tmp;
+  }
 }
 
 class Token{
-  TokenType Type;
+  TokenType Type = TokenType.Null;
   String Str;
   String Value;
+  Macro macro;
+  
+  Token(){}
   
   Token(TokenType t){
     Type = t;
+  }
+  
+  Token(TokenType t, String s){
+    Type = t;
+    Str = s;
+  }
+  
+  String toString(){
+    if(Type == TokenType.Macro){
+      return "{Macro} " + macro.argString();
+    }else if(Type == TokenType.Let){
+      return "{Let} " + Str + " = " + Value;
+    }else if(Type == TokenType.GlobalLabel || Type == TokenType.Argument){
+      return "{" + Type.name() + "} " + Value;
+    }else{
+      return "{" + Type.name() + "} " + Str;
+    }
   }
 }
 
