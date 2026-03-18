@@ -70,9 +70,13 @@ void setup(){
     println("\t#include's will be opened and concatenated into a single output file.");
   }else{
     _Vars = new StringDict();
+    _output = new StringList();
     
-    processInput();
+    processInput(0, 0);
     
+    printArray(_Vars);
+    println(_outputFile);
+    saveStrings(_outputFile, _output.toArray());
     
     println("Total Macros: " + _Files[_Files_Macros].size());
     println("Total Macro Args Pushed: " + _macro_Args2.size()); // should be 0 when done
@@ -116,40 +120,4 @@ int getFileLength(){
     return _tmpFileHolder.contents.length;
   }
   return 0;
-}
-
-void processInput(){
-  _output = new StringList();
-  
-  for(; getIndex() < getFileLength(); incIndex()){
-    String line = getLine();
-    TokenReturn token = getNextToken(line,0);
-    boolean skip = true;
-    
-    switch(token.string){
-      case ".include": // .include "path/name.ext"
-        checkIncludeFile(line, token.nextIndex);
-        break;
-      case ".macro":
-        buildMacro(line, token.nextIndex);
-        break;
-      case ".if":
-        parseIf(line, token.nextIndex, 0);
-        break;
-      case ".let":
-        parseLet(line, token.nextIndex);
-        break;
-      default:
-        skip = checkMacros(token.string, line, token.nextIndex); // will skip outputting a raw macro line, but otherwise will append all lines
-        break;
-    }
-    
-    outputLine(line, skip);
-    popFileIfLastLine();
-  }
-  
-  printArray(_Vars);
-  
-  println(_outputFile);
-  saveStrings(_outputFile, _output.toArray());
 }
