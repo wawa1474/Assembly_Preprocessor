@@ -87,6 +87,10 @@ String parseFunction(String input){
       output = args[2].Name;
       break;
     
+    case "arg": // get a macro arg by index
+      output = CurrentMacroArgs[tryInt(args[1].Name).Integer].Value;
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}

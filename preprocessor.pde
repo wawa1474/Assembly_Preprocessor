@@ -41,10 +41,11 @@ IntList _repeat_Args = new IntList(); // stack for repeat arguments
 */
 
 String _program_name = "Assembly Preprocessor";
-String _version_major = "1"; // I don't know what version to really start at, but the code is fully functional
-String _version_minor = "0"; // and ready to be used to produce a large program
-String _version_patch = "0"; // so... I DECLARE THIS TO BE V1.0.0!
-String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch;
+String _version_major = "1";
+String _version_minor = "0";
+String _version_patch = "0";
+String _version_preRelease = "1";
+String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 void setup(){
   int time = millis();
   println("sketchPath() = " + sketchPath());

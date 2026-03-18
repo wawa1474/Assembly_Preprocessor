@@ -223,6 +223,13 @@ String getVariable(String name, boolean global){
       MacroArg[] curMacro = CurrentWorker.Macro.Args;
       //print("curMacro: ");print("<" + curMacro.length + ">");printArray(curMacro);
       for(int a = 0; a < curMacro.length; a++){
+        // if(name is number)
+        //   return curMacro[name.integer];
+        //   // this would give us the ability to handle an unknown-at-asm-time amount of macro args
+        //   // allowing us to pass an 'unlimited' amount of args to a macro, and then handle it in a loop
+        //   // would the proper term be function overloading? even though its a macro?
+        //   // might be easier to have a #function to get macro args by index rather than complicate getVariable()...
+        // else if...
         if(curMacro[a].Name.equals(name)){
           if(a >= lineMacroArgs.length || lineMacroArgs[a].Name.length() == 0){ // ["this","is","a"], ["this","","","token"]
             if(curMacro[a].Value != null){ return curMacro[a].Value; }
@@ -243,6 +250,7 @@ String getBuiltin(String name){
     case "@": return str(getIndex()); // get current file index
     case "*": return str(_output.size() + 1); // get total output line count
     case "filename": return CurrentWorker.File.file.Name; // get current file name
+    case "argc": return str(CurrentMacroArgs.length); // how many args does this macro instance have?
   }
   
   return "\\!{getBuiltin:unknown_var, " + name + "}";
