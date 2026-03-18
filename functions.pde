@@ -88,7 +88,9 @@ String parseFunction(String input){
       break;
     
     case "arg": // get a macro arg by index
-      output = CurrentMacroArgs[tryInt(args[1].Name).Integer].Value;
+      //println("parseFunction:arg " + args[1].Name + " == " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
+      //printArray(CurrentMacroArgs);
+      output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       break;
     
     case "pushTmp": // save a global var to the stack and set it to a tmp value
