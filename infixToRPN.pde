@@ -1,7 +1,8 @@
 // TODO: infixToRPN would allow the preprocessor to do some otherwise difficult/impossible things...
 // Pulled from an ancient project that I left in a ROUGH state...
 //takes infix (normal) notation and converts it to reverse polish notation using a stack
-String testRPN_input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ^ \\&{token_prec} + \\#{random,10,50})"; // infix notation to be converted
+//String testRPN_input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ^ \\&{token_prec} + \\#{random,10,50})";
+String testRPN_input = "((\\#{pow, 123 * (2 + 45) * (2.3 / 5), 0.2} - 1) % 5 * \\#{pow, 1 - 5, \\&{token_prec}} + \\#{random,10,\\&{token_prec}})"; // infix notation to be converted
 // 123 2 45 + 2.3 5 / 0.2 ^ * * 1 - 5 1 5 - \\&{token_prec} ^ * % \\#{random,10,50} +
 
 void testRPN(){
@@ -102,7 +103,7 @@ String lineToRPN(String line, int index){
   
   for(int i = index; i < line.length() && state != -1; i++){
     char c = line.charAt(i);
-    //print("{" + c + "}");
+    //println(i + ":" + c);
     switch(state){
       case 0:
         switch(c){

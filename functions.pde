@@ -38,6 +38,28 @@ String parseFunction(String input){
       }
       break;
     
+    case "pow":
+      VariableReturn base = tryInt(args[1]);
+      VariableReturn exponent = tryInt(args[2]);
+      switch(base.Type){
+        case Integer:
+          switch(exponent.Type){
+            case Integer: output += pow(base.Integer, exponent.Integer); break;
+            case Float: output += pow(base.Integer, exponent.Float); break;
+            default: output += "\\!{pow, exponent has NAN type}"; break;
+          }
+          break;
+        case Float:
+          switch(exponent.Type){
+            case Integer: output += pow(base.Float, exponent.Integer); break;
+            case Float: output += pow(base.Float, exponent.Float); break;
+            default: output += "\\!{pow, exponent has NAN type}"; break;
+          }
+          break;
+        default: output += "\\!{pow, base has NAN type}"; break;
+      }
+      break;
+    
     case "goto":
       setIndex(tryInt(args[1]).Integer);
       break;
