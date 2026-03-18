@@ -44,6 +44,7 @@ final static int _PathReturn_Reverse_Macro = -1; // _tmpFileHolder.file.Reverse
 
 String _VERSION = "V1234";
 void setup(){
+  int time = millis();
   println("sketchPath() = " + sketchPath());
   _Files[0] = new ArrayList<FileHolder>();
   _Files[1] = new ArrayList<FileHolder>();
@@ -92,6 +93,7 @@ void setup(){
   }
   
   setup2();
+  println("program ran for: " + (millis() - time) + " millis.");
   exit();
 }
 

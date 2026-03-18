@@ -79,7 +79,20 @@ String[] getMacroArgs(String line, int index){
           case '\\':
             VariableReturn output = cleanEscape(line, index);
             index = output.nextIndex;
-            token += output.String;
+            switch(output.Type){
+              case Argument: // macro argument
+                token += getVariable(output.String, false, 0);
+                break;
+              case Variable: // global variable
+                token += getVariable(output.String, true, 0);
+                break;
+              case Function: // built-in function
+                token += parseFunction(output.String);
+                break;
+              default:
+                token += output.String;
+                break;
+            }
             break;
           
           case '(':

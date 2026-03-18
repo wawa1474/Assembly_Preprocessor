@@ -16,6 +16,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
   
   for(; getIndex() < getFileLength(); incIndex()){
     String line = getLine();
+    if(line.length() > 0 && line.charAt(0) == ';'){ continue; } // skip comment-only lines
     TokenReturn token = getNextToken(line,0);
     boolean skip = true;
     //println("[" + getIndex() + "]{" + state.name() + "} " + line);

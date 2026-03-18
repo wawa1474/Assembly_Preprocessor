@@ -211,6 +211,11 @@ String getVariable(String name, boolean global, int depth){
     }
   }
   
+  switch(name){ // last chance to find var in predefined
+    case "@": // get current file index
+      return "" + getIndex();
+  }
+  
   return "\\!{unknown arg/var '" + name + "'}";
 }
 
