@@ -116,8 +116,13 @@ String parseFunction(String input){
               output = g_POP(sName);
               break;
             
+            case "TOS":
             case "peek": // (TOS - TOS [TOS])
               output = g_PEEK(sName);
+              break;
+            
+            case "NOS":
+              output = g_PEEK(sName, 1);
               break;
             
             case "clear": // (TOS - TOS [TOS])
