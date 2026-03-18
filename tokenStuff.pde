@@ -131,8 +131,8 @@ TokenReturn cleanEscape(String line, int index){
       case 0:
         state = -1; // default is to finish after one character
         switch(c){
-          case '0': // NULL
-            token += "\\u{00}";
+          case '0': // NULL or Octal Character (\033)
+            state = 5;
             break;
           case 'a': // BELL
             token += "\\u{07}";
@@ -140,7 +140,7 @@ TokenReturn cleanEscape(String line, int index){
           case 'b': // BACKSPACE
             token += "\\u{08}";
             break;
-          case 'e': // ESCAPE SEQUENCE
+          case 'e': // ESCAPE SEQUENCE (\e, \x1B, \033, 27, ^[)
             token += "\\u{1B}";
             break;
           case 'f': // FORM FEED
@@ -161,6 +161,10 @@ TokenReturn cleanEscape(String line, int index){
             break;
           case 'v': // VERTICAL TAB
             token += "\\u{0B}";
+            break;
+          case 'x': // Hexadecimal Character (\x1B)
+            token += "\\u{";
+            state = 3;
             break;
           case '!': // error output
             token += "\\!";
@@ -221,6 +225,25 @@ TokenReturn cleanEscape(String line, int index){
             break;
         }
         break;
+      
+      case 3:
+        token += c;
+        state = 4;
+        break;
+      
+      case 4:
+        token += c + "}";
+        state = -1;
+        break;
+      
+      case 5:
+        if(isOctal(c)){
+          token += c;
+        }else{
+          token = "\\u{" + octalToHex(token) + "}";
+          index--;
+          state = -1;
+        }
     }
   }
   

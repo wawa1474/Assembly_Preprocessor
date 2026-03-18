@@ -22,27 +22,28 @@ boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
+String octalToHex(String input_){
+  if(input_ == null){ return null; }
+  int value = 0;
+  for(int i = 0; i < input_.length(); i++){
+    value <<= 3;
+    value |= input_.charAt(i) - 0x30;
+  }
+  return hex(value,4);
+}
+
 void outputLine(String line, boolean skip){
-  
-  //if(!skip || maintainComments){ // output
-  //  String tmp = parseVariables(line).String;
-  //  if(!maintainComments){ tmp = cleanComments(tmp); }
-  //  if(isLineEmpty(line) && isLineEmpty(getLastOutputLine())){ // both the current line, and the last output one are blank...
-  //    return; // so return...
-  //  }
-  //  if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
-  //  _output.append(tmp);
-  //}
-  if(isLineEmpty(line) && !isLineEmpty(getLastOutputLine())){ _output.append(""); } // the current line is blank, but the last output one wasn't...
-  if((!skip && line != null && line.length() != 0)){
+  boolean empty = isLineEmpty(line);
+  if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
+  if(!skip && !empty){
     String tmp = cleanComments(parseVariables(line).String);
-    boolean empty = isLineEmpty(tmp);
-    if(!empty && showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
+    if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
     _output.append(tmp);
   }
 }
 
 boolean isLineEmpty(String line){
+  if(line == null){ return true; }
   for(int i = 0; i < line.length(); i++){
     char c = line.charAt(i);
     if(!isWhitespace(c)){ return false; }
