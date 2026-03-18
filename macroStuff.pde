@@ -82,6 +82,10 @@ class Worker{
   String toString(){
     return Type == WorkerType.File ? "File" : "Macro";
   }
+  
+  String getOrigin(){
+    return Type == WorkerType.Macro ? Macro.OriginFile + " @ " + Macro.OriginLine + " : " : "";
+  }
 }
 
 class MacroArg{

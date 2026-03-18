@@ -189,13 +189,14 @@ float parseLet(float firstVar, String action, float secondVar){
 // TODO: add a depth input + make peekMacroArgs honor that to make macro args resursive...
 String getVariable(String name, boolean global, int depth){
   //println("getVariable: " + name + ", " + global);
+  //println(getIndex());
   if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
   }else if(!global){
-    MacroArg[] lineMacroArgs = CurrentMacroArgs;
+    MacroArg[] lineMacroArgs = CurrentMacroArgs;//(depth == 0 || MacroArgsStack.size() - depth <= 0 ? CurrentMacroArgs : MacroArgsStack.get(MacroArgsStack.size() - depth));
     //print("lineMacroArgs: ");printArray(lineMacroArgs);
-    if(lineMacroArgs != null){
-      MacroArg[] curMacro = CurrentWorker.Macro.Args;
+    if(lineMacroArgs != null && CurrentWorker.Macro != null){
+      MacroArg[] curMacro = CurrentWorker.Macro.Args;//(depth == 0 || Workers.size() - depth <= 0 ? CurrentWorker.Macro.Args : Workers.get(Workers.size() - depth).Macro.Args);
       //print("curMacro: ");print("<" + curMacro.length + ">");printArray(curMacro);
       for(int a = 0; a < curMacro.length; a++){
         if(curMacro[a].Name.equals(name)){

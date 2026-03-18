@@ -86,7 +86,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".let": parseLet(line, token.nextIndex); break;
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
-          //case ".case": case ".default": break;
+          case ".case": case ".default": break;
           case ".break": state = ParseState.Switch_Skip; break;
           case ".endsw": popSwitchArg(); return;
           case ".repeat": doRepeat(depth_); break;

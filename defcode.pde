@@ -28,7 +28,9 @@ void outputLine(String line, boolean skip){
     String tmp = cleanComments(parseVariables(line, 0).String);
     if((isLineEmpty(line) && (lastLine != 0 || lastLine == -1)) || !isLineEmpty(tmp)){ // if program line was empty, or line is NOT empty after processing
       //if(tmp.equals("0")){ println(getIndex()); }
-      if(!isLineEmpty(tmp)){ tmp += "\t\t\t\t; " + getFileName() + " @ " + getIndex(); }
+      if(!isLineEmpty(tmp) && _Vars.hasKey("showLines") && _Vars.get("showLines").equals("true")){
+        tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex();
+      }
       _output.append(tmp);// + " ; " + getFileName() + " @ " + getIndex()); // output it!
     }
   }
@@ -79,8 +81,23 @@ void cleanMultilineComments(){
   for(; getIndex() < getFileLength(); incIndex()){
     String line = getLine();
     TokenReturn token = getNextToken(line, 0);
+    switch(token.string){
+        case "/*":
+          depth++; // handle nested multiline comments
+          continue;
+        
+        case "*/":
+          depth--;
+          if(depth <= 0){
+            //if(token.nextIndex < line.length()){ // this won't work due to processInput() always starting at beginning of line...
+              //decIndex(); // need to --lineIndex due to being ++ on next iteration of processInput()
+            //} // as such, code can't follow the "*/" of a multiline comment...
+            return; // end of (nested) multiline comments
+          }
+          continue; // end of current nested multiline comment
+      }
+    println(line + ":" + depth);
     while(token.nextIndex < line.length()){ // handle multiline comments that exist on a single line
-      token = getNextToken(line, token.nextIndex); // get next token on same line
       switch(token.string){
         case "/*":
           depth++; // handle nested multiline comments
@@ -88,7 +105,7 @@ void cleanMultilineComments(){
         
         case "*/":
           depth--;
-          if(depth == 0){
+          if(depth <= 0){
             //if(token.nextIndex < line.length()){ // this won't work due to processInput() always starting at beginning of line...
               //decIndex(); // need to --lineIndex due to being ++ on next iteration of processInput()
             //} // as such, code can't follow the "*/" of a multiline comment...
@@ -96,6 +113,7 @@ void cleanMultilineComments(){
           }
           break; // end of current nested multiline comment
       }
+      token = getNextToken(line, token.nextIndex); // get next token on same line
     }
   }
 }
