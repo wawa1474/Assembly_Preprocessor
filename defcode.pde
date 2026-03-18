@@ -580,6 +580,7 @@ PathReturn splitFilepath(String file){
   PathReturn output = new PathReturn();
   String tmp = "";
   int state = 0;
+  StringList path = new StringList();
   
   // ../../path/to/file.ext
   // ./../path/to/file.ext
@@ -652,11 +653,7 @@ PathReturn splitFilepath(String file){
         switch(c){
           case '/':
           case '\\':
-            if(output.Path == null){
-              output.Path = tmp;
-            }else{
-              output.Path += "\\" + tmp;
-            }
+            path.append(tmp);
             tmp = "";
             state = 4;
             break;
@@ -686,23 +683,32 @@ PathReturn splitFilepath(String file){
         }
     }
   }
+  output.PathArray = path.toArray();
   output.Extension = tmp;
   
   return output;
 }
 
-class PathReturn{ // "../../input/code.asm"
-  String Path; // "input"
+class PathReturn{ // "../../path/to/file/code.asm"
+  String[] PathArray; // {"path", "to", "file"}
   String Name; // "code"
   String Extension; // "asm"
   int Reverse; // "2"
+  
+  String getPath(){
+    String output = "";
+    for(int i = 0; i < PathArray.length; i++){
+      output += PathArray[i] + "\\";
+    }
+    return output;
+  }
   
   String toString(){
     String output = "";
     for(int i = 0; i < Reverse; i++){
       output += "..\\";
     }
-    return output + Path + "\\" + Name + "." + Extension;
+    return output + getPath() + Name + "." + Extension;
   }
 }
 
