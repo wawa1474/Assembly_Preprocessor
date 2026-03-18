@@ -10,7 +10,7 @@ String[] splitVersion(String input){
   String[] tmp = split(input, "."); // 2.2.0-pr.1 -> [2, 2, 0-pr, 1]
   
   if(tmp.length > 3){
-    tmp[2] = split(tmp[2], "-")[0];
+    tmp[2] = split(tmp[2], "-")[0]; // 0-pr -> 0
   }
   
   return tmp;

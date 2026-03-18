@@ -9,7 +9,7 @@ boolean checkIf(String line, int index, boolean default_){
 boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, TokenReturn thirdToken, boolean default_){
   VariableReturn firstVar = parseVariables(firstToken.string);
   VariableReturn secondVar = parseVariables(secondToken.string);
-      VariableReturn thirdVar = parseVariables(thirdToken.string);
+  VariableReturn thirdVar = parseVariables(thirdToken.string);
   //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
   
@@ -33,7 +33,7 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
 }
 
 boolean checkCondition(VariableReturn firstVar, String action, VariableReturn secondVar, VariableReturn thirdVar, boolean default_){
-  float comp = compare(firstVar, secondVar);
+  int comp = compare(firstVar, secondVar);
   boolean invert = false;
   switch(action){
     case "==": // same
@@ -60,8 +60,9 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
       if(thirdVar.Number != true){
         return default_; // NAN
       }else{
-        float comp2 = compare(firstVar, thirdVar);
-        return (comp < 0 && comp2 > 0) ^ invert; // v2 < v1 < v3
+        int comp2 = compare(firstVar, thirdVar);
+        //println(secondVar + " < " + firstVar + " = " + comp + ", " + firstVar + " < " + thirdVar + " = " + comp2 + ": = " + ((comp > 0 && comp2 < 0) ^ invert));
+        return (comp > 0 && comp2 < 0) ^ invert; // v2 < v1 < v3
       }
     
     case "<!=>": // not between or equal
@@ -70,8 +71,8 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
       if(thirdVar.Number != true){
         return default_; // NAN
       }else{
-        float comp2 = compare(firstVar, thirdVar);
-        return ((comp < 0 && comp2 > 0) || comp == 0 || comp2 == 0) ^ invert; // v2 <= v1 <= v3
+        int comp2 = compare(firstVar, thirdVar);
+        return ((comp > 0 && comp2 < 0) || comp == 0 || comp2 == 0) ^ invert; // v2 <= v1 <= v3
       }
     
     default:
@@ -80,8 +81,24 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
 }
 
 // TODO: this might have issues due to float rounding...
-float compare(VariableReturn one, VariableReturn two){ // -(one < two), 0(one == two), +(one > two)
-  return (one.Type == VariableType.Integer ? one.Integer : one.Float) - (two.Type == VariableType.Integer ? two.Integer : two.Float);
+int compare(VariableReturn one, VariableReturn two){ // -(one < two), 0(one == two), +(one > two)
+  switch(one.Type){
+    case Integer:
+      switch(two.Type){
+        case Integer: return Integer.compare(one.Integer, two.Integer); // Integer.compare should be more... reliable?
+        case Float: return Float.compare(one.Integer, two.Float); // Float.compare should be more... reliable?
+        default: println("compare:v2 was NAN"); return 0;
+      }
+    
+    case Float:
+      switch(two.Type){
+        case Integer: return Float.compare(one.Float, two.Float);
+        case Float: return Float.compare(one.Float, two.Float);
+        default: println("compare:v2 was NAN"); return 0;
+      }
+    
+    default: println("compare:v1 was NAN");return 0;
+  }
 }
 
 boolean checkCase(String line, int index){

@@ -154,15 +154,15 @@ String parseFunction(String input){
           checkEqu = true;
         case ">": // greater than
         case "<": // less than
-          println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name);
+          //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name);
           for(int i = 0; i < v1.length; i++){
             if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), null, false)){
               cond = true;
               break; // break out of loop
             }
-            println(_version[i] + " " + args[1].Name + " " + v1[i] + " = " + cond + " / " + equ);
+            //println(_version[i] + " " + args[1].Name + " " + v1[i] + " = " + cond + " / " + equ);
           }
-          println(args[1].Name + " = " + cond + " / " + equ);
+          //println(args[1].Name + " = " + cond + " / " + equ);
           
           if(checkEqu){
             cond |= equ; // only for >= or <=
@@ -185,7 +185,7 @@ String parseFunction(String input){
           }
           equ |= equ2; // _version == v1 || _version == v2
           
-          println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
+          //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
           for(int i = 0; i < v1.length; i++){
             if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), parseVariables(v2[i]), false)){
               cond = true;
