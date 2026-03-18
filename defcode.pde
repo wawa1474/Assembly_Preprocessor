@@ -279,13 +279,88 @@ Token[] cleanTokens(Token[] input){ // Input is only a single line's worth of to
 }
 
 void buildMacro(String[] file){
+  int state = 0;
+  Macro tmpM = null;
+  StringList tmpSL = new StringList();
+  String tmpS = "";
+  ArrayList<Token> tmpTL = new ArrayList<Token>();
   for(int i = 0; i < file.length; i++){
-    TokenReturn token = getNextToken(file[i],0);
-    while(token.nextIndex < file[i].length()){
-      print("{" + token.Token + "} ");
+    TokenReturn token = getNextToken(file[i],0,true);
+    boolean stop = false;
+    while(!stop){
+      if(token.Token != null){
+        print("{" + token.Token + "} ");
+        //print("{" + token.Token + "} @ " + token.nextIndex);
+        switch(state){
+          case 0:
+            switch(token.Token){
+              case ".macro":
+                print("<.ma>");
+                tmpM = new Macro();
+                state = 1;
+                break;
+              case ".let":
+                print("<.lt>");
+                state = 10;
+                break;
+              case ";":
+                stop = true;
+                break;
+            }
+            break;
+          
+          case 1:
+            if(tmpM != null){ tmpM.name = token.Token; }
+            state = 2;
+            break;
+          
+          case 2:
+            if(token.Token.equals(";")){
+              stop = true;
+            }else{
+              tmpSL.append(token.Token);
+            }
+            break;
+          
+          case 3:
+            if(token.Token.equals(";")){
+              stop = true;
+            }else if(token.Token.equals(".endm")){
+              print("<.em>");
+              if(tmpM != null){ tmpM.Tokens = listToArray(tmpTL); }
+              _Macros.add(tmpM);
+              tmpM = null;
+              tmpTL.clear();
+              state = 0;
+            }else{
+              tmpTL.add(new Token(token.Token));
+              state = 3;
+            }
+            break;
+          
+          case 10:
+            tmpS = token.Token;
+            state = 11;
+            break;
+          
+          case 11:
+            _Vars.set(tmpS, token.Token);
+            state = 0;
+            break;
+        }
+      }
+      
       token = getNextToken(file[i],token.nextIndex);
+      if(token.nextIndex >= file[i].length() && token.Token.equals("")){
+        stop = true; break;
+      }
     }
-    print("{" + token.Token + "} ");
+    if(state == 2 && tmpM != null){
+      tmpM.args = tmpSL.toArray();
+      tmpSL.clear();
+      state = 3;
+    }
+    //print("{" + token.Token + "} ");
     println();
     //println("{" + token.Token + "} " + file[i]);
   }
@@ -488,6 +563,22 @@ boolean isNumber(char c){
 
 boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+TokenReturn getNextToken(String line, int index, boolean space){
+  if(space == false){ return getNextToken(line, index); }
+  
+  String firstToken = "";
+  int len = line.length();
+  if(len > 0 && index < len){
+    char c = line.charAt(index);
+    while(index < len && isWhitespace(c)){ // eat leading whitespace
+      firstToken += c == ' ' ? ' ' : "\\t";
+      c = line.charAt(++index);
+    }
+  }
+  //print("[" + firstToken + "]");
+  return new TokenReturn(firstToken.equals("") ? null : firstToken, index);
 }
 
 TokenReturn getNextToken(String line, int index){

@@ -176,6 +176,12 @@ class Macro{
     Tokens = t;
   }
   
+  Macro(String n, String[] a, Token[] t){
+    name = n;
+    args = a;
+    Tokens = t;
+  }
+  
   String argString(){
     String tmp = name + ": [" + args.length + "] " + args[0];
     for(int i = 1; i < args.length; i++){
@@ -192,6 +198,10 @@ class Token{
   Macro macro;
   
   Token(){}
+  
+  Token(String s){
+    Str = s;
+  }
   
   Token(TokenType t){
     Type = t;
