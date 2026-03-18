@@ -4,6 +4,7 @@ void buildMacro(String line_, int index){
   _macro_Name = token.string;
   _macro_Args = getMacroArgs(line_, token.nextIndex);
   int state = 0;
+  incIndex(); // skip .macro line
   
   for(; getIndex() < getLineLength() && state != -1; incIndex()){
     String line = getLine();
@@ -33,7 +34,11 @@ String[] getMacroArgs(String line, int index){
     if(token.string.equals(";")){
       state = -1;
     }else{
-      Args.append(token.string);
+      Args.append(
+        token.string.lastIndexOf(',') == token.string.length() - 1 // "arg," -> "arg"
+          ? token.string.replace(",", "")
+          : token.string
+      );
     }
   }
   
@@ -75,6 +80,7 @@ boolean checkMacros(String macro, String line, int index){
         _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
       }
       _tmpFileHolder = new FileHolder(_Files[_Files_Macros].get(i));
+      setIndex(-1); // needs to be -1 due to a ++ at end of main loop
       pushMacroArgs(getMacroArgs(line, index));
       return true;
     }

@@ -76,12 +76,12 @@ void setup(){
     
     
     println("Total Macros: " + _Files[_Files_Macros].size());
-    //if(_Files[_Files_Macros].size() > 0){
-    //  FileHolder tmp = _Files[_Files_Macros].get(_Files[_Files_Macros].size() - 1);
-    //  println("Macro Name: " + tmp.file.Name);
-    //  print("Macro Args: ");printArray(tmp.file.PathArray);
-    //  print("Macro Contents: ");printArray(tmp.contents);
-    //}
+    for(int i = 0; i < _Files[_Files_Macros].size(); i++){
+      FileHolder tmp = _Files[_Files_Macros].get(i);
+      println("Macro Name: " + tmp.file.Name);
+      print("Macro Args: ");printArray(tmp.file.PathArray);
+      print("Macro Contents: ");printArray(tmp.contents);
+    }
   }
   
   exit();
