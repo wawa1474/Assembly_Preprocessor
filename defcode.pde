@@ -309,7 +309,38 @@ String cleanEscape(String line){
         if(c == 'u'){
           state = 3;
         }else{
-          output += "\\u{" + hex(c) + "}";
+          switch(c){
+            case '0': // NULL
+              output += "\\u{00}";
+              break;
+            case 'a': // BELL
+              output += "\\u{07}";
+              break;
+            case 'b': // BACKSPACE
+              output += "\\u{08}";
+              break;
+            case 'e': // ESCAPE SEQUENCE
+              output += "\\u{1B}";
+              break;
+            case 'f': // FORM FEED
+              output += "\\u{0C}";
+              break;
+            case 'n': // NEWLINE
+              output += "\\u{0A}";
+              break;
+            case 'r': // CARRIAGE RETURN
+              output += "\\u{0D}";
+              break;
+            case 't': // TAB
+              output += "\\u{09}";
+              break;
+            case 'v': // VERTICAL TAB
+              output += "\\u{0B}";
+              break;
+            default:
+              output += "\\u{" + hex(c) + "}";
+              break;
+          }
           state = 0;
         }
         break;
