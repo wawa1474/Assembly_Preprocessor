@@ -202,6 +202,9 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             //when the macro ends, popFileIfLastLine()? or popMacroArgs()? removes the last StringDict from _TmpMacroVars
             //this allows and endless number of temporary variables that are contained within their own macro instance
             break;
+          case '^': // stack operations
+            //would cut down on amount of stuff in parseFunction()...
+            break;
           case '(': // escaped open-paren means we need to do infixToRPN stuff
             // doing infix to RPN conversion and then emitting the result is useful for asm-time forth stuff
             //token += lineToRPN(line, index);
