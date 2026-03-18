@@ -290,11 +290,8 @@ boolean isWhitespace(char c){
 }
 
 String cleanEscape(String line){
-  String prefix = "";
-  char value = ' ';
-  String suffix = "";
+  String output = "";
   int state = 0;
-  int unicode = 0;
   
   for(int i = 0; i < line.length(); i++){
     char c = line.charAt(i);
@@ -302,7 +299,7 @@ String cleanEscape(String line){
     switch(state){
       case 0: // build prefix
         if(c != '\\'){
-          prefix += c;
+          output += c;
         }else{
           state = 1;
         }
@@ -312,33 +309,28 @@ String cleanEscape(String line){
         if(c == 'u'){
           state = 3;
         }else{
-          value = c;
-          state = 2;
+          output += "\\u{" + hex(c) + "}";
+          state = 0;
         }
-        break;
-      
-      case 2: // build suffix
-        suffix += c;
         break;
       
       case 3: // start unicode
         if(c == '{'){
+          output += "\\u{";
           state = 4;
         }
         break;
       
       case 4: // build unicode
-        if(c != '}'){
-          unicode = (unicode << 4) + (c - '0');
-        }else{
-          suffix += c;
-          state = 2;
+        output += c;
+        if(c == '}'){
+          state = 0;
         }
         break;
     }
   }
   
-  return prefix + "\\u{" + hex(value,2) + "}" + suffix;
+  return output;
 }
 
 Token parseVariable(String line, TokenType variable){
