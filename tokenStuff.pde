@@ -10,6 +10,10 @@ class TokenReturn{
     string = t;
     nextIndex = n;
   }
+  
+  String toString(){
+    return "[" + nextIndex + "]{" + string + "}";
+  }
 }
 
 TokenReturn getNextToken(String line, int index){

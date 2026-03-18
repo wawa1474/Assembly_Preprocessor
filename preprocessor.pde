@@ -10,7 +10,7 @@ String[] _macro_Args;
 ArrayList<String[]> _macro_Args2 = new ArrayList<String[]>(); // stack for macro arguments
 StringList _switch_Args = new StringList(); // stack for switch arguments
 ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
-StringList _repeat_Args = new StringList(); // stack for repeat arguments
+ArrayList<RepeatInfo> _repeat_Args = new ArrayList<RepeatInfo>(); // stack for repeat arguments
 StringList _macro_Content = new StringList();
 final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;

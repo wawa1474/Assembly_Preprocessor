@@ -1,3 +1,23 @@
+class RepeatInfo{
+  int Start;
+  TokenReturn firstToken;
+  TokenReturn Action;
+  TokenReturn secondToken;
+  
+  RepeatInfo(int s, String line, int index){
+    Start = s;
+    firstToken = getNextToken(line, index);
+    Action = getNextToken(line, firstToken.nextIndex);
+    secondToken = getNextToken(line, Action.nextIndex);
+    //println("[RepeatInfo] @ " + s + " == " + line + ": " + firstToken + ", "  + Action + ", "  + secondToken);
+  }
+  
+  boolean checkInfo(){
+    //println("[checkInfo] == " + checkIf(firstToken, Action.string, secondToken));
+    return checkIf(firstToken, Action.string, secondToken);
+  }
+}
+
 boolean checkIf(String line, int index){
   TokenReturn firstToken = getNextToken(line, index);
   TokenReturn action = getNextToken(line, firstToken.nextIndex);

@@ -6,6 +6,7 @@ enum ParseState{
   Switch_Look,
   Switch_Taken,
   Switch_Skip,
+  Repeat_Loop,
 }
 
 void processInput(int depth_, ParseState state_){ // current depth of if statements for debuging
@@ -16,6 +17,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
     String line = getLine();
     TokenReturn token = getNextToken(line,0);
     boolean skip = true;
+    //println("[" + getIndex() + "]{" + state.name() + "} " + line);
     
     switch(state){
       case Entry:
@@ -37,7 +39,13 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             break;
           case ".switch":
             pushSwitchArg(getNextToken(line, token.nextIndex).string);
+            incIndex();
             processInput(depth_+1, ParseState.Switch_Look);
+            break;
+          case ".repeat":
+            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            incIndex();
+            processInput(depth_+1, ParseState.Repeat_Loop);
             break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
@@ -69,6 +77,11 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".switch":
             pushSwitchArg(getNextToken(line, token.nextIndex).string);
             processInput(depth_+1, ParseState.Switch_Look);
+            break;
+          case ".repeat":
+            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            incIndex();
+            processInput(depth_+1, ParseState.Repeat_Loop);
             break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
@@ -159,6 +172,11 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             pushSwitchArg(getNextToken(line, token.nextIndex).string);
             processInput(depth_+1, ParseState.Switch_Look);
             break;
+          case ".repeat":
+            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            incIndex();
+            processInput(depth_+1, ParseState.Repeat_Loop);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
@@ -178,6 +196,47 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             }
             break;
           default:
+            break;
+        }
+        break;
+      
+      case Repeat_Loop:
+        switch(token.string){
+          case ".include": // .include "path/name.ext"
+            checkIncludeFile(line, token.nextIndex);
+            break;
+          case ".if":
+            incIndex(); // skip the .if line
+            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
+            break;
+          case ".endif":
+            return;
+          case ".let":
+            parseLet(line, token.nextIndex);
+            break;
+          case ".macro":
+            buildMacro(line, token.nextIndex);
+            break;
+          case ".switch":
+            pushSwitchArg(getNextToken(line, token.nextIndex).string);
+            processInput(depth_+1, ParseState.Switch_Look);
+            break;
+          case ".repeat":
+            _repeat_Args.add(new RepeatInfo(getIndex(), line, token.nextIndex));
+            incIndex();
+            processInput(depth_+1, ParseState.Repeat_Loop);
+            break;
+          case ".endrp":
+            RepeatInfo tmp = _repeat_Args.get(_repeat_Args.size() - 1);
+            if(tmp.checkInfo()){
+              _repeat_Args.remove(_repeat_Args.size() - 1);
+              return;
+            }else{
+              setIndex(tmp.Start);
+            }
+            break;
+          default:
+            skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
