@@ -250,50 +250,22 @@ String getVariable(String name, boolean global, int depth){
 VariableReturn parseVariables(String line, int depth){ // going through entire line to convert remaining bits into final output
   //println("parseVariables: " + line);
   String value = "";
-  String token = "";
-  int state = 0;
   
   for(int i = 0; i < line.length(); i++){
     char c = line.charAt(i);
     
-    switch(state){
-      case 0: // build prefix
-        switch(c){
-          case '"':
-            token += c;
-            break;
-          
-          case '\\':
-            VariableReturn output = cleanEscape(line, i);
-            i = output.nextIndex;
-            switch(output.Type){
-              case Argument: // macro argument
-                value += token; token = "";
-                value += getVariable(output.String, false, depth);
-                break;
-              case Variable: // global variable
-                value += token; token = "";
-                value += getVariable(output.String, true, depth);
-                break;
-              case Function: // built-in function
-                value += token; token = "";
-                value += parseFunction(output.String);
-                break;
-              default:
-                token += output.String;
-                break;
-            }
-            break;
-          
-          default:
-            token += c;
-            break;
-        }
+    switch(c){
+      case '\\':
+        TokenReturn output = cleanEscape(line, i, depth);
+        i = output.nextIndex;
+        value += output.string;
+        break;
+      
+      default:
+        value += c;
         break;
     }
   }
-  
-  value += token;
   
   if(value.length() > 0){
     VariableReturn tmp = tryInt(value);

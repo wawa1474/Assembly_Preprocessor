@@ -2,7 +2,7 @@
 
 String parseFunction(String input){
   //println("parseFunction: " + input);
-  String[] args = getMacroArgs(input, 0);
+  String[] args = getMacroArgs(input, 0, 0);
 //VariableReturn[] argsInt = new VariableReturn[args.length];
   //printArray(args);
   String output = "";

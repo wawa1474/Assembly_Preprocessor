@@ -2,7 +2,7 @@ void buildMacro(String line_, int index){
   println("Start Macro!");
   TokenReturn token = getNextToken(line_, index);
   _macro_Name = token.string;
-  _macro_Args = getMacroArgs(line_, token.nextIndex);
+  _macro_Args = getMacroArgs(line_, token.nextIndex, 0);
   int state = 0;
   incIndex(); // skip .macro line
   
@@ -24,7 +24,7 @@ void buildMacro(String line_, int index){
   decIndex(); // main loops ++ at end, so we have to -- to be on correct line for next main loop
 }
 
-String[] getMacroArgs(String line, int index){
+String[] getMacroArgs(String line, int index, int depth){
   //println("getMacroArgs: " + line);
   StringList Args = new StringList();
   String token = "";
@@ -77,22 +77,9 @@ String[] getMacroArgs(String line, int index){
             
           
           case '\\':
-            VariableReturn output = cleanEscape(line, index);
+            TokenReturn output = cleanEscape(line, index, depth);
             index = output.nextIndex;
-            switch(output.Type){
-              case Argument: // macro argument
-                token += getVariable(output.String, false, 0);
-                break;
-              case Variable: // global variable
-                token += getVariable(output.String, true, 0);
-                break;
-              case Function: // built-in function
-                token += parseFunction(output.String);
-                break;
-              default:
-                token += output.String;
-                break;
-            }
+            token += output.string;
             break;
           
           case '(':
@@ -148,7 +135,7 @@ boolean checkMacros(String macro, String line, int index){
       }
       _tmpFileHolder = new FileHolder(_Files[_Files_Macros].get(i));
       setIndex(-1); // needs to be -1 due to a ++ at end of main loop
-      pushMacroArgs(getMacroArgs(line, index));
+      pushMacroArgs(getMacroArgs(line, index, 0));
       return true;
     }
   }

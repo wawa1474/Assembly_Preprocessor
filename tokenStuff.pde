@@ -35,23 +35,9 @@ TokenReturn getNextToken(String line, int index){
           
           case '\\':
             gotString = true;
-            VariableReturn output = cleanEscape(line, index);
+            TokenReturn output = cleanEscape(line, index, 0);
             index = output.nextIndex;
-            switch(output.Type){
-              case Argument: // macro argument
-                token += getVariable(output.String, false, 0);
-                break;
-              case Variable: // global variable
-                token += getVariable(output.String, true, 0);
-                break;
-              case Function: // built-in function
-                //token += getVariable(output.String, isGlobalVar, depth);
-                token += parseFunction(output.String);
-                break;
-              default:
-                token += output.String;
-                break;
-            }
+            token += output.string;
             break;
           
           case ' ':
@@ -81,7 +67,7 @@ TokenReturn getNextToken(String line, int index){
   return new TokenReturn(token, index);
 }
 
-VariableReturn cleanEscape(String line, int index){
+TokenReturn cleanEscape(String line, int index, int depth){
   //println("[" + line + "]{" + index + "}");
   if(line.length() > 0 && index < line.length() && line.charAt(index) == '\\'){ index++; } // eat the incoming '\\'
   
@@ -134,19 +120,16 @@ VariableReturn cleanEscape(String line, int index){
             tmpState = 1;
             break;
           case '#': // built-in function
-            //token += "\\#";
             outputEscape = false;
             type = VariableType.Function;
             tmpState = 1;
             break;
           case '%': // macro arg
-            //token += "\\%";
             outputEscape = false;
             type = VariableType.Argument;
             tmpState = 1;
             break;
           case '&': // global var
-            //token += "\\&";
             outputEscape = false;
             type = VariableType.Variable;
             tmpState = 1;
@@ -173,22 +156,9 @@ VariableReturn cleanEscape(String line, int index){
             break;
           
           case '\\':
-            VariableReturn output = cleanEscape(line, index);
+            TokenReturn output = cleanEscape(line, index, depth);
             index = output.nextIndex;
-            switch(output.Type){
-              case Argument: // macro argument
-                token += getVariable(output.String, false, 0);
-                break;
-              case Variable: // global variable
-                token += getVariable(output.String, true, 0);
-                break;
-              case Function: // built-in function
-                token += parseFunction(output.String);
-                break;
-              default:
-                token += output.String;
-                break;
-            }
+            token += output.string;
             break;
           
           default:
@@ -199,7 +169,22 @@ VariableReturn cleanEscape(String line, int index){
     }
   }
   
+  switch(type){
+    case Argument: // macro argument
+      token = getVariable(token, false, depth);
+      break;
+    case Variable: // global variable
+      token = getVariable(token, true, depth);
+      break;
+    case Function: // built-in function
+      token = parseFunction(token);
+      break;
+    default:
+      // token = token;
+      break;
+  }
+  
   //VariableReturn out = new VariableReturn(token, index-1, type);
   //println(out.type() + ":" + out + ";" + token);
-  return new VariableReturn(token, index-1, type); // token-1 due to increment after use!
+  return new TokenReturn(token, index-1); // token-1 due to increment after use!
 }
