@@ -3,7 +3,7 @@
 String parseFunction(String input){
   if(hyperVerboseOutput){ println("parseFunction: " + input); }
   MacroArg[] args = getMacroArgs(input, 0);
-  //printArray(args);
+  if(hyperVerboseOutput){ print("parseFunction:args = ");printArray(args); }
   //VariableReturn[] argsInt = new VariableReturn[args.length];
   //printArray(args);
   String output = "";

@@ -140,6 +140,10 @@ class Macro{ // MacroFile combined class? plus a pun...
     OriginLine = l_;
     ContentLine = k_;
   }
+  
+  String toString(){
+    return ""; // for "clean" printing of macro list
+  }
 }
 
 void buildMacro(String line_, int index_){
