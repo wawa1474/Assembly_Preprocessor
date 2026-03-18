@@ -29,6 +29,8 @@ StringDict _Vars;
 */
 String _VERSION = "V1234";
 void setup(){
+  println("sketchPath() = " + sketchPath());
+  
   if(args != null){ // allows input from command line
     //println(args.length);
     for (int i = 0; i < args.length; i++) {
@@ -36,9 +38,9 @@ void setup(){
       //println(arg);
       if(arg.contains("--input")){
         PathReturn filename = splitFilepath(split(arg, '=')[1]);
-        println("Input: " + filename);
+        println("Input: " + filename + filename.Reverse);
         _outputFile = filename.getPath() + filename.Name + ".obj";
-        getNewFile("", filename);
+        getNewFile(splitFilepath(sketchPath()), filename);
         _exit = false;
       }else if(arg.contains("--help")){
         _exit = true;
@@ -46,7 +48,6 @@ void setup(){
     }
   }
   
-  println(sketchPath());
   if(_exit){
     println("Assembly Preprocessor " + _VERSION);
     println();
@@ -85,12 +86,12 @@ void processInput(){
     switch(token.string){
       case ".include":
         println((_tmpFileHolder.indexArray) + " : " + line);
-        buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line, token.nextIndex).string));
+        buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line, token.nextIndex).string));
         skip = true;
         break;
       case "#include":
-        println((_tmpFileHolder.indexArray) + " : " + line);
-        getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+        println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
+        getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
         skip = true;
         break;
       case ".if":
@@ -110,10 +111,8 @@ void processInput(){
       _output.append(line);
     }
     
-    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
-      print("pop file: " + _tmpFileHolder.filename);
-      _tmpFileHolder = _FileStack.pop();
-      println(" for: " + _tmpFileHolder.filename);
+    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1){
+      tryPop();
     }
   }
   

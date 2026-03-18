@@ -4,12 +4,47 @@ class PathReturn{ // "../../path/to/file/code.asm"
   String Extension; // "asm"
   int Reverse; // "2"
   
+  PathReturn(){}
+  
+  PathReturn(PathReturn input){
+    PathArray = new String[input.PathArray.length];
+    for(int i = 0; i < input.PathArray.length; i++){
+      PathArray[i] = input.PathArray[i];
+    }
+    Name = input.Name;
+    Extension = input.Extension;
+    Reverse = input.Reverse;
+  }
+  
   String getPath(){
     String output = "";
     for(int i = 0; i < PathArray.length; i++){
       output += PathArray[i] + "\\";
     }
     return output;
+  }
+  
+  void setPath(PathReturn directory, PathReturn file){
+    //println("directory name: " + directory.Name);
+    //println("setPath dir: " + directory.getPath());
+    //println("setPath: " + directory + ", " + file + " [" + file.Reverse + "]");
+    int dirLength = directory.PathArray.length - file.Reverse;
+    String[] tmp = new String[dirLength + file.PathArray.length];
+    //print("building path: ");
+    for(int i = 0; i < dirLength; i++){
+      //print(directory.PathArray[i] + "/");
+      tmp[i] = directory.PathArray[i];
+    }
+    for(int i = 0; i < file.PathArray.length; i++){
+      //print(file.PathArray[i] + "/");
+      tmp[dirLength + i] = file.PathArray[i];
+    }
+    //println();
+    PathArray = tmp;
+    Name = file.Name;
+    Extension = file.Extension;
+    Reverse = file.Reverse;
+    //println("setPath got: " + toString());
   }
   
   String getPathPartial(){
@@ -39,11 +74,21 @@ class PathReturn{ // "../../path/to/file/code.asm"
 
 class FileHolder{
   PathReturn file;
-  String filename;
-  String baseDirectory;
   String[] contents;
   int indexArray;
   int indexChar;
+  
+  FileHolder(){}
+  
+  FileHolder(FileHolder input){
+    file = new PathReturn(input.file);
+    contents = new String[input.contents.length];
+    for(int i = 0; i < input.contents.length; i++){
+      contents[i] = input.contents[i];
+    }
+    indexArray = input.indexArray;
+    indexChar = input.indexChar;
+  }
   
   String getLine(int l){
     if(l < contents.length){
@@ -74,6 +119,12 @@ class FileHolder{
   int linesLeft(){
     return contents.length - indexArray;
   }
+  
+  void load(){
+    contents = loadStrings(file.getPath() + file.getFile());
+    _tmpFileHolder.indexArray = 0;
+    _tmpFileHolder.indexChar = 0;
+  }
 }
 
 class FileStack{
@@ -86,27 +137,14 @@ class FileStack{
   }
   
   void push(FileHolder f){
-    FileHolder tmp = new FileHolder();
-    tmp.baseDirectory = f.baseDirectory;
-    tmp.file = f.file;
-    tmp.contents = f.contents;
-    tmp.filename = f.filename;
-    tmp.indexArray = f.indexArray;
-    tmp.indexChar = f.indexChar;
+    FileHolder tmp = new FileHolder(f);
     files.add(tmp);
     size++;
   }
   
   FileHolder pop(){
     size--;
-    FileHolder tmp = files.get(size);
-    FileHolder out = new FileHolder();
-    out.file = tmp.file;
-    out.baseDirectory = tmp.baseDirectory;
-    out.contents = tmp.contents;
-    out.filename = tmp.filename;
-    out.indexArray = tmp.indexArray;
-    out.indexChar = tmp.indexChar;
+    FileHolder out = new FileHolder(files.get(size));
     files.remove(size);
     return out;
   }
@@ -239,26 +277,38 @@ PathReturn splitFilepath(String file){
         }
     }
   }
+  switch(state){
+    case 4: // handle directory w/o file
+      path.append(tmp);
+      break;
+    default:
+      output.Extension = tmp;
+      break;
+  }
   output.PathArray = path.toArray();
-  output.Extension = tmp;
+  
   
   return output;
 }
 
-void getNewFile(String base, PathReturn file){
-  _tmpFileHolder.file = file;
-  _tmpFileHolder.filename = file.getAll();
-  _tmpFileHolder.baseDirectory = base + file.getPath();
-  _tmpFileHolder.contents = loadStrings(base + file);
-  _tmpFileHolder.indexArray = 0;
-  _tmpFileHolder.indexChar = 0;
-  println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + base + file);
+void getNewFile(PathReturn base, PathReturn file){
+  if(_tmpFileHolder.file == null){ _tmpFileHolder.file = new PathReturn(); }
+  _tmpFileHolder.file.setPath(base, file);
+  _tmpFileHolder.load();
+  println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + _tmpFileHolder.file);
 }
 
-void getNewFile(String base, String line){
-  PathReturn file = splitFilepath(line.replace("\"", ""));
+void getNewFile(PathReturn base, String line){
   _FileStack.push(_tmpFileHolder);
-  getNewFile(base, file);
+  getNewFile(base, splitFilepath(line.replace("\"", "")));
   _tmpFileHolder.indexArray = -1; // needs to be -1 due to an ++ at end of main loop
-  println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + base + file);
+  //println("getNewFile: [" + _tmpFileHolder.contents.length + "] " + _tmpFileHolder.file);
+}
+
+void tryPop(){
+  while(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
+    print("pop file: " + _tmpFileHolder.file);
+    _tmpFileHolder = _FileStack.pop();
+    println(" for: " + _tmpFileHolder.file);
+  }
 }

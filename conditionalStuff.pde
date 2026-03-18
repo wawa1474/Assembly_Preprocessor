@@ -77,12 +77,12 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
         switch(token.string){
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + split(line, " ")[1]));
+            buildMacro(loadStrings(_tmpFileHolder.file.getPath() + split(line, " ")[1]));
             skip = true;
             break;
           case "#include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
             skip = true;
             break;
           case ".if":
@@ -117,12 +117,12 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             return;
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
+            buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line,token.nextIndex).string));
             skip = true;
             break;
           case "#include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
             skip = true;
             break;
           case ".let":
@@ -174,12 +174,12 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             return;
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
+            buildMacro(loadStrings(_tmpFileHolder.file.getPath() + getNextToken(line,token.nextIndex).string));
             skip = true;
             break;
           case "#include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            println("push file: " + (_tmpFileHolder.indexArray) + " : " + line);
+            getNewFile(_tmpFileHolder.file, getNextToken(line, token.nextIndex).string);
             skip = true;
             break;
           case ".let":
@@ -212,9 +212,7 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
     }
     
     if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
-      print("pop file: " + _tmpFileHolder.filename);
-      _tmpFileHolder = _FileStack.pop();
-      println(" for: " + _tmpFileHolder.filename);
+      tryPop();
     }
   }
 }
