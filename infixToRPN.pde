@@ -97,9 +97,8 @@ String lineToRPN(String line, int index){
   Stack stack = new Stack();
   int state = 0;
   String output = "";
-  String token = "";
-  boolean isGlobalVar = false;
   int parenDepth = 1; // we start with a depth of 1 due to entering on an escaped open-paren
+  boolean isFloat = false; // do we calculate the result as an int or a float?
   
   for(int i = index; i < line.length() && state != -1; i++){
     char c = line.charAt(i);
@@ -136,11 +135,14 @@ String lineToRPN(String line, int index){
             TokenReturn tmp = cleanEscape(line, i, 0);
             output += tmp.string;
             i = tmp.nextIndex;
-            break;
+            break; // may want to defer calculating anything within escaped values, unless they do their own infixToRPN work...
           
           default:
-            if(isNumber(c) || c == '.'){
+            if(isNumber(c)){
               output += c;
+            }else if(c == '.'){
+              output += c;
+              isFloat = true;
             }else{
               if(getPrecedenceRPN(c) > getPrecedenceRPN(stack.peek().indentifier)){
                 stack.push(new RPNToken(c, -1));
