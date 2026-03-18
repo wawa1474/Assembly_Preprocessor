@@ -23,11 +23,13 @@ boolean isWhitespace(char c){
 }
 
 void outputLine(String line, boolean skip){
+  int lastLine = getLastOutputLineLength();
   if((!skip && line.length() == 0) || (!skip && line.charAt(0) != ';')){
     String tmp = cleanComments(parseVariables(line, 0).String);
-    if(isLineEmpty(line) || !isLineEmpty(tmp)){ // if program line was empty, or line is NOT empty after processing
+    if((isLineEmpty(line) && (lastLine != 0 || lastLine == -1)) || !isLineEmpty(tmp)){ // if program line was empty, or line is NOT empty after processing
       //if(tmp.equals("0")){ println(getIndex()); }
-      _output.append(tmp); // output it!
+      if(!isLineEmpty(tmp)){ tmp += "\t\t\t\t; " + getFileName() + " @ " + getIndex(); }
+      _output.append(tmp);// + " ; " + getFileName() + " @ " + getIndex()); // output it!
     }
   }
 }

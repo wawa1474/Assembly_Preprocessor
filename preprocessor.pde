@@ -127,3 +127,14 @@ int getFileLength(){
   }
   return 0;
 }
+
+String getFileName(){
+  return _tmpFileHolder.file.Name;
+}
+
+int getLastOutputLineLength(){
+  if(_output.size() > 0){
+    return _output.get(_output.size() - 1).length();
+  }
+  return -1;
+}

@@ -1,3 +1,21 @@
+ArrayList<MacroArg[]> MacroArgsStack = new ArrayList<MacroArg[]>(); // stack of macro args for (nested) macros
+HashMap<String, Macro> Macros = new HashMap<String, Macro>(); // hashmap of defined macros
+// how do we handle which file/macro we're currently working on!?
+
+class MacroArg{
+  String Name; // name of argument
+  String Value; // (default) value of argument
+}
+
+class Macro{
+  String OriginFile; // which file was this macro defined in...
+  int OriginLine; // and on which line.
+  String Name; // (redundant, but still useful) name of macro
+  MacroArg[] Args; // array of macro arguments
+  String[] Content; // content / code of macro...
+  int[] ContentLine; // and which lines of Origin file each was on.
+}
+
 void buildMacro(String line_, int index){
   println("Start Macro!");
   TokenReturn token = getNextToken(line_, index);
