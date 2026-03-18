@@ -6,6 +6,14 @@ boolean isHex(char c){
   return (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }
 
+boolean isBinary(char c){
+  return (c == '0' || c == '1' || c == '|');
+}
+
+boolean isOctal(char c){
+  return c >= '0' && c <= '7';
+}
+
 boolean isNumber(char c){
   return c >= '0' && c <= '9';
 }
@@ -91,6 +99,121 @@ String cleanEscape(String line){
   return output;
 }
 
+class IntReturn{
+  int value;
+  boolean valid;
+  
+  IntReturn(){}
+  
+  IntReturn(int v, boolean b){
+    value = v;
+    valid = b;
+  }
+}
+
+IntReturn tryInt(String in){
+  String output = "";
+  int state = 0;
+  boolean valid = true;
+  
+  for(int i = 0; i < in.length(); i++){
+    char c = in.charAt(i);
+    switch(state){
+      case 0:
+        switch(c){
+          case '0':
+            state = 1;
+            break;
+          
+          default:
+            output += c;
+            state = 5;
+            break;
+        }
+        break;
+      
+      case 1:
+        switch(c){
+          case 'x': // hexadecimal
+            state = 2;
+            break;
+          
+          case 'b': // binary
+            state = 3;
+            break;
+          
+          case 'o': // octal
+            state = 4;
+            break;
+          
+          default: // decimal
+            state = 5;
+            break;
+        }
+        break;
+      
+      case 2: // hexadecimal
+        if(isHex(c)){
+          output += c;
+        }else{
+          valid = false;
+          state = -1;
+        }
+        break;
+      
+      case 3: // binary
+        if(isBinary(c)){
+          output += c;
+        }else{
+          valid = false;
+          state = -1;
+        }
+        break;
+      
+      case 4: // octal
+        if(isOctal(c)){
+          output += c;
+        }else{
+          valid = false;
+          state = -1;
+        }
+        break;
+      
+      case 5: // decimal
+        if(isNumber(c)){
+          output += c;
+        }else{
+          valid = false;
+          state = -1;
+        }
+        break;
+    }
+  }
+  
+  int value = 0;
+  if(valid){
+    switch(state){
+      case 2: // hexadecimal
+        value = parseInt(output, 16);
+        break;
+      
+      case 3: // binary
+        value = parseInt(output, 2);
+        break;
+      
+      case 4: // octal
+        value = parseInt(output, 8);
+        break;
+      
+      case 5: // decimal
+        value = parseInt(output, 10);
+        break;
+    }
+  }
+  
+  return new IntReturn(value, valid);
+}
+
 boolean checkIf(String line, int index){
   TokenReturn firstVar = getNextToken(line, index);
   TokenReturn action = getNextToken(line, firstVar.nextIndex);
@@ -102,20 +225,37 @@ boolean checkIf(String line, int index){
   String v1 = getVariable(var1, null, null);
   String v2 = getVariable(var2, null, null);
   
+  IntReturn i1 = tryInt(v1);
+  IntReturn i2 = tryInt(v2);
+  
   switch(action.string){
     case "==":
-      return v1.equals(v2);
+      if(i1.valid && i2.valid){ return i1.value == i2.value; } // check if integers are equal
+      else{ return v1.equals(v2); } // check if strings are equal
+    
     case "!=":
-      return !v1.equals(v2);
+      if(i1.valid && i2.valid){ return i1.value != i2.value; }
+      else{ return !v1.equals(v2); }
+    
     case ">":
-      return parseInt(v1) > parseInt(v2);
+      if(i1.valid && i2.valid){ return i1.value > i2.value; }
+      break;
+    
     case "<":
-      return parseInt(v1) < parseInt(v2);
+      if(i1.valid && i2.valid){ return i1.value < i2.value; }
+      break;
+    
     case ">=":
-      return parseInt(v1) >= parseInt(v2);
+      if(i1.valid && i2.valid){ return i1.value >= i2.value; }
+      break;
+    
     case "<=":
-      return parseInt(v1) <= parseInt(v2);
+      if(i1.valid && i2.valid){ return i1.value <= i2.value; }
+      break;
+    
     default:
       return false;
   }
+  
+  return false;
 }
