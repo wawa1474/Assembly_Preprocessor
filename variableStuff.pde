@@ -16,9 +16,65 @@ class VariableReturn{
 
 void parseLet(String line, int index){
   TokenReturn variable = getNextToken(line, index);
-  TokenReturn value = getNextToken(line, variable.nextIndex);
+  TokenReturn action = getNextToken(line, variable.nextIndex);
+  TokenReturn value = getNextToken(line, action.nextIndex);
   
-  _Vars.set(variable.string, parseVariables(value.string).String);
+  parseLet(variable.string, action.string, value);
+}
+
+void parseLet(String variable, String action, TokenReturn secondToken){
+  VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0");
+  VariableReturn secondVar = parseVariables(secondToken.string);
+  //println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
+  
+  if(firstVar.Number && secondVar.Number){
+    _Vars.set(variable, "" + parseLet(firstVar.Integer, action, secondVar.Integer));
+  }else{
+    switch(action){
+      case "+":
+        if(_Vars.hasKey(variable)){ _Vars.set(variable, _Vars.get(variable) + secondVar.String); }
+        break;
+      
+      case "-":
+        if(_Vars.hasKey(variable)){ _Vars.set(variable, _Vars.get(variable).replace(secondVar.String, "")); }
+        break;
+      
+      case "=":
+        _Vars.set(variable, secondVar.String);
+        break;
+    }
+  }
+}
+
+int parseLet(int firstVar, String action, int secondVar){
+  switch(action){
+    case "+=":
+      return firstVar + secondVar; // check if integers are equal
+    
+    case "-=":
+      return firstVar - secondVar;
+    
+    case "*=":
+      return firstVar * secondVar;
+    
+    case "/=":
+      return firstVar / secondVar;
+    
+    case "%=":
+      return firstVar % secondVar;
+    
+    case "&=":
+      return firstVar & secondVar;
+    
+    case "|=":
+      return firstVar | secondVar;
+    
+    case "^=":
+      return firstVar ^ secondVar;
+    
+    default:
+      return secondVar;
+  }
 }
 
 String getVariable(String name, boolean global){
