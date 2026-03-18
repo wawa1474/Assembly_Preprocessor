@@ -576,34 +576,134 @@ String[] getMacroArgs(String line){
   return args.toArray();
 }
 
-String[] splitFilepath(String file){
-  String[] output = new String[3];
+PathReturn splitFilepath(String file){
+  PathReturn output = new PathReturn();
   String tmp = "";
+  int state = 0;
+  
+  // ../../path/to/file.ext
+  // ./../path/to/file.ext
+  // ./path/to/file.ext
+  // /path/to/file.ext
+  // path/to/file.ext
   
   for(int i = 0; i < file.length(); i++){
     char c = file.charAt(i);
-    switch(c){
-      case '\\':
-      case '/':
-        if(output[0] == null){ output[0] = ""; }
-        output[0] += tmp + '\\'; // build up path
-        tmp = "";
+    switch(state){
+      case 0:
+        switch(c){
+          case '.': // "./", "../"
+            state = 1;
+            break;
+          case '/': // "/"
+          case '\\':
+            state = 3;
+            break;
+          default:
+            tmp += c;
+            state = 4;
+            break;
+        }
         break;
-      case '.':
-        if(output[1] == null){ output[1] = ""; }
-        output[1] += tmp + '.'; // build up file name
-        tmp = "";
+      
+      case 1:
+        switch(c){
+          case '.': // "../"
+            state = 2;
+            break;
+          case '/': // "./"
+          case '\\':
+            state = 3;
+            break;
+          default:
+            tmp += c;
+            state = 4;
+            break;
+        }
         break;
-      default:
-        tmp += c;
+      
+      case 2:
+        switch(c){
+          case '/': // "../"
+          case '\\':
+            output.Reverse++;
+            state = 3;
+            break;
+          default:
+            tmp += c;
+            state = 4;
+            break;
+        }
         break;
+      
+      case 3:
+        switch(c){
+          case '.': // "/.", "./.", "../."
+            state = 1;
+            break;
+          default:
+            tmp += c;
+            state = 4;
+            break;
+        }
+        break;
+      
+      case 4:
+        switch(c){
+          case '/':
+          case '\\':
+            if(output.Path == null){
+              output.Path = tmp;
+            }else{
+              output.Path += "\\" + tmp;
+            }
+            tmp = "";
+            state = 4;
+            break;
+          case '.':
+            output.Name = tmp;
+            tmp = "";
+            state = 5;
+            break;
+          default:
+            tmp += c;
+            state = 4;
+            break;
+        }
+        break;
+      
+      case 5:
+        switch(c){
+          case '.': // "name.blah.asm
+            output.Name += "." + tmp;
+            tmp = "";
+            state = 5;
+            break;
+          default:
+            tmp += c;
+            state = 5;
+            break;
+        }
     }
   }
-  output[0] = output[0].substring(0,output[0].lastIndexOf('\\'));
-  output[1] = output[1].substring(0,output[1].lastIndexOf('.'));
-  output[2] = tmp; // handle file extention
+  output.Extension = tmp;
   
   return output;
+}
+
+class PathReturn{ // "../../input/code.asm"
+  String Path; // "input"
+  String Name; // "code"
+  String Extension; // "asm"
+  int Reverse; // "2"
+  
+  String toString(){
+    String output = "";
+    for(int i = 0; i < Reverse; i++){
+      output += "..\\";
+    }
+    return output + Path + "\\" + Name + "." + Extension;
+  }
 }
 
 class TokenReturn{

@@ -36,8 +36,8 @@ void setup(){
       //println(arg);
       if(arg.contains("--input")){
         String tmp = split(arg, '=')[1];
-        String[] filename = splitFilepath(tmp);
-        print("File: ");printArray(filename);
+        PathReturn filename = splitFilepath(tmp);
+        print("File: ");println(filename);
         String[] stmp = split(tmp, ".\\");
         _outputFile = split(stmp[stmp.length-1], '.')[0] + ".obj";
         getNewFile("", tmp);
