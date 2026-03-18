@@ -1,11 +1,15 @@
 import java.util.UUID; // used for generation of unique local labels
+import java.util.Map; // used for handling of _TmpGlobalVars
 
 StringList _output;
 String _outputFile;
 boolean _exit = true;
 StringDict _Vars; // variables that can be changed
 StringDict _Equates; // variables that are set once and can't be changed
-ArrayList<StringDict> _TmpMacroVars; // transitory variables that are deleted at the end of a macro
+StringDict _TmpMacroVars; // transitory variables that are deleted at the end of a macro
+ArrayList<StringDict> _TmpMacroVarsArr; // transitory variables that are deleted at the end of a macro
+HashMap<String, String> _TmpGlobalVars = new HashMap<String, String>(); // ditto, but a way to easily save and restore global variables
+ArrayList<HashMap<String, String>> _TmpGlobalVarsArr; // ditto, but a way to easily save and restore global variables
 HashMap<String, StringList> Stacks = new HashMap<String, StringList>(); // hashmap of data stacks for use in complex preprocessing
 String storageOrigin = ""; // for use with .org and .dfs, allowing automatic address assignment for assembly variables
 int storageOffset = 0;      // ditto
@@ -41,10 +45,10 @@ IntList _repeat_Args = new IntList(); // stack for repeat arguments
 */
 
 String _program_name = "Assembly Preprocessor";
-String _version_major = "1";
+String _version_major = "2";
 String _version_minor = "0";
 String _version_patch = "0";
-String _version_preRelease = "1";
+String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 void setup(){
   int time = millis();

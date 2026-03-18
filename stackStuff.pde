@@ -113,3 +113,22 @@ String g_PLUCK(String name, int value){
   Stacks.get(name).remove(len - value - 1);
   return tmp;
 }
+
+void pushTmpVars(){
+  _TmpMacroVarsArr.add(_TmpMacroVars.copy());
+  _TmpGlobalVarsArr.add((HashMap<String, String>)_TmpGlobalVars.clone());
+}
+
+void popTmpVars(){ // java is such a pain at times...
+  int len = _TmpMacroVarsArr.size();
+  _TmpMacroVars = _TmpMacroVarsArr.get(len - 1).copy();
+  _TmpMacroVarsArr.remove(len - 1);
+  
+  for(Map.Entry<String, String> me : _TmpGlobalVars.entrySet()){
+    updateVariable(me.getKey(), me.getValue());
+  }
+  
+  len = _TmpGlobalVarsArr.size();
+  _TmpGlobalVars = (HashMap<String, String>)_TmpGlobalVarsArr.get(len - 1).clone();
+  _TmpGlobalVarsArr.remove(len - 1);
+}

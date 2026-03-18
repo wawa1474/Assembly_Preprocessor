@@ -203,7 +203,9 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             //this allows and endless number of temporary variables that are contained within their own macro instance
             break;
           case '^': // stack operations
-            //would cut down on amount of stuff in parseFunction()...
+            outputEscape = false;
+            type = VariableType.StackFunction;
+            state = 1;
             break;
           case '(': // escaped open-paren means we need to do infixToRPN stuff
             // doing infix to RPN conversion and then emitting the result is useful for asm-time forth stuff
@@ -276,6 +278,14 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
         token = parseFunction(token); // parse function
       }else{
         token = "\\#{" + token + "}"; // re-encase function for future parsing
+      }
+      break;
+    case StackFunction:
+      if(hyperVerboseOutput){ println("cleanEscape:parseStackFunction = " + runFunction); }
+      if(runFunction){ // same issue as parseFunction!
+        token = parseStackFunction(token);
+      }else{
+        token = "\\^{" + token + "}"; // re-encase function for future parsing
       }
       break;
     case Builtin: // built-in variable

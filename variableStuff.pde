@@ -6,6 +6,7 @@ enum VariableType{
   Argument, // macro argument
   Variable, // global variable
   Function, // built-in function
+  StackFunction, // stack function
   Builtin, // built-in variables
   Error, // error output
 }
