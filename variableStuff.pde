@@ -38,6 +38,14 @@ String getVariable(String name, boolean global){
   return "%{" + name + "}?";
 }
 
+/*
+  %identifier = macro argument
+  %%id = global variable
+  %?id = drop '?' and pass un-parsed "%id" onwards (allows deferring var parsing through several macros or assignments)
+  %??id = drop one '?' and pass "%?id"
+  %#id = drop leading "%#" and padd "id" (allows building macros with macros)
+  %?#id = drop '?' and pass "%#id"
+*/
 VariableReturn parseVariables(String line){
   String value = "";
   String token = "";
