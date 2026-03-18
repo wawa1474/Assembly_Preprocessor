@@ -6,7 +6,15 @@ enum TokenType{
   Variable, // variable used within macro definition
   Include, // include used within macro definition
   Let, // let variable be value used within macro definition
-  Newline // end of line
+  Newline, // end of line
+  Macro,
+  EndMacro,
+  If,
+  ElseIf,
+  Else,
+  EndIf,
+  Comment,
+  Number,
 }
 
 class TokenReturn{
@@ -39,31 +47,13 @@ class Variable{
 
 class Token2{
   TokenType Type = TokenType.Null;
-  String Name;
+  String Value;
   Variable[] Variables;
-  Macro macro;
   int nextIndex;
-  
-  Token2(){}
-  
-  Token2(String n){
-    Name = n;
-  }
-  
-  Token2(TokenType t, String n){
-    Type = t;
-    Name = n;
-  }
-  
-  Token2(TokenType t, String n, Variable[] v){
-    Type = t;
-    Name = n;
-    Variables = v;
-  }
   
   Token2(TokenType t, String n, Variable[] v, int r){
     Type = t;
-    Name = n;
+    Value = n;
     Variables = v;
     nextIndex = r;
   }

@@ -68,7 +68,6 @@ Token2 getNextVariable(String line, int index){
   int state = 0;
   boolean inString = false;
   boolean gotString = false;
-  TokenType type = TokenType.External;
   ArrayList<Variable> vars = new ArrayList<Variable>();
   VarType vType = VarType.Null;
   
@@ -120,6 +119,7 @@ Token2 getNextVariable(String line, int index){
           default:
             token += c;
             state = 2;
+            break;
         }
         break;
       
@@ -128,14 +128,15 @@ Token2 getNextVariable(String line, int index){
           token += c;
         }else{
           vars.add(new Variable(vType, token));
-          value += "%" + vars.size();
+          value += "\\%{" + (vars.size()-1) + "}";
           token = "" + c;
           state = 0;
         }
         break;
       
       case 20: // build value
-        if(c == 'u'){
+        if(c == 'u' || c == '%'){
+          token += "\\" + c;
           state = 30;
         }else{
           switch(c){
@@ -178,7 +179,7 @@ Token2 getNextVariable(String line, int index){
       
       case 30: // start unicode
         if(c == '{'){
-          token += "\\u{";
+          token += c;
           state = 40;
         }
         break;
@@ -192,7 +193,50 @@ Token2 getNextVariable(String line, int index){
     }
   }
   
-  return new Token2(type, value + token, varListToArray(vars), index);
+  value += token;
+  
+  TokenType type = TokenType.External;
+  switch(value){
+    case ".include":
+      type = TokenType.Include;
+      break;
+    case "#include":
+      type = TokenType.Include;
+      break;
+    case ".if":
+      type = TokenType.If;
+      break;
+    case ".elseif":
+      type = TokenType.ElseIf;
+      break;
+    case ".else":
+      type = TokenType.Else;
+      break;
+    case ".endif":
+      type = TokenType.EndIf;
+      break;
+    case ".macro":
+      type = TokenType.Macro;
+      break;
+    case ".endm":
+      type = TokenType.EndMacro;
+      break;
+    case ".let":
+      type = TokenType.Let;
+      break;
+    case ";":
+      type = TokenType.Comment;
+      break;
+    default:
+      IntReturn tmp = tryInt(value);
+      if(tmp.valid){
+        type = TokenType.Number;
+        value = "" + tmp.value;
+      }
+      break;
+  }
+  
+  return new Token2(type, value, varListToArray(vars), index);
 }
 
 VariableReturn parseVariable(String line){

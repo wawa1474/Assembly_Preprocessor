@@ -4,6 +4,7 @@ class Macro{
   String[] output;
   Argument[] Arguments;
   Token[] Tokens;
+  Token[][] Toks; // [lines][tokens within the line]
   
   Macro(){}
   
