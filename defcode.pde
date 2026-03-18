@@ -71,6 +71,7 @@ void buildMacro(String[] file){
               tmpTL.clear();
               state = 0;
             }else{
+              //println("buildMacro{" + tokRet.string + "}");
               tmpTL.add(new Token(tokRet.string));
               state = 3;
             }
@@ -197,7 +198,7 @@ Macro cleanMacro(Macro macro){
   boolean newline = false;
   for(int i = 0; i < macro.Tokens.length; i++){
     String s = macro.Tokens[i].Str;
-    //println("{{{" + s + "}}}");
+    println("{{{" + s + "}}}");
     boolean push = false;
     switch(state){
       case 0:
@@ -246,6 +247,7 @@ Macro cleanMacro(Macro macro){
     }
     
     if(push){
+      println("cleanMacro{" + tmpT + "}");
       tmpTL.add(tmpT);
       tmpT = new Token();
       state = 0;
@@ -272,7 +274,7 @@ boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
-Token parseVariable(String line, boolean variable){
+Token parseVariable(String line, boolean variable){ // TODO: REWRITE THIS THIS TOTAL PIECE OF **** (sometimes doubles characters!!)
   String prefix = "";
   String suffix = "";
   String value = "";
@@ -300,7 +302,7 @@ Token parseVariable(String line, boolean variable){
   }
   suffix += c;
   
-  println(line + " =>= " + value);
+  println(line + " =>= " + prefix + "%" + suffix + " : " + value);
   return new Token(variable ? TokenType.Variable : TokenType.Argument, prefix + "%" + suffix, value);
 }
 
@@ -316,7 +318,7 @@ TokenReturn getNextToken(String line, int index, boolean space){
       c = line.charAt(++index);
     }
   }
-  //print("[" + firstToken + "]");
+  //print("getNextToken[" + firstToken + "]");
   return new TokenReturn(firstToken.equals("") ? null : firstToken, index);
 }
 
@@ -338,7 +340,7 @@ TokenReturn getNextToken(String line, int index){
       if(index == len && len != 1 && !isWhitespace(c)){ firstToken += c; } // handle last character on multi-character line when not followed by whitespace
     }
   }
-  //print("[" + firstToken + "]");
+  //print("getNextToken[" + firstToken + "]");
   return new TokenReturn(firstToken, index);
 }
 
