@@ -1,20 +1,19 @@
 // TODO: infixToRPN would allow the preprocessor to do some otherwise difficult/impossible things...
 // Pulled from an ancient project that I left in a ROUGH state...
 //takes infix (normal) notation and converts it to reverse polish notation using a stack
-String input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ^ %%token_prec)"; // infix notation to be converted
-// 123 2 45 + 2.3 5 / 0.2 ^ * * 1 - 5 1 5 - %%token_prec ^ * %
-String output = ""; // converted output
+String testRPN_input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) ^ \\&{token_prec} + \\#{random,10,50})"; // infix notation to be converted
+// 123 2 45 + 2.3 5 / 0.2 ^ * * 1 - 5 1 5 - \\&{token_prec} ^ * % \\#{random,10,50} +
 
-void setup2(){
-  //if(_Vars == null){ _Vars = new StringDict(); }
-  //println("input:" + input);
-  //_Vars.set("token_prec", "" + 1337);
-  //lineToRPN(input, 0);
-  //println("output:" + output);
-  //printArray(_Vars);
+void testRPN(){
+  if(_Vars == null){ _Vars = new StringDict(); }
+  println("input:" + testRPN_input);
+  _Vars.set("token_prec", "" + 1337);
+  String testRPN_output = lineToRPN(testRPN_input, 0); // converted output
+  println("output:" + testRPN_output);
+  printArray(_Vars);
 }
 
-int getPrecedence(char c){
+int getPrecedenceRPN(char c){
   switch(c){
     case '+':
       return 10;
@@ -38,11 +37,11 @@ int getPrecedence(char c){
   return 0;
 }
 
-class Token{
+class RPNToken{
   char indentifier;
   int precedence;
   
-  Token(char n, int p){
+  RPNToken(char n, int p){
     indentifier = n;
     precedence = p;
   }
@@ -53,35 +52,35 @@ class Token{
 }
 
 class Stack{
-  ArrayList<Token> data;
+  ArrayList<RPNToken> data;
   
   Stack(){
-    data = new ArrayList<Token>();
+    data = new ArrayList<RPNToken>();
   }
   
   int size(){
     return data.size();
   }
   
-  void push(Token value){
+  void push(RPNToken value){
     data.add(value);
   }
   
-  Token get(int index) {
+  RPNToken get(int index) {
     if(index >= data.size() || index < 0) {
-      return new Token(index < 0 ? '~' : '!', -1); //throw new ArrayIndexOutOfBoundsException(index);
+      return new RPNToken(index < 0 ? '~' : '!', -1); //throw new ArrayIndexOutOfBoundsException(index);
     }
     return data.get(index);
   }
 
-  Token pop(){
+  RPNToken pop(){
     if(data.size() == 0){
-      return new Token('#', -1); //throw new RuntimeException("Can't call pop() on an empty list");
+      return new RPNToken('#', -1); //throw new RuntimeException("Can't call pop() on an empty list");
     }
     return data.remove(data.size() - 1);
   }
   
-  Token peek(){
+  RPNToken peek(){
     return get(data.size() - 1);
   }
   
@@ -94,11 +93,10 @@ class Stack{
   }
 }
 
-IntList intStack = new IntList();
-Stack stack = new Stack();
-
 String lineToRPN(String line, int index){
+  Stack stack = new Stack();
   int state = 0;
+  String output = "";
   String token = "";
   boolean isGlobalVar = false;
   int parenDepth = 1; // we start with a depth of 1 due to entering on an escaped open-paren
@@ -115,7 +113,7 @@ String lineToRPN(String line, int index){
           
           case '(': // '(' temporarily resets the top of stack precedence
             parenDepth++;
-            stack.push(new Token(c, -1));
+            stack.push(new RPNToken(c, -1));
             break;
           
           case ')':
@@ -130,56 +128,31 @@ String lineToRPN(String line, int index){
             }
             break;
           
-          case '%': // mod or var
-            isGlobalVar = false;
-            state = 1;
+          case '%': // modulo
+            stack.push(new RPNToken('%', -1));
+            break;
+          
+          case '\\': // escaped values, like macro args, global variables, built-in functions, etc.
+            TokenReturn tmp = cleanEscape(line, i, 0);
+            output += tmp.string;
+            i = tmp.nextIndex;
             break;
           
           default:
             if(isNumber(c) || c == '.'){
               output += c;
             }else{
-              if(getPrecedence(c) > getPrecedence(stack.peek().indentifier)){
-                stack.push(new Token(c, -1));
+              if(getPrecedenceRPN(c) > getPrecedenceRPN(stack.peek().indentifier)){
+                stack.push(new RPNToken(c, -1));
               }else{
-                while(getPrecedence(c) < getPrecedence(stack.peek().indentifier)){
+                while(getPrecedenceRPN(c) < getPrecedenceRPN(stack.peek().indentifier)){
                   if(output.charAt(output.length() - 1) != ' '){ output += " "; }
                   output += stack.pop().indentifier;
                 }
-                stack.push(new Token(c, -1));
+                stack.push(new RPNToken(c, -1));
               }
             }
             break;
-        }
-        break;
-      
-      case 1:
-        switch(c){
-          case '%': // global variable
-            isGlobalVar = true;
-            state = 2;
-            break;
-          
-          case ' ': // mod
-            stack.push(new Token('%', -1));
-            state = 0;
-            break;
-          
-          default: // macro argument
-            i--;
-            state = 2;
-            break;
-        }
-        break;
-      
-      case 2:
-        if(isAlpha(c) || isNumber(c) || c == '_'){
-          token += c;
-        }else{
-          output += tryInt(getVariable(token, isGlobalVar, 0));
-          token = "";
-          i--;
-          state = 0;
         }
         break;
     }

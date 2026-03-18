@@ -92,7 +92,7 @@ void setup(){
     //}
   }
   
-  setup2();
+  testRPN();
   println("program ran for: " + (millis() - time) + " millis.");
   exit();
 }
