@@ -45,21 +45,6 @@ String[] getMacroArgs(String line, int index){
   return Args.toArray();
 }
 
-void pushMacroArgs(String[] args){
-  _macro_Args2.add(args);
-}
-
-String[] popMacroArgs(){
-  return _macro_Args2.remove(_macro_Args2.size() - 1);
-}
-
-String[] peekMacroArgs(){
-  if(_macro_Args2.size() > 0){
-    return _macro_Args2.get(_macro_Args2.size() - 1);
-  }
-  return new String[0];
-}
-
 void finalizeNewMacro(){
   println("Finalize Macro! " + _macro_Name);
   _Files[_Files_Macros].add(

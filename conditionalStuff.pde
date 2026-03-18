@@ -53,3 +53,24 @@ boolean checkCondition(int firstVar, String action, int secondVar){
       return false;
   }
 }
+
+boolean checkCase(String line, int index){
+  //VariableReturn switchValue = parseVariables(peekMacroArgs()[0]);
+  int state = 0;
+  
+  TokenReturn token = getNextToken(line, index);
+  for(; index < line.length() && state != -1; index++){
+    switch(state){
+      case 0:
+        switch(token.string){
+          case "[": // start of value list
+          case "]": // end of value list
+          case "..": // denotes value range {Ruby range syntax} ([1..4] == [1,2,3,4])([1,2,10..13] == [1,2,10,11,12,13])([1..4,10..8] == [1,2,3,4,10,9,8])
+          default: // must be a single value
+            return checkIf(new TokenReturn(peekMacroArgs()[0], 0), "==", token);
+        }
+    }
+  }
+  
+  return false;
+}

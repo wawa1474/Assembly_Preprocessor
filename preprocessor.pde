@@ -7,7 +7,10 @@ StringDict _Vars;
 ArrayList<FileHolder>[] _Files = new ArrayList[2]; // macros as arrays of strings would allow reuse of main parsing loop...
 String _macro_Name = "";
 String[] _macro_Args;
-ArrayList<String[]> _macro_Args2 = new ArrayList<String[]>();
+ArrayList<String[]> _macro_Args2 = new ArrayList<String[]>(); // stack for macro arguments
+StringList _switch_Args = new StringList(); // stack for switch arguments
+ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
+StringList _repeat_Args = new StringList(); // stack for repeat arguments
 StringList _macro_Content = new StringList();
 final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;
@@ -88,6 +91,7 @@ void setup(){
     //}
   }
   
+  setup2();
   exit();
 }
 

@@ -36,7 +36,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             buildMacro(line, token.nextIndex);
             break;
           case ".switch":
-            pushMacroArgs(new String[] {getNextToken(line, token.nextIndex).string});
+            pushSwitchArg(getNextToken(line, token.nextIndex).string);
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           default:
@@ -67,7 +67,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             buildMacro(line, token.nextIndex);
             break;
           case ".switch":
-            pushMacroArgs(new String[] {getNextToken(line, token.nextIndex).string});
+            pushSwitchArg(getNextToken(line, token.nextIndex).string);
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           default:
@@ -116,7 +116,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".case":
             token = getNextToken(line, token.nextIndex);
-            if(checkIf(new TokenReturn(peekMacroArgs()[0], 0), token.string, getNextToken(line, token.nextIndex))){
+            if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex))){
               state = ParseState.Switch_Taken;
             }
             break;
@@ -124,7 +124,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             state = ParseState.Switch_Taken;
             break;
           case ".endsw":
-            popMacroArgs();
+            popSwitchArg();
             return;
           default:
             break;
@@ -144,7 +144,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             state = ParseState.Switch_Skip;
             break;
           case ".endsw":
-            popMacroArgs();
+            popSwitchArg();
             return;
           case ".include": // .include "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
@@ -156,7 +156,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
             buildMacro(line, token.nextIndex);
             break;
           case ".switch":
-            pushMacroArgs(new String[] {getNextToken(line, token.nextIndex).string});
+            pushSwitchArg(getNextToken(line, token.nextIndex).string);
             processInput(depth_+1, ParseState.Switch_Look);
             break;
           default:
@@ -173,7 +173,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".endsw":
             curDepth--;
             if(curDepth < depth_){
-              popMacroArgs();
+              popSwitchArg();
               return;
             }
             break;
