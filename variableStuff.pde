@@ -240,7 +240,8 @@ String getVariable(String name, boolean global){
 
 String getBuiltin(String name){
   switch(name){
-    case "@": return "" + getIndex(); // get current file index
+    case "@": return str(getIndex()); // get current file index
+    case "*": return str(_output.size() + 1); // get total output line count
     case "filename": return CurrentWorker.File.file.Name; // get current file name
   }
   
