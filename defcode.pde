@@ -72,6 +72,32 @@ String cleanComments(String line){
   return output;
 }
 
+void cleanMultilineComments(){
+  int depth = 0;
+  for(; getIndex() < getFileLength(); incIndex()){
+    String line = getLine();
+    TokenReturn token = getNextToken(line, 0);
+    while(token.nextIndex < line.length()){ // handle multiline comments that exist on a single line
+      token = getNextToken(line, token.nextIndex); // get next token on same line
+      switch(token.string){
+        case "/*":
+          depth++; // handle nested multiline comments
+          break;
+        
+        case "*/":
+          depth--;
+          if(depth == 0){
+            //if(token.nextIndex < line.length()){ // this won't work due to processInput() always starting at beginning of line...
+              //decIndex(); // need to --lineIndex due to being ++ on next iteration of processInput()
+            //} // as such, code can't follow the "*/" of a multiline comment...
+            return; // end of (nested) multiline comments
+          }
+          break; // end of current nested multiline comment
+      }
+    }
+  }
+}
+
 VariableReturn tryInt(String in){
   String output = "";
   int state = 0;
