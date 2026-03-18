@@ -41,14 +41,18 @@ void buildMacro(String line){
   
   String cur = tmpFileHolder.contents[tmpFileHolder.indexArray++];
   while(!cur.contains(".endm") && tmpFileHolder.indexArray < tmpFileHolder.contents.length){
-    for(int i = 0; i < args.size(); i++){
-      if(cur.contains(".%" + args.get(i))){ // labels
-        cur = cur.replace("%" + args.get(i), "%l" + i + "_");
-      }else{
-        cur = cur.replace("%" + args.get(i), "%" + i + "_");
+    if(cur.charAt(0) != ';'){ // ignore 'full-line' comments
+      for(int i = 0; i < args.size(); i++){
+        if(cur.contains("%%")){ // global variables
+          //cur = cur.replace("%" + args.get(i), "%l" + i + "_");
+        }else if(cur.contains(".%" + args.get(i))){ // labels
+          cur = cur.replace("%" + args.get(i), "%l" + i + "_");
+        }else{
+          cur = cur.replace("%" + args.get(i), "%" + i + "_");
+        }
       }
+      output.append(cur);
     }
-    output.append(cur);
     cur = tmpFileHolder.contents[tmpFileHolder.indexArray++];
   }
   
@@ -62,12 +66,113 @@ void buildMacro(String line){
 void outputMacro(Macro m, String[] line){
   for(int i = 0; i < m.output.length; i++){
     String cur = m.output[i];
+    boolean skipOutput = false;
+    
+    if(cur.contains(".let")){
+      println(cur + " : " + line[2]);
+      setVariable(cur, line[2]);
+      //skipOutput = true;
+    }
+    
+    if(cur.contains("%%")){ // global variable
+      int index = cur.indexOf("%%") + 2;
+      char c = cur.charAt(index++);
+      String vName = "";
+      while(!(c == ' ' || c == '\t' || c == '\n' || c == '\r') && index < cur.length()){
+        vName += "" + c;
+        c = cur.charAt(index++);
+      }
+      vName += "" + c;
+      String v = _Vars.get(vName);
+      println("%%" + vName + " : " + v);
+      if(v != null){
+        cur = cur.replace("%%" + vName, v);
+      }
+    }
+    
     for(int j = 0; j < line.length; j++){
       if(cur.contains("%" + j + "_")){ cur = cur.replace("%" + j + "_", line[j]); }
       else if(cur.contains("%l" + j + "_")){ cur = cur.replace("%l" + j + "_", stripLabel(line[j])); } // labels
     }
-    _output.append(cur);
+    if(!skipOutput){ _output.append(cur); }
   }
+}
+
+void setVariable(String line){
+  String name = "";
+  String value = "";
+  String cur = "";
+  int state = 0;
+  
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    //println(cur);
+    switch(state){
+      case 0: // eat .let
+        if(c == ' '){
+          cur = "";
+          state = 1;
+        }else{
+          cur += c;
+        }
+        break;
+      
+      case 1: // get name
+        if(c == ' '){
+          name = cur;
+          cur = "";
+          state = 2;
+        }else{
+          cur += c;
+        }
+        break;
+      
+      case 2: // get value
+        if(c == ' ' || c == '\n' || c == '\r'){
+          value = cur;
+          cur = "";
+          state = -1;
+        }else{
+          cur += c;
+        }
+        break;
+    }
+  }
+  
+  println("set var: " + name + " to " + cur);
+  _Vars.set(name,value);
+}
+
+void setVariable(String line, String value){
+  String name = "";
+  String cur = "";
+  int state = 0;
+  
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    switch(state){
+      case 0:
+        if(c == ' '){
+          cur = "";
+          state = 1;
+        }else{
+          cur += c;
+        }
+        break;
+      
+      case 1:
+        if(c == ' '){
+          name = cur;
+          cur = "";
+          state = -1;
+        }else{
+          cur += c;
+        }
+        break;
+    }
+  }
+  
+  _Vars.set(name,value);
 }
 
 String stripLabel(String l){

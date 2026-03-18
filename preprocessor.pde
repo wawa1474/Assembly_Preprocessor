@@ -7,6 +7,8 @@ ArrayList<FileHolder> _FileHolder;
 boolean _exit = true;
 FileHolder tmpFileHolder = new FileHolder();
 ArrayList<Macro> _Macros;
+//ArrayList<Variable> _Vars;
+StringDict _Vars;
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -22,6 +24,12 @@ ArrayList<Macro> _Macros;
   has to handle includes as well, but should be able to be told not to bother
     #pragma noFloats #include "path/file.ext"
     #include "path/file.ext"
+  needs to be told what needs to be converted, and how
+    convert to hexadecimal (binary)
+      f8(1234.5678)   8 bit floating point number - Quarter-Precision Float (1 byte)
+      f16(1234.5678) 16 bit floating point number - Half-Precision Float (2 bytes)
+      f32(1234.5678) 32 bit floating point number - Float (4 bytes)
+      f64(1234.5678) 64 bit floating point number - Double (8 bytes)
 */
 String _VERSION = "V1234";
 void setup(){
@@ -54,6 +62,7 @@ void setup(){
   }else{
     _FileHolder = new ArrayList<FileHolder>();
     _Macros = new ArrayList<Macro>();
+    _Vars = new StringDict(); //ArrayList<Variable>();
     processInput();
   }
   
@@ -77,6 +86,11 @@ void processInput(){
     skip = false;
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
+    
+    if(line.contains(".let")){
+      setVariable(line);
+      continue;
+    }
     
     if(line.contains(".macro")){
       buildMacro(line);
@@ -150,6 +164,8 @@ void processInput(){
     }
   }
   
+  printArray(_Vars);
+  
   println(tmpFileHolder.output);
   saveStrings(tmpFileHolder.output, _output.toArray());
 }
@@ -170,6 +186,16 @@ class Macro{
   Macro(String n, String[] o){
     name = n;
     output = o;
+  }
+}
+
+class Variable{
+  String name;
+  String value;
+  
+  Variable(String n, String v){
+    name = n;
+    value = v;
   }
 }
 
