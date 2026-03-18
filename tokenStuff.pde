@@ -21,6 +21,7 @@ TokenReturn getNextToken(String line, int index){
   int state = 0;
   boolean inString = false;
   boolean gotString = false;
+  int parenDepth = 0;
   
   for(; index < line.length() && state != -1; index++){
     char c = line.charAt(index);
@@ -50,9 +51,47 @@ TokenReturn getNextToken(String line, int index){
             }
             break;
           
+          case '(': // do we handle things within paren's as a 'discreet' unit? escaped open-paren are handled by cleanEscape() obviously...
+            // we would still need to check for escaped objects and handle them, but no other processing would occur on stuff within paren's...
+            parenDepth++; // we would need to correctly handle nested paren's too...
+            //token += c;
+            gotString = true;
+            //state = 1;
+            //break;
+          
+          case ')': // perhaps we should also be handling unbalanced paren's too?
+            parenDepth--;
+            if(parenDepth == 0){
+              //state = 0; // what else do we have to handle here?
+            }
+            break;
+          
           default:
             token += c;
             gotString = true;
+            break;
+        }
+        break;
+      
+      case 1:
+        switch(c){
+          case '(': // do we handle things within paren's as a 'discreet' unit?
+            // we would still need to check for escaped objects and handle them, but no other processing would occur on stuff within paren's...
+            parenDepth++; // we would need to correctly handle nested paren's too...
+            break;
+          
+          case '\\': // escaped open-paren are still handled by cleanEscape() obviously...
+            gotString = true;
+            TokenReturn output = cleanEscape(line, index, 0);
+            index = output.nextIndex;
+            token += output.string;
+            break;
+          
+          case ')':
+            parenDepth--;
+            if(parenDepth == 0){
+              state = 0; // what else do we have to handle here?
+            }
             break;
         }
         break;

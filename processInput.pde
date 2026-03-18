@@ -7,6 +7,7 @@ enum ParseState{
   Switch_Taken,
   Switch_Skip,
   Repeat_Loop,
+  Multiline_Comment_Entry,
   Multiline_Comment,
 }
 
@@ -30,7 +31,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
           case ".repeat": doRepeat(depth_); break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: skip = checkMacros(token.string, line, token.nextIndex); break;
         }
         break;
@@ -45,7 +46,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
           case ".repeat": doRepeat(depth_); break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: skip = checkMacros(token.string, line, token.nextIndex); break;
         }
         break;
@@ -56,7 +57,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".elseif": if(curDepth == depth_){ state = checkElseIf(line, token); } break;
           case ".else": if(curDepth == depth_){ state = ParseState.If_True; } break;
           case ".endif": curDepth--; if(curDepth < depth_){ return; } break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: break;
         }
         break;
@@ -65,7 +66,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".if": curDepth++; break;
           case ".endif": curDepth--; if(curDepth < depth_){ return; } break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: break;
         }
         break;
@@ -75,7 +76,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".case": state = checkCase(line, token, state); break;
           case ".default": state = ParseState.Switch_Taken; break;
           case ".endsw": popSwitchArg(); return;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: break;
         }
         break;
@@ -91,7 +92,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".break": state = ParseState.Switch_Skip; break;
           case ".endsw": popSwitchArg(); return;
           case ".repeat": doRepeat(depth_); break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: skip = checkMacros(token.string, line, token.nextIndex); break;
         }
         break;
@@ -100,7 +101,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         switch(token.string){
           case ".switch": curDepth++; break;
           case ".endsw": curDepth--; if(curDepth < depth_){ popSwitchArg(); return; } break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: break;
         }
         break;
@@ -114,15 +115,26 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".switch": doSwitch(line, token, depth_); break;
           case ".repeat": doRepeat(depth_); break;
           case ".until": if(checkIf(line, token.nextIndex, true)){ popRepeat(); return; } else{ setIndex(peekRepeat()); } break;
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break;
           default: skip = checkMacros(token.string, line, token.nextIndex); break;
         }
         break;
       
+      case Multiline_Comment_Entry:
+        while(token.nextIndex < line.length()){ // handle a multiline comment that exists on a single line
+          token = getNextToken(line,token.nextIndex); // get NEXT token FIRST, since on entry we'll still be looking at the "/*"
+          switch(token.string){
+            case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break; // nested multiline comments
+            case "*/": return; // end of current multiline comment
+          }
+        }
+        state = ParseState.Multiline_Comment; // end of multiline comment was not in same line, so look at following lines
+        break;
+      
       case Multiline_Comment:
         switch(token.string){
-          case "/*": processInput(depth_+1, ParseState.Multiline_Comment); break;
-          case "*/": return;
+          case "/*": processInput(depth_+1, ParseState.Multiline_Comment_Entry); break; // nested multiline comments
+          case "*/": return; // end of current multiline comment
           default: break;
         }
         break;
