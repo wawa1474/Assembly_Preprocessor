@@ -89,6 +89,7 @@ void parseLet(String variable, String action, TokenReturn secondToken){
   }
 }
 
+// TODO: would it make more sense for parseLet to handle int/float stuff and return a VariableReturn?
 int parseLet(int firstVar, String action, int secondVar){
   switch(action){
     case "+=":

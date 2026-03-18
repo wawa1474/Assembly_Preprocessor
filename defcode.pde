@@ -112,6 +112,12 @@ VariableReturn tryInt(String in){
             state = 4;
             break;
           
+          case '.': // 0.float
+            output += "0.";
+            isFloat = true;
+            state = 5;
+            break;
+          
           default: // decimal
             state = 5;
             break;
