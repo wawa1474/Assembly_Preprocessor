@@ -61,7 +61,7 @@ void finalizeNewMacro(){
   println("Finalize Macro! " + _macro_Name);
   _Files[_Files_Macros].add(
     new FileHolder(
-      new PathReturn(_macro_Name, _macro_Args),
+      new PathReturn(_macro_Name, _macro_Args, _PathReturn_Reverse_Macro),
       _macro_Content.toArray()
     )
   );

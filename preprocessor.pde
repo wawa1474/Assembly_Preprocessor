@@ -13,6 +13,8 @@ final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;
 int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
 // /\ this might want to be pushed/popped to allow recursive macro stuff...
+final static int _PathReturn_Reverse_Macro = -1;
+// /\ PathReturn's Reverse can be reused to mark a 'file' as a macro via setting it to -1, a value that can't otherwise be gotten
 
 //processing-java's directory must be added to PATH
 //--sketch refers to the directory, not the file

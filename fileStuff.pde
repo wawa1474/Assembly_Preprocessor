@@ -21,9 +21,10 @@ class PathReturn{ // "../../path/to/file/code.asm"
     Reverse = input.Reverse;
   }
   
-  PathReturn(String n, String[] p){
+  PathReturn(String n, String[] p, int r){
     Name = n;
     PathArray = p;
+    Reverse = r;
   }
   
   String getPath(){
