@@ -77,9 +77,9 @@ String[] getMacroArgs(String line, int index){
             
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index);
+            VariableReturn output = cleanEscape(line, index);
             index = output.nextIndex;
-            token += output.string;
+            token += output.String;
             break;
           
           case '(':

@@ -35,9 +35,22 @@ TokenReturn getNextToken(String line, int index){
           
           case '\\':
             gotString = true;
-            TokenReturn output = cleanEscape(line, index);
+            VariableReturn output = cleanEscape(line, index);
             index = output.nextIndex;
-            token += output.string;
+            switch(output.Type){
+              case Argument: // macro argument
+                token += getVariable(output.String, false, 0);
+                break;
+              case Variable: // global variable
+                token += getVariable(output.String, true, 0);
+                break;
+              case Function: // built-in function
+                //token += getVariable(output.String, isGlobalVar, depth);
+                break;
+              default:
+                token += output.String;
+                break;
+            }
             break;
           
           case ' ':
@@ -67,15 +80,18 @@ TokenReturn getNextToken(String line, int index){
   return new TokenReturn(token, index);
 }
 
-TokenReturn cleanEscape(String line, int index){
-  println("[" + line + "]{" + index + "}");
+VariableReturn cleanEscape(String line, int index){
+  //println("[" + line + "]{" + index + "}");
   if(line.length() > 0 && index < line.length() && line.charAt(index) == '\\'){ index++; } // eat the incoming '\\'
   
   String token = "";
   int state = 0;
+  VariableType type = VariableType.String;
+  boolean outputEscape = true;
   
   for(; index < line.length() && state != -1; index++){
     char c = line.charAt(index);
+    //print(c);
     switch(state){
       case 0:
         int tmpState = -1;
@@ -113,17 +129,24 @@ TokenReturn cleanEscape(String line, int index){
             break;
           case '!': // error output
             token += "\\!";
+            type = VariableType.Error;
             tmpState = 1;
             break;
           case '#': // built-in function
             token += "\\#";
+            //outputEscape = false;
+            type = VariableType.Function;
             tmpState = 1;
           case '%': // macro arg
-            token += "\\%";
+            //token += "\\%";
+            outputEscape = false;
+            type = VariableType.Argument;
             tmpState = 1;
             break;
           case '&': // global var
-            token += "\\&";
+            //token += "\\&";
+            outputEscape = false;
+            type = VariableType.Variable;
             tmpState = 1;
             break;
           default:
@@ -135,7 +158,7 @@ TokenReturn cleanEscape(String line, int index){
       
       case 1: // start unicode
         if(c == '{'){
-          token += c;
+          if(outputEscape){ token += c; }
           state = 2;
         }
         break;
@@ -143,14 +166,14 @@ TokenReturn cleanEscape(String line, int index){
       case 2: // build unicode
         switch(c){
           case '}':
-            token += c;
+            if(outputEscape){ token += c; }
             state = -1;
             break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index);
+            VariableReturn output = cleanEscape(line, index);
             index = output.nextIndex;
-            token += output.string;
+            token += output.String;
             break;
           
           default:
@@ -161,5 +184,7 @@ TokenReturn cleanEscape(String line, int index){
     }
   }
   
-  return new TokenReturn(token, index-1); // token-1 due to increment after use!
+  //VariableReturn out = new VariableReturn(token, index-1, type);
+  //println(out.type() + ":" + out + ";" + token);
+  return new VariableReturn(token, index-1, type); // token-1 due to increment after use!
 }

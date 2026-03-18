@@ -3,7 +3,10 @@ enum VariableType{
   Float, // might need to be converted to hex format for some assemblers
   String,
   Char, // to be used for character arithmetic (sbc 'A' - '0')
-  Variable,
+  Argument, // macro argument
+  Variable, // global variable
+  Function, // built-in function
+  Error, // error output
 }
 
 class VariableReturn{
@@ -13,6 +16,7 @@ class VariableReturn{
   float Float;
   char Char;
   boolean Number;
+  int nextIndex;
   
   VariableReturn(String s){
     String = s;
@@ -33,10 +37,39 @@ class VariableReturn{
     Type = VariableType.Float;
   }
   
+  VariableReturn(String s, VariableType t){
+    String = s;
+    Type = t;
+  }
+  
+  VariableReturn(String s, int n, VariableType t){
+    String = s;
+    nextIndex = n;
+    Type = t;
+  }
+  
+  String type(){
+    switch(Type){
+      case Integer: return "Integer";
+      case Float: return "Float";
+      case Argument: return "Argument";
+      case Variable: return "Variable";
+      case Function: return "Function";
+      case Error: return "Error";
+      case String:  return "String";
+      case Char:  return "Char";
+      default: return "Unkown";
+    }
+  }
+  
   String toString(){
     switch(Type){
       case Integer: return "" + Integer;
       case Float: return "" + Float;
+      case Argument:
+      case Variable:
+      case Function:
+      case Error:
       case String: return String;
       default: return "";
     }
@@ -195,7 +228,6 @@ VariableReturn parseVariables(String line, int depth){
   String value = "";
   String token = "";
   int state = 0;
-  boolean isGlobalVar = false;
   
   for(int i = 0; i < line.length(); i++){
     char c = line.charAt(i);
@@ -207,55 +239,34 @@ VariableReturn parseVariables(String line, int depth){
             token += c;
             break;
           
-          case '%':
-            isGlobalVar = false;
-            value += token;
-            token = "";
-            state = 1;
-            break;
-          
           case '\\':
-            TokenReturn output = cleanEscape(line, i);
+            VariableReturn output = cleanEscape(line, i);
             i = output.nextIndex;
-            token += output.string;
+            switch(output.Type){
+              case Argument: // macro argument
+                value += token; token = "";
+                value += getVariable(output.String, false, depth);
+                break;
+              case Variable: // global variable
+                value += token; token = "";
+                value += getVariable(output.String, true, depth);
+                break;
+              case Function: // built-in function
+                value += token; token = "";
+                //value += getVariable(output.String, isGlobalVar, depth);
+                break;
+              default:
+                token += output.String;
+                break;
+            }
             break;
           
           default:
             token += c;
             break;
-        }
-        break;
-      
-      case 1: // eat extra '%'
-        switch(c){
-          case '%':
-            isGlobalVar = true;
-            break;
-          
-          default:
-            token += c;
-            state = 2;
-            break;
-        }
-        break;
-      
-      case 2: // build value
-        //if(c == '%'){ } // built-in functions (strlen, eval, etc.) [%%%strlen(%name)]
-        if(isAlpha(c) || isNumber(c) || c == '_'){
-          token += c;
-        }else{
-          value += getVariable(token, isGlobalVar, depth);
-          i--;
-          token = "";
-          state = 0;
         }
         break;
     }
-  }
-  
-  if(state == 2){
-    value += getVariable(token, isGlobalVar, depth);
-    token = "";
   }
   
   value += token;
