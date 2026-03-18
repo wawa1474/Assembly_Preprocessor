@@ -127,31 +127,82 @@ String parseFunction(String input){
       break;
     
     case "checkVer":
+      if(args.length < 3){ output = "\\!{checkVer: not enough args " + (args.length-1) + "is < 2}"; break; }
       args[1].Name = stripStr(args[1].Name);
       args[2].Name = stripStr(args[2].Name);
-      boolean cond = true;
+      boolean cond = false;
+      boolean checkEqu = false;
+      boolean invertEqu = false;
       String[] v1 = splitVersion(args[2].Name);
-      if(args.length > 3){
-        args[3].Name = stripStr(args[3].Name);
-        if(hyperVerboseOutput){ println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name); }
-        String[] v2 = splitVersion(args[3].Name);
-        for(int i = 0; i < v1.length; i++){
-          String a1 = _version[i] != null ? _version[i] : "0";
-          String a2 = v1.length > i && v1[i] != null ? v1[i] : "0";
-          String a3 = v2.length > i && v2[i] != null ? v2[i] : "0";
-          if(hyperVerboseOutput){ println(a1 + " " + args[1].Name + " " + a2 + " " + a3 + " = " + cond); }
-          cond &= checkCondition(parseVariables(a1), args[1].Name, parseVariables(a2), parseVariables(a3), false);
-        }
-      }else{
-        if(hyperVerboseOutput){ println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name); }
-        for(int i = 0; i < v1.length; i++){
-          String a1 = _version[i] != null ? _version[i] : "0";
-          String a2 = v1.length > i && v1[i] != null ? v1[i] : "0";
-          if(hyperVerboseOutput){ println(a1 + " " + args[1].Name + " " + a2 + " = " + cond); }
-          cond &= checkCondition(parseVariables(a1), args[1].Name, parseVariables(a2), null, false);
-        }
+      
+      boolean equ = true;
+      for(int i = 0; i < v1.length; i++){
+        equ &= v1[i].equals(_version[i]); // _version == v1
       }
-      output = str(cond);
+      
+      switch(args[1].Name){
+        case "!=": // not same
+          cond = !equ;
+          break;
+        
+        case "==": // same
+          cond = equ;
+          break;
+        
+        case ">=": // greater than or equal
+        case "<=": // less than or equal
+          checkEqu = true;
+        case ">": // greater than
+        case "<": // less than
+          println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name);
+          for(int i = 0; i < v1.length; i++){
+            if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), null, false)){
+              cond = true;
+              break; // break out of loop
+            }
+            println(_version[i] + " " + args[1].Name + " " + v1[i] + " = " + cond + " / " + equ);
+          }
+          println(args[1].Name + " = " + cond + " / " + equ);
+          
+          if(checkEqu){
+            cond |= equ; // only for >= or <=
+          }
+          break;
+        
+        case "<!=>": // not between or equal
+          invertEqu = true;
+        case "<=>": // between or equal
+          checkEqu = true;
+        case "<!>": // not between
+        case "<>": // between
+          if(args.length < 4){ output = "\\!{checkVer: not enough args " + (args.length-1) + " is < 3}"; break; }
+          args[3].Name = stripStr(args[3].Name);
+          String[] v2 = splitVersion(stripStr(args[3].Name));
+          
+          boolean equ2 = true;
+          for(int i = 0; i < v2.length; i++){
+            equ2 &= v2[i].equals(_version[i]); // _version == v2
+          }
+          equ |= equ2; // _version == v1 || _version == v2
+          
+          println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
+          for(int i = 0; i < v1.length; i++){
+            if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), parseVariables(v2[i]), false)){
+              cond = true;
+              break; // break out of loop
+            }
+          }
+          
+          if(checkEqu){ // only for <=> or <!=>
+            if(invertEqu){
+              cond &= !equ; // <!=>
+            }else{
+              cond |= equ; // <=>
+            }
+          }
+          break;
+      }
+      if(output.length() == 0){ output = str(cond); }
       break;
     
     case "formatStr":

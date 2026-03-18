@@ -64,12 +64,14 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
         return (comp < 0 && comp2 > 0) ^ invert; // v2 < v1 < v3
       }
     
+    case "<!=>": // not between or equal
+      invert = true;
     case "<=>": // between or equal
       if(thirdVar.Number != true){
         return default_; // NAN
       }else{
         float comp2 = compare(firstVar, thirdVar);
-        return (comp < 0 && comp2 > 0) || comp == 0 || comp2 == 0; // v2 <= v1 <= v3
+        return ((comp < 0 && comp2 > 0) || comp == 0 || comp2 == 0) ^ invert; // v2 <= v1 <= v3
       }
     
     default:
