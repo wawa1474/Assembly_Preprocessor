@@ -22,6 +22,37 @@ boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
+String cleanComments(String line){
+  String output = "";
+  int state = 0;
+  boolean inString = false;
+  
+  for(int i = 0; i < line.length() && state != -1; i++){
+    char c = line.charAt(i);
+    
+    switch(c){
+      case '"':
+        output += c;
+        inString = !inString;
+        break;
+      
+      case ';':
+        if(inString){
+          output += c;
+        }else{
+          state = -1;
+        }
+        break;
+      
+      default:
+        output += c;
+        break;
+    }
+  }
+  
+  return output;
+}
+
 class IntReturn{
   int value;
   boolean valid;
@@ -39,8 +70,9 @@ IntReturn tryInt(String in){
   int state = 0;
   boolean valid = true;
   
+  char c = ' ';
   for(int i = 0; i < in.length(); i++){
-    char c = in.charAt(i);
+    c = in.charAt(i);
     switch(state){
       case 0:
         switch(c){
@@ -113,7 +145,16 @@ IntReturn tryInt(String in){
     }
   }
   
+  switch(state){
+    case 5:
+      if(!isNumber(c)){
+        valid = false;
+      }
+      break;
+  }
+  
   int value = 0;
+  //println(value + " : " + valid);
   if(valid){
     switch(state){
       case 2: // hexadecimal

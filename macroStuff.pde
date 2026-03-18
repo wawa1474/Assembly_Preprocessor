@@ -34,9 +34,10 @@ String[] getMacroArgs(String line, int index){
     if(token.string.equals(";")){
       state = -1;
     }else{
+      //if(token.string.lastIndexOf(',') == token.string.length() - 1){ println("[" + getIndex() + "] " + line); }
       Args.append(
         token.string.lastIndexOf(',') == token.string.length() - 1 // "arg," -> "arg"
-          ? token.string.replace(",", "")
+          ? token.string.substring(0, token.string.length() - 1)
           : token.string
       );
     }

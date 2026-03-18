@@ -1,8 +1,9 @@
 void parseLet(String line, int index){
   TokenReturn variable = getNextToken(line, index);
-  Token2 value = getNextVariable(line, variable.nextIndex);
+  TokenReturn value = getNextToken(line, variable.nextIndex);
+  //println("parseLet: " + variable.string + " -> " + value.string);
   
-  _Vars.set(variable.string, value.Identifier);
+  _Vars.set(variable.string, parseVariables(value.string));
 }
 
 Variable[] varListToArray(ArrayList<Variable> list){
@@ -235,4 +236,315 @@ String getVariable(Token2 variable_){
   }
   
   return output;
+}
+
+String getVariable(String name, boolean global){
+  if(global){
+    return _Vars.get(name);
+  }else{
+    String[] lineMacroArgs = peekMacroArgs();
+    FileHolder curMacro = getFile();
+    //println("getVariable: " + name);
+    //printArray(curMacro.file.PathArray);
+    for(int a = 0; a < curMacro.file.PathArray.length; a++){
+      String[] def = curMacro.file.PathArray[a].split("=");
+      if(def[0].equals(name)){
+        if(a >= lineMacroArgs.length){
+          return def[1];
+        }else{
+          return lineMacroArgs[a];
+        }
+      }
+    }
+  }
+  
+  return "%{" + name + "}?";
+}
+
+Token2 parseVariables(String line, int index){
+  String value = "";
+  String token = "";
+  int state = 0;
+  boolean inString = false;
+  boolean gotString = false;
+  boolean globalVar = false;
+  
+  for(; index < line.length() && state != -1; index++){
+    char c = line.charAt(index);
+    
+    switch(state){
+      case 0: // build prefix
+        switch(c){
+          case '"':
+            token += c;
+            inString = !inString;
+            gotString = true;
+            break;
+          
+          case '%':
+            globalVar = false;
+            value += token;
+            token = "";
+            gotString = true;
+            state = 1;
+            break;
+          
+          case ' ':
+          case '\t':
+            if(inString){
+              token += c;
+              gotString = true;
+            }else{
+              state = gotString ? -1 : 0;
+            }
+            break;
+          
+          case '\\':
+            gotString = true;
+            state = 20;
+            break;
+          
+          default:
+            token += c;
+            gotString = true;
+            break;
+        }
+        break;
+      
+      case 1: // eat extra '%'
+        switch(c){
+          case '%':
+            globalVar = true;
+            break;
+          
+          default:
+            token += c;
+            state = 2;
+            break;
+        }
+        break;
+      
+      case 2: // build value
+        if(isAlpha(c) || isNumber(c) || c == '_'){
+          token += c;
+        }else{
+          value += getVariable(token, globalVar);
+          index--;
+          token = "";
+          state = 0;
+        }
+        break;
+      
+      case 20: // build value
+        if(c == 'u'){
+          token += "\\" + c;
+          state = 30;
+        }else{
+          switch(c){
+            case '0': // NULL
+              token += "\\u{00}";
+              break;
+            case 'a': // BELL
+              token += "\\u{07}";
+              break;
+            case 'b': // BACKSPACE
+              token += "\\u{08}";
+              break;
+            case 'e': // ESCAPE SEQUENCE
+              token += "\\u{1B}";
+              break;
+            case 'f': // FORM FEED
+              token += "\\u{0C}";
+              break;
+            case 'n': // NEWLINE
+              token += "\\u{0A}";
+              break;
+            case 'r': // CARRIAGE RETURN
+              token += "\\u{0D}";
+              break;
+            case 't': // TAB
+              token += "\\u{09}";
+              break;
+            case 'v': // VERTICAL TAB
+              token += "\\u{0B}";
+              break;
+            default:
+              token += "\\u{" + hex(c) + "}";
+              break;
+          }
+          state = 0;
+        }
+        break;
+      
+      case 30: // start unicode
+        if(c == '{'){
+          token += c;
+          state = 40;
+        }
+        break;
+      
+      case 40: // build unicode
+        token += c;
+        if(c == '}'){
+          state = 0;
+        }
+        break;
+    }
+  }
+  
+  if(state == 2){
+    value += getVariable(token, globalVar);
+    token = "";
+  }
+  
+  value += token;
+  
+  TokenType type = TokenType.External;
+  
+  int integer = 0;
+  if(value.length() > 0){
+    IntReturn tmp = tryInt(value);
+    if(tmp.valid){
+      type = TokenType.Number;
+      value = "" + tmp.value;
+      integer = tmp.value;
+    }
+  }
+  
+  return new Token2(type, value, integer, null, index);
+}
+
+String parseVariables(String line){
+  String value = "";
+  String token = "";
+  int state = 0;
+  boolean globalVar = false;
+  
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    
+    switch(state){
+      case 0: // build prefix
+        switch(c){
+          case '"':
+            token += c;
+            break;
+          
+          case '%':
+            globalVar = false;
+            value += token;
+            token = "";
+            state = 1;
+            break;
+          
+          case '\\':
+            state = 20;
+            break;
+          
+          default:
+            token += c;
+            break;
+        }
+        break;
+      
+      case 1: // eat extra '%'
+        switch(c){
+          case '%':
+            globalVar = true;
+            break;
+          
+          default:
+            token += c;
+            state = 2;
+            break;
+        }
+        break;
+      
+      case 2: // build value
+        if(isAlpha(c) || isNumber(c) || c == '_'){
+          token += c;
+        }else{
+          String tmp = getVariable(token, globalVar);
+          //println("found {" + token + "} = {" + tmp + "}");
+          value += tmp;
+          i--;
+          token = "";
+          state = 0;
+        }
+        break;
+      
+      case 20: // build value
+        if(c == 'u'){
+          token += "\\" + c;
+          state = 30;
+        }else{
+          switch(c){
+            case '0': // NULL
+              token += "\\u{00}";
+              break;
+            case 'a': // BELL
+              token += "\\u{07}";
+              break;
+            case 'b': // BACKSPACE
+              token += "\\u{08}";
+              break;
+            case 'e': // ESCAPE SEQUENCE
+              token += "\\u{1B}";
+              break;
+            case 'f': // FORM FEED
+              token += "\\u{0C}";
+              break;
+            case 'n': // NEWLINE
+              token += "\\u{0A}";
+              break;
+            case 'r': // CARRIAGE RETURN
+              token += "\\u{0D}";
+              break;
+            case 't': // TAB
+              token += "\\u{09}";
+              break;
+            case 'v': // VERTICAL TAB
+              token += "\\u{0B}";
+              break;
+            default:
+              token += "\\u{" + hex(c) + "}";
+              break;
+          }
+          state = 0;
+        }
+        break;
+      
+      case 30: // start unicode
+        if(c == '{'){
+          token += c;
+          state = 40;
+        }
+        break;
+      
+      case 40: // build unicode
+        token += c;
+        if(c == '}'){
+          state = 0;
+        }
+        break;
+    }
+  }
+  
+  if(state == 2){
+    value += getVariable(token, globalVar);
+    token = "";
+  }
+  
+  value += token;
+  
+  //if(line.contains(",")){ println("[" + getIndex() + "] " + "parseVariables: " + line); }
+  
+  if(value.length() > 0){
+    IntReturn tmp = tryInt(value);
+    if(tmp.valid){
+      value = "" + tmp.value;
+    }
+  }
+  
+  return value;
 }

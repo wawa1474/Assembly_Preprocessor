@@ -172,7 +172,8 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
     }
     
     if(!skip){
-      _output.append(line);
+      //println("[" + getIndex() + "] " + cleanComments(parseVariables(line)));
+      _output.append(cleanComments(parseVariables(line)));
     }
     
     popFileIfLastLine();

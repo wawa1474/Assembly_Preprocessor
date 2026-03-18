@@ -128,11 +128,11 @@ void checkIncludeFile(String line, int index){
   switch(token.string){
     case "macro":
     case "file":
-      println("push file: " + (getIndex()) + " : " + line);
+      //println("push file: " + (getIndex()) + " : " + line);
       getNewFile(getFile().file, getNextToken(line, token.nextIndex).string);
       break;
     default:
-      println("push file: " + (getIndex()) + " : " + line);
+      //println("push file: " + (getIndex()) + " : " + line);
       getNewFile(getFile().file, token.string);
       break;
   }
@@ -274,7 +274,7 @@ void getNewFile(PathReturn base, PathReturn file){
   }
   _tmpFileHolder.setPath(base, file);
   _tmpFileHolder.load();
-  println("getNewFile: [" + getLineLength() + "] " + _tmpFileHolder.file);
+  //println("getNewFile: [" + getLineLength() + "] " + _tmpFileHolder.file);
 }
 
 void getNewFile(PathReturn base, String line){
@@ -284,9 +284,9 @@ void getNewFile(PathReturn base, String line){
 
 void popFileIfLastLine(){
   while(getIndex() >= getLineLength() - 1 && _Files[_Files_Inputs].size() > 0){ // _FileStack.size > 0){
-    println("pop file: [" + _Files[_Files_Inputs].size() + "] " + getFile().file);
+    //println("pop file: [" + _Files[_Files_Inputs].size() + "] " + getFile().file);
     _Files_Type = _Files_Inputs;
     _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].remove(_Files[_Files_Inputs].size() - 1));
-    println(" for: " + getFile().file);
+    //println(" for: " + getFile().file);
   }
 }

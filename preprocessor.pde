@@ -76,12 +76,12 @@ void setup(){
     
     
     println("Total Macros: " + _Files[_Files_Macros].size());
-    for(int i = 0; i < _Files[_Files_Macros].size(); i++){
-      FileHolder tmp = _Files[_Files_Macros].get(i);
-      println("Macro Name: " + tmp.file.Name);
-      print("Macro Args: ");printArray(tmp.file.PathArray);
-      print("Macro Contents: ");printArray(tmp.contents);
-    }
+    //for(int i = 0; i < _Files[_Files_Macros].size(); i++){
+    //  FileHolder tmp = _Files[_Files_Macros].get(i);
+    //  println("Macro Name: " + tmp.file.Name);
+    //  print("Macro Args: ");printArray(tmp.file.PathArray);
+    //  print("Macro Contents: ");printArray(tmp.contents);
+    //}
   }
   
   exit();
@@ -143,7 +143,8 @@ void processInput(){
     }
     
     if(!skip){
-      _output.append(line);
+      //println("[" + getIndex() + "] " + cleanComments(parseVariables(line)));
+      _output.append(cleanComments(parseVariables(line)));
     }
     
     popFileIfLastLine();
