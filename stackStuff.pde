@@ -80,6 +80,10 @@ void g_PUSHNEW(String name, String value){
   Stacks.put(name, new StringList(value));
 }
 
+void g_CREATESTACK(String name){
+  Stacks.put(name, new StringList());
+}
+
 void g_PUSH(String name, String value){
   Stacks.get(name).append(value);
 }

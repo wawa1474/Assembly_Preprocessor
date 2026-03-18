@@ -1,3 +1,5 @@
+import java.util.UUID; // used for generation of unique local labels
+
 StringList _output;
 String _outputFile;
 boolean _exit = true;
@@ -10,6 +12,7 @@ boolean maintainComments = false; // should comments be passed on, or cleaned up
 boolean showLines = false; // show all lines, including 'eaten' ones
 boolean concatenateFiles = true; // combine all input files into one output file
 boolean hyperVerboseOutput = false; // will all the println's in the universe be printed? (might be an int in the future...)
+boolean initEmptyStacks = false; // will an uninintialized stack be created on push, or generate an error?
 
 PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
@@ -72,6 +75,7 @@ void setup(){
     updateVariable("__maintainComments", "false");
     updateVariable("__showLines", "false");
     updateVariable("__hyperVerboseOutput", "false");
+    updateVariable("__initEmptyStacks", "false");
     
     processInput(0, ParseState.Entry);
     
@@ -80,7 +84,7 @@ void setup(){
     println("Output file: " + _outputFile);
     saveStrings(_outputFile, _output.toArray());
     
-    println("Total Macros: " + Macros.size());
+    print("Total Macros: " + Macros.size());printArray(Macros);
     println("Total Macro Args Pushed: " + MacroArgsStack.size()); // should be 0 when done
   }
   

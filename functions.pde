@@ -78,6 +78,10 @@ String parseFunction(String input){
       }
       break;
     
+    case "uuid":
+      output = UUID.randomUUID().toString().replace('-', '_');
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}
@@ -87,10 +91,12 @@ String parseFunction(String input){
   if(output.length() <= 0){
     String sName = args.length >= 2 ? args[1].Name : "";
     if(Stacks.size() <= 0){ // no stacks exist
-      if(args[0].Name.equals("push")){ // but we are pushing data
+      if(initEmptyStacks && args[0].Name.equals("push")){ // but we are pushing data
         g_PUSHNEW(args[1].Name, args[2].Name); // so create new stack and append
+      }else if(args[0].Name.equals("createStack")){
+        g_CREATESTACK(sName);
       }else{
-        output = "\\!{parseFunction:stack.noStacks}"; // otherwise output error message
+        output = "\\!{parseFunction:stack.noStacks, " + sName + "}"; // otherwise output error message
       }
     }else{
       if(Stacks.containsKey(sName)){ // stack exists
@@ -381,7 +387,14 @@ String parseFunction(String input){
         }
       }else{ // stack does not exist
         switch(args[0].Name){
-          case "push": g_PUSHNEW(args[1].Name, args[2].Name); break; // create new stack and append
+          case "createStack": // create a new, empty stack
+            g_CREATESTACK(sName);
+            break;
+          case "push":
+            if(initEmptyStacks == true){
+              g_PUSHNEW(args[1].Name, args[2].Name); // create new stack and append
+              break;
+            }
           default: output = "\\!{parseFunction:stack." + args[0].Name + ".doesNotExist, " + sName + "}"; break; // stack does not exist error
         }
       }
