@@ -1,11 +1,12 @@
 String[] input;
-StringList output;
+StringList _output;
 IntDict defines;
 String link = "0";
 boolean _followIncludes = true;
-ArrayList _FileHolder;
+ArrayList<FileHolder> _FileHolder;
 boolean _exit = true;
 FileHolder tmpFileHolder = new FileHolder();
+ArrayList<Macro> _Macros;
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -52,6 +53,7 @@ void setup(){
     println("\tYou can also disable recursing certain includes by preceding it with #no-include. (#no-include \"include.ext\")");
   }else{
     _FileHolder = new ArrayList<FileHolder>();
+    _Macros = new ArrayList<Macro>();
     processInput();
   }
   
@@ -67,15 +69,30 @@ void processInput(){
   tmpFileHolder.indexArray = 0;
   tmpFileHolder.indexChar = 0;
   
-  output = new StringList();
+  _output = new StringList();
   defines = new IntDict();
   
-  for(int i = 0; i < tmpFileHolder.contents.length; i++){
-    String line = tmpFileHolder.contents[i];
+  boolean skip = false;
+  while(tmpFileHolder.indexArray < tmpFileHolder.contents.length){
+    skip = false;
+    String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
+    tmpFileHolder.indexArray++;
     
-    if(line.contains("dfw")){
-      output_dfw(breakLine(i, "dfw", 4, line));
+    if(line.contains(".macro")){
+      buildMacro(line);
       continue;
+    }
+    //else if(line.contains("dfw")){
+    //  output_dfw(breakLine(tmpFileHolder.indexArray, "dfw", 4, line));
+    //}
+    else{
+      for(int i = 0; i < _Macros.size(); i++){
+        Macro m = _Macros.get(i);
+        if(line.contains(m.name)){
+          outputMacro(m, breakLine(tmpFileHolder.indexArray-1, m.name, m.name.length()+1, line));
+          skip = true; break;
+        }
+      }
     }
     
     //if(line.contains("defword")){
@@ -128,11 +145,13 @@ void processInput(){
     //  continue;
     //}
     
-    output.append(line);
+    if(!skip){
+      _output.append(line);
+    }
   }
   
   println(tmpFileHolder.output);
-  saveStrings(tmpFileHolder.output, output.toArray());
+  saveStrings(tmpFileHolder.output, _output.toArray());
 }
 
 class FileHolder{
@@ -142,6 +161,16 @@ class FileHolder{
   String[] contents;
   int indexArray;
   int indexChar;
+}
+
+class Macro{
+  String name;
+  String[] output;
+  
+  Macro(String n, String[] o){
+    name = n;
+    output = o;
+  }
 }
 
 //String[] breakLine(int lineNum, String macro, int pos, String line){
@@ -182,7 +211,7 @@ String[] breakLine(int lineNum, String macro, int pos, String line){
   //boolean comment = false;
   int start = line.indexOf(macro) + macro.length();
   //println(start);
-  if(start != pos){ println(lineNum); return null; }
+  //if(start != pos){ println(lineNum); return null; }
   
   for(int i = start; i < line.length(); i++){
     char c = line.charAt(i);
