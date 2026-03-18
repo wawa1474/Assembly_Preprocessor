@@ -145,21 +145,24 @@ float parseLet(float firstVar, String action, float secondVar){
   }
 }
 
+// TODO: add a depth input + make peekMacroArgs honor that to make macro args resursive...
 String getVariable(String name, boolean global){
   //println("getVariable: " + name + ", " + global);
   if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
   }else if(!global){
-    String[] lineMacroArgs = peekMacroArgs();
-    FileHolder curMacro = getFile();
-    //printArray(curMacro.file.PathArray);
-    for(int a = 0; a < curMacro.file.PathArray.length; a++){
-      String[] def = curMacro.file.PathArray[a].split("=");
-      if(def[0].equals(name)){
-        if(a >= lineMacroArgs.length || lineMacroArgs[a].length() == 0){ // ["this","is","a"], ["this","","","token"]
-          return def[1];
-        }else{
-          return lineMacroArgs[a];
+    String[] lineMacroArgs = peekMacroArgs(0);
+    if(lineMacroArgs != null){
+      FileHolder curMacro = getFile();
+      //printArray(curMacro.file.PathArray);
+      for(int a = 0; a < curMacro.file.PathArray.length; a++){
+        String[] def = curMacro.file.PathArray[a].split("=");
+        if(def[0].equals(name)){
+          if(a >= lineMacroArgs.length || lineMacroArgs[a].length() == 0){ // ["this","is","a"], ["this","","","token"]
+            return def[1];
+          }else{
+            return lineMacroArgs[a];
+          }
         }
       }
     }

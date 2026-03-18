@@ -1,3 +1,20 @@
+void doIf(String line, TokenReturn token, int depth_){
+  incIndex(); // skip the .if line
+  processInput(depth_+1, checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False);
+}
+
+ParseState checkElseIf(String line, TokenReturn token){
+  return checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False;
+}
+
+ParseState checkCase(String line, TokenReturn token, ParseState state){
+  token = getNextToken(line, token.nextIndex);
+  if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex), false)){
+    return ParseState.Switch_Taken;
+  }
+  return state;
+}
+
 void pushMacroArgs(String[] args){
   _macro_Args2.add(args);
 }
@@ -6,11 +23,18 @@ String[] popMacroArgs(){
   return _macro_Args2.remove(_macro_Args2.size() - 1);
 }
 
-String[] peekMacroArgs(){
-  if(_macro_Args2.size() > 0){
-    return _macro_Args2.get(_macro_Args2.size() - 1);
+String[] peekMacroArgs(int depth){
+  int size = _macro_Args2.size() - 1;
+  if(size >= 0 && depth <= size){
+    return _macro_Args2.get(size - depth);
   }
-  return new String[0];
+  return null;
+}
+
+void doSwitch(String line, TokenReturn token, int depth_){
+  pushSwitchArg(getNextToken(line, token.nextIndex).string);
+  incIndex();
+  processInput(depth_+1, ParseState.Switch_Look);
 }
 
 void pushSwitchArg(String arg){
@@ -26,4 +50,18 @@ String peekSwitchArg(){
     return _switch_Args.get(_switch_Args.size() - 1);
   }
   return "";
+}
+
+void doRepeat(int depth_){
+  _repeat_Args.push(getIndex());
+  incIndex();
+  processInput(depth_+1, ParseState.Repeat_Loop);
+}
+
+void popRepeat(){
+  _repeat_Args.pop();
+}
+
+int peekRepeat(){
+  return _repeat_Args.get(_repeat_Args.size() - 1);
 }

@@ -74,7 +74,8 @@ boolean checkCase(String line, int index){
           case "]": // end of value list
           case "..": // denotes value range {Ruby range syntax} ([1..4] == [1,2,3,4])([1,2,10..13] == [1,2,10,11,12,13])([1..4,10..8] == [1,2,3,4,10,9,8])
           default: // must be a single value
-            return checkIf(new TokenReturn(peekMacroArgs()[0], 0), "==", token, false);
+            if(peekMacroArgs(0) != null){ return checkIf(new TokenReturn(peekMacroArgs(0)[0], 0), "==", token, false); }
+            else{ return false; }
         }
     }
   }
