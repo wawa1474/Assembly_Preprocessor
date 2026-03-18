@@ -52,14 +52,25 @@ Token parseVariable(String line, TokenType variable){
   return new Token(variable, prefix + "%" + suffix, value);
 }
 
-Token getNextVariable(String line, int index){
-  String prefix = "";
+Variable[] varListToArray(ArrayList<Variable> list){
+  Variable[] out = new Variable[list.size()];
+  
+  for(int i = 0; i < out.length; i++){ // Token t : list
+    out[i] = list.get(i);
+  }
+  
+  return out;
+}
+
+Token2 getNextVariable(String line, int index){
   String value = "";
   String token = "";
   int state = 0;
   boolean inString = false;
   boolean gotString = false;
   TokenType type = TokenType.External;
+  ArrayList<Variable> vars = new ArrayList<Variable>();
+  VarType vType = VarType.Null;
   
   for(; index < line.length() && state != -1; index++){
     char c = line.charAt(index);
@@ -74,9 +85,9 @@ Token getNextVariable(String line, int index){
             break;
           
           case '%': // how do we handle multiple vars/args in a token?
-            prefix = token;
+            vType = VarType.Macro_Arg;
+            value += token;
             token = "";
-            type = TokenType.Argument;
             state = 1;
             break;
           
@@ -103,7 +114,7 @@ Token getNextVariable(String line, int index){
       case 1: // eat extra '%'
         switch(c){
           case '%':
-            type = TokenType.Variable;
+            vType = VarType.Global_Var;
             break;
           
           default:
@@ -116,7 +127,8 @@ Token getNextVariable(String line, int index){
         if(isAlpha(c) || isNumber(c) || c == '_'){
           token += c;
         }else{
-          value = token;
+          vars.add(new Variable(vType, token));
+          value += "%" + vars.size();
           token = "" + c;
           state = 0;
         }
@@ -180,7 +192,7 @@ Token getNextVariable(String line, int index){
     }
   }
   
-  return new Token(type, prefix + "%" + token, value, index);
+  return new Token2(type, value + token, varListToArray(vars), index);
 }
 
 VariableReturn parseVariable(String line){

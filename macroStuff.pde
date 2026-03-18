@@ -122,7 +122,7 @@ void buildMacro(String[] file){
             if(tokRet.string.equals(";")){
               stop = true;
             }else if(tokRet.string.equals(".endm")){
-              if(tmpM != null){ tmpM.Tokens = listToArray(tmpTL); }
+              if(tmpM != null){ tmpM.Tokens = tokenListToArray(tmpTL); }
               _Macros.add(cleanMacro(tmpM)); // 
               tmpM = null;
               tmpTL.clear();
@@ -330,7 +330,7 @@ Macro cleanMacro(Macro macro){
       state = 0;
     }
   }
-  output.Tokens = listToArray(tmpTL);
+  output.Tokens = tokenListToArray(tmpTL);
   
   return output;
 }

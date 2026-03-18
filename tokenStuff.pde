@@ -6,6 +6,7 @@ enum TokenType{
   Variable, // variable used within macro definition
   Include, // include used within macro definition
   Let, // let variable be value used within macro definition
+  Newline // end of line
 }
 
 class TokenReturn{
@@ -15,6 +16,69 @@ class TokenReturn{
   TokenReturn(String t, int n){
     string = t;
     nextIndex = n;
+  }
+}
+
+enum VarType{
+  Null,
+  Macro_Arg, // value pulled from macro argument
+  Global_Var // value pulled from global variable
+}
+
+class Variable{
+  VarType type;
+  String value;
+  
+  Variable(){}
+  
+  Variable(VarType t, String v){
+    type = t;
+    value = v;
+  }
+}
+
+class Token2{
+  TokenType Type = TokenType.Null;
+  String Name;
+  Variable[] Variables;
+  Macro macro;
+  int nextIndex;
+  
+  Token2(){}
+  
+  Token2(String n){
+    Name = n;
+  }
+  
+  Token2(TokenType t, String n){
+    Type = t;
+    Name = n;
+  }
+  
+  Token2(TokenType t, String n, Variable[] v){
+    Type = t;
+    Name = n;
+    Variables = v;
+  }
+  
+  Token2(TokenType t, String n, Variable[] v, int r){
+    Type = t;
+    Name = n;
+    Variables = v;
+    nextIndex = r;
+  }
+  
+  String toString(){
+    if(Type == TokenType.Argument || Type == TokenType.Variable){
+      //return "{" + Type.name() + "} " + Str.replace("%", Name);
+    //if(Type == TokenType.Macro){
+    //  return "{Macro} " + macro.argString();
+    }else if(Type == TokenType.Let){
+      //return "{Let} " + Str + " = " + Name.replace("%", Variable);
+    }else{
+      //return "{" + Type.name() + "} " + Str;
+    }
+    return "";
   }
 }
 
@@ -30,10 +94,6 @@ class Token{
   
   Token(String s){
     Str = s;
-  }
-  
-  Token(TokenType t){
-    Type = t;
   }
   
   Token(TokenType t, String s){
@@ -67,7 +127,7 @@ class Token{
   }
 }
 
-Token[] listToArray(ArrayList<Token> list){
+Token[] tokenListToArray(ArrayList<Token> list){
   Token[] out = new Token[list.size()];
   
   for(int i = 0; i < out.length; i++){ // Token t : list
