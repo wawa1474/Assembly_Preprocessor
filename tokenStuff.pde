@@ -173,6 +173,11 @@ TokenReturn cleanEscape(String line, int index, int depth){
             type = VariableType.Variable;
             state = 1;
             break;
+          case '$': // built-in var
+            outputEscape = false;
+            type = VariableType.Builtin;
+            state = 1;
+            break;
           case '(': // escaped open-paren means we need to do infixToRPN stuff
             //token += lineToRPN(line, index);
             break;
@@ -220,6 +225,9 @@ TokenReturn cleanEscape(String line, int index, int depth){
       break;
     case Function: // built-in function
       token = parseFunction(token);
+      break;
+    case Builtin: // built-in variable
+      token = getBuiltin(token);
       break;
     default:
       // token = token;

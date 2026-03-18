@@ -6,6 +6,7 @@ enum VariableType{
   Argument, // macro argument
   Variable, // global variable
   Function, // built-in function
+  Builtin, // built-in variables
   Error, // error output
 }
 
@@ -212,12 +213,16 @@ String getVariable(String name, boolean global, int depth){
     }
   }
   
-  switch(name){ // last chance to find var in predefined
-    case "@": // get current file index
-      return "" + getIndex();
+  return "\\!{getVariable:unknown_" + (global ? "var" : "arg") + ", " + name + "}";
+}
+
+String getBuiltin(String name){
+  switch(name){
+    case "@": return "" + getIndex(); // get current file index
+    case "filename": return CurrentWorker.File.file.Name; // get current file name
   }
   
-  return "\\!{getVariable:unknown_" + (global ? "var" : "arg") + ", " + name + "}";
+  return "\\!{getBuiltin:unknown_var, " + name + "}";
 }
 
 /*
