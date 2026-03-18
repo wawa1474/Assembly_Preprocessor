@@ -82,6 +82,11 @@ String parseFunction(String input){
       output = UUID.randomUUID().toString().replace('-', '_');
       break;
     
+    case "label":
+      updateVariable(args[1].Name, args[2].Name);
+      output = args[2].Name;
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}
