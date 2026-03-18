@@ -68,91 +68,85 @@ void setup(){
 void processInput(){
   _output = new StringList();
   
-  boolean skip = false;
-  while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){ //1890){//
-    skip = false;
+  int state = 0; // state machines FTW!
+  int curDepth = 0; // current depth of if statements
+  int depth = 0; // added depth of if statements to ignore (when condition is false)
+  
+  for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-    _tmpFileHolder.indexArray++;
+    TokenReturn token = getNextToken(line,0);
+    boolean skip = false;
     
-    TokenReturn firstToken = getNextToken(line, 0);
-    
-    if(firstToken.string.equals(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
-      println((_tmpFileHolder.indexArray-1) + " : " + line);
-      buildMacro(loadStrings(_tmpFileHolder.baseDirectory + split(line, " ")[1]));
-      skip = true;
-    }else if(firstToken.string.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
-      println((_tmpFileHolder.indexArray-1) + " : " + line);
-      /*
-        preprocessor will work through a file until it hits a #include
-        at which point, it will load and push the included file
-        and begin working through the new file until reaching another include or it reaches the end of the file
-        if it reaches the end of the current file, pop it from the stack
-        and continue working on existing files
-        if no more files exist, then we are done!
-      */
-      //_FileStack.push(_tmpFileHolder);
-      //getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, firstToken.nextIndex).string.replace("\"", ""));
-    }else if(firstToken.string.equals(".if")){
-      boolean ifTrue = checkIf(line, firstToken.nextIndex);
-      boolean con = true;
-      boolean eat = false;
-      println((_tmpFileHolder.indexArray-1) + " : " + line + " = " + ifTrue);
-      if(ifTrue){
-        while(con == true && _tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
-          line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-          _tmpFileHolder.indexArray++;
-          firstToken = getNextToken(line, 0);
-          switch(firstToken.string){
-            case ".if": // needs to be recursive! or state-based with a depth counter!
-            case ".else":
-            case ".elseif":
-              eat = true;
-              break;
-            case ".endif":
-              con = false;
-              eat = false;
-              break;
-            default:
-              _output.append(line);
-              break;
-          }
-        }
-        if(eat){
-          while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
-            line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-            _tmpFileHolder.indexArray++;
-            firstToken = getNextToken(line, 0);
-            if(firstToken.string.equals(".endif")){
-              break;
-            }
-          }
-        }
-      }else{
-        while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
-          line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-          _tmpFileHolder.indexArray++;
-          firstToken = getNextToken(line, 0);
-          if(firstToken.string.equals(".endif")){
+    switch(state){
+      case 0:
+        switch(token.string){
+          case ".include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + split(line, " ")[1]));
+            skip = true;
             break;
-          }
+          case "#include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            /*
+              preprocessor will work through a file until it hits a #include
+              at which point, it will load and push the included file
+              and begin working through the new file until reaching another include or it reaches the end of the file
+              if it reaches the end of the current file, pop it from the stack
+              and continue working on existing files
+              if no more files exist, then we are done!
+            */
+            //_FileStack.push(_tmpFileHolder);
+            //getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, firstToken.nextIndex).string.replace("\"", ""));
+            break;
+          case ".if":
+            boolean ifTrue = checkIf(line, token.nextIndex);
+            boolean con = true;
+            boolean eat = false;
+            println((_tmpFileHolder.indexArray) + " : " + line + " = " + ifTrue);
+            if(ifTrue){
+              while(con == true && _tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+                _tmpFileHolder.indexArray++;
+                line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+                token = getNextToken(line, 0);
+                switch(token.string){
+                  case ".if": // needs to be recursive! or state-based with a depth counter!
+                  case ".else":
+                  case ".elseif":
+                    eat = true;
+                    break;
+                  case ".endif":
+                    con = false;
+                    eat = false;
+                    break;
+                  default:
+                    _output.append(line);
+                    break;
+                }
+              }
+              if(eat){
+                while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
+                  _tmpFileHolder.indexArray++;
+                  line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+                  token = getNextToken(line, 0);
+                  if(token.string.equals(".endif")){
+                    break;
+                  }
+                }
+              }
+            }
+            break;
+          default:
+            for(int i = 0; i < _Macros.size(); i++){
+              Macro tmp = _Macros.get(i);
+              if(tmp.name.equals(token.string)){
+                //println(line);
+                _output.append(parseMacro(tmp, line));
+                skip = true;
+              }
+            }
+            break;
         }
-      }
-      skip = true;
     }
-    
-    for(int i = 0; i < _Macros.size(); i++){
-      Macro tmp = _Macros.get(i);
-      if(tmp.name.equals(firstToken.string)){
-        //println(line);
-        _output.append(parseMacro(tmp, line));
-        skip = true;
-      }
-    }
-    
-    //if(line.contains(".let")){
-    //  setVariable(line);
-    //  continue;
-    //}
     
     if(!skip){
       _output.append(line);

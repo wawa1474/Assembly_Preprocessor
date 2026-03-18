@@ -99,9 +99,8 @@ TokenReturn getNextToken(String line, int index){
         switch(c){
           case '"':
             token += c;
-            inString = true;
+            inString = !inString;
             gotString = true;
-            state = 1;
             break;
           
           case '\\':
@@ -111,7 +110,12 @@ TokenReturn getNextToken(String line, int index){
           
           case ' ':
           case '\t':
-            state = gotString ? -1 : 0;
+            if(inString){
+              token += c;
+              gotString = true;
+            }else{
+              state = gotString ? -1 : 0;
+            }
             break;
           
           default:
@@ -121,28 +125,9 @@ TokenReturn getNextToken(String line, int index){
         }
         break;
       
-      case 1: // build escaped value or string
-        switch(c){
-          case '\\':
-            state = 2;
-            break;
-          case '"':
-            token += c;
-            inString = false;
-            state = 0;
-            break;
-          default:
-            token += c;
-            break;
-        }
-        break;
-      
       case 2: // build value
         if(c == 'u'){
           state = 3;
-        }else if(c == '"'){
-          token += "\\\"";
-          state = inString ? 1 : 0;
         }else{
           switch(c){
             case '0': // NULL
@@ -174,11 +159,14 @@ TokenReturn getNextToken(String line, int index){
               break;
             //case 'x': // HEX INPUT
             //  break;
+            case '"': // Escaped Quote
+              token += "\\\"";
+              break;
             default:
               token += "\\u{" + hex(c) + "}";
               break;
           }
-          state = inString ? 1 : 0;
+          state = 0;
         }
         break;
       
@@ -192,7 +180,7 @@ TokenReturn getNextToken(String line, int index){
       case 4: // build unicode
         token += c;
         if(c == '}'){
-          state = inString ? 1 : 0;
+          state = 0;
         }
         break;
     }
