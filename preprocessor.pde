@@ -3,6 +3,9 @@ String _outputFile;
 boolean _exit = true;
 StringDict _Vars;
 
+boolean maintainComments = false; // should comments be passed on, or cleaned up
+boolean showLines = false; // show all lines, including 'eaten' ones
+
 PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
 ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
@@ -107,9 +110,9 @@ String getFileName(){
   return CurrentWorker.getFileName();
 }
 
-int getLastOutputLineLength(){
+String getLastOutputLine(){
   if(_output.size() > 0){
-    return _output.get(_output.size() - 1).length();
+    return _output.get(_output.size() - 1);
   }
-  return -1;
+  return "";
 }

@@ -8,7 +8,7 @@ String testRPN_input = "((123 * (2 + 45) * (2.3 / 5) ^ 0.2 - 1) % 5 * (1 - 5) **
 void testRPN(){
   if(_Vars == null){ _Vars = new StringDict(); }
   println("input:" + testRPN_input);
-  _Vars.set("token_prec", "" + 1337);
+  updateVariable("token_prec", "" + 1337);
   String testRPN_output = lineToRPN(testRPN_input, 0); // converted output
   println("output:" + testRPN_output);
   printArray(_Vars);

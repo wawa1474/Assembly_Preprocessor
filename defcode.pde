@@ -23,16 +23,22 @@ boolean isWhitespace(char c){
 }
 
 void outputLine(String line, boolean skip){
-  int lastLine = getLastOutputLineLength();
-  if((!skip && line.length() == 0) || (!skip && line.charAt(0) != ';')){
+  
+  //if(!skip || maintainComments){ // output
+  //  String tmp = parseVariables(line).String;
+  //  if(!maintainComments){ tmp = cleanComments(tmp); }
+  //  if(isLineEmpty(line) && isLineEmpty(getLastOutputLine())){ // both the current line, and the last output one are blank...
+  //    return; // so return...
+  //  }
+  //  if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
+  //  _output.append(tmp);
+  //}
+  if(isLineEmpty(line) && !isLineEmpty(getLastOutputLine())){ _output.append(""); } // the current line is blank, but the last output one wasn't...
+  if((!skip && line != null && line.length() != 0)){
     String tmp = cleanComments(parseVariables(line).String);
-    if((isLineEmpty(line) && (lastLine != 0 || lastLine == -1)) || !isLineEmpty(tmp)){ // if program line was empty, or line is NOT empty after processing
-      //if(tmp.equals("0")){ println(getIndex()); }
-      if(!isLineEmpty(tmp) && _Vars.hasKey("showLines") && _Vars.get("showLines").equals("true")){
-        tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex();
-      }
-      _output.append(tmp);// + " ; " + getFileName() + " @ " + getIndex()); // output it!
-    }
+    boolean empty = isLineEmpty(tmp);
+    if(!empty && showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
+    _output.append(tmp);
   }
 }
 
@@ -46,6 +52,7 @@ boolean isLineEmpty(String line){
 }
 
 String cleanComments(String line){
+  if(maintainComments){ return line; }
   String output = "";
   int state = 0;
   boolean inString = false;
@@ -80,6 +87,7 @@ void cleanMultilineComments(){
   int depth = 0;
   for(; getIndex() < getFileLength(); incIndex()){
     String line = getLine();
+    if(maintainComments){ _output.append("; " + line); }
     TokenReturn token = getNextToken(line, 0);
     switch(token.string){
       case "/*":

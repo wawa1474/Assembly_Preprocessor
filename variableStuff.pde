@@ -102,15 +102,15 @@ void parseLet(String variable, String action, TokenReturn secondToken){
     switch(firstVar.Type){
       case Integer:
         switch(secondVar.Type){
-          case Integer: _Vars.set(variable, "" + parseLet(firstVar.Integer, action, secondVar.Integer)); break;
-          case Float: _Vars.set(variable, "" + parseLet(firstVar.Integer, action, secondVar.Float)); break;
+          case Integer: updateVariable(variable, "" + parseLet(firstVar.Integer, action, secondVar.Integer)); break;
+          case Float: updateVariable(variable, "" + parseLet(firstVar.Integer, action, secondVar.Float)); break;
           default: break;
         }
         break;
       case Float:
         switch(secondVar.Type){
-          case Integer: _Vars.set(variable, "" + parseLet(firstVar.Float, action, secondVar.Integer)); break;
-          case Float: _Vars.set(variable, "" + parseLet(firstVar.Float, action, secondVar.Float)); break;
+          case Integer: updateVariable(variable, "" + parseLet(firstVar.Float, action, secondVar.Integer)); break;
+          case Float: updateVariable(variable, "" + parseLet(firstVar.Float, action, secondVar.Float)); break;
           default: break;
         }
         break;
@@ -119,17 +119,35 @@ void parseLet(String variable, String action, TokenReturn secondToken){
   }else{
     switch(action){
       case "+":
-        if(_Vars.hasKey(variable)){ _Vars.set(variable, _Vars.get(variable) + secondVar.String); }
+        if(_Vars.hasKey(variable)){ updateVariable(variable, _Vars.get(variable) + secondVar.String); }
+        else{ updateVariable(variable, secondVar.String); }
         break;
       
       case "-":
-        if(_Vars.hasKey(variable)){ _Vars.set(variable, _Vars.get(variable).replace(secondVar.String, "")); }
+        if(_Vars.hasKey(variable)){ updateVariable(variable, _Vars.get(variable).replace(secondVar.String, "")); }
         break;
       
       case "=":
-        _Vars.set(variable, secondVar.String);
+        updateVariable(variable, secondVar.String);
         break;
     }
+  }
+}
+
+void updateVariable(String var_, String value_){
+  _Vars.set(var_, value_);
+  
+  boolean valueBool = false;
+  
+  switch(value_.toLowerCase()){
+    case "true": valueBool = true; break;
+    case "false": break;
+    default: return;
+  }
+  
+  switch(var_){ // update directive variables
+    case "maintainComments": maintainComments = valueBool; break;
+    case "showLines": showLines = valueBool; break;
   }
 }
 

@@ -15,10 +15,14 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
   
   for(; getIndex() < getFileLength(); incIndex()){
     String line = getLine();
-    if(line.length() > 0 && line.charAt(0) == ';'){ continue; } // skip comment-only lines
     TokenReturn token = getNextToken(line,0);
+    if(token.string.length() > 0 && token.string.charAt(0) == ';'){ // skip comment-only lines
+      if(maintainComments){ _output.append(line); }
+      popFileIfLastLine();
+      continue;
+    }
     boolean skip = true;
-    //println("[" + getIndex() + "]{" + state.name() + "} " + line);
+    //println("[" + getIndex() + "]{" + state.name() + "}<" + token.string + "> " + line);
     
     switch(state){
       case Entry:

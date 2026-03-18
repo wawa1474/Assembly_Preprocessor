@@ -28,6 +28,15 @@ TokenReturn getNextToken(String line, int index){
     switch(state){
       case 0:
         switch(c){
+          case ';': // hit comment, so end of line
+            if(!inString){
+              if(gotString == false){ // ';' was first char, so return it to caller
+                token += c;
+              }
+              state = -1;
+            }
+            break;
+          
           case '"':
             token += c;
             inString = !inString;
