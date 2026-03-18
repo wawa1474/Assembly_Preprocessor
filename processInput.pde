@@ -6,7 +6,8 @@ enum ParseState{
   Switch_Look,
   Switch_Taken,
   Switch_Skip,
-  Repeat_Loop,
+  Begin_Search,
+  Begin_Loop,
 }
 
 void processInput(int depth_, ParseState state_){ // current depth of if statements for debuging
@@ -33,7 +34,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".equ": break; // equate - set a variable that can't be modified
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
-          case ".repeat": doRepeat(depth_); break;
+          case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
           case ".org":
             storageOrigin = "dfsOrgLabel_" + getLabelUUID();
@@ -69,7 +70,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".let": parseLet(line, token.nextIndex); break;
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
-          case ".repeat": doRepeat(depth_); break;
+          case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
           case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
           case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;
@@ -118,7 +119,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".case": case ".default": break;
           case ".break": state = ParseState.Switch_Skip; break;
           case ".endsw": popSwitchArg(); return;
-          case ".repeat": doRepeat(depth_); break;
+          case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
           case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
           case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;
@@ -136,15 +137,27 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         }
         break;
       
-      case Repeat_Loop:
+      case Begin_Search:
+        switch(token.string){
+          case ".begin": curDepth++; break;
+          case ".until":
+          case ".repeat": curDepth--; if(curDepth < depth_){ doBeginEnd(); state = ParseState.Begin_Loop; } break;
+          case "/*": cleanMultilineComments(); break;
+          default: break;
+        }
+        break;
+      
+      case Begin_Loop:
         switch(token.string){
           case ".include": checkIncludeFile(line, token.nextIndex); break;
           case ".if": doIf(line, token, depth_); break;
           case ".let": parseLet(line, token.nextIndex); break;
           case ".macro": buildMacro(line, token.nextIndex); break;
           case ".switch": doSwitch(line, token, depth_); break;
-          case ".repeat": doRepeat(depth_); break;
-          case ".until": if(checkIf(line, token.nextIndex, true)){ popRepeat(); return; } else{ setIndex(peekRepeat()); } break;
+          case ".begin": doBegin(depth_); break;
+          case ".while": if(!checkIf(line, token.nextIndex, true)){ popBegin(); return; } break;
+          case ".until": if(checkIf(line, token.nextIndex, true)){ popBegin(); return; } else{ setIndex(peekBegin()); } break;
+          case ".repeat": setIndex(peekBegin()); break;
           case "/*": cleanMultilineComments(); break;
           case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
           case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;

@@ -49,18 +49,24 @@ String peekSwitchArg(){
   return "";
 }
 
-void doRepeat(int depth_){
-  _repeat_Args.push(getIndex());
+void doBegin(int depth_){
+  _begin_Args.add(new int[] {getIndex(), 0});
   incIndex();
-  processInput(depth_+1, ParseState.Repeat_Loop);
+  processInput(depth_+1, ParseState.Begin_Search);
 }
 
-void popRepeat(){
-  _repeat_Args.pop();
+void doBeginEnd(){
+  _begin_Args.get(_begin_Args.size() - 1)[1] = getIndex();
+  setIndex(peekBegin());
 }
 
-int peekRepeat(){
-  return _repeat_Args.get(_repeat_Args.size() - 1);
+void popBegin(){
+  setIndex(_begin_Args.get(_begin_Args.size() - 1)[1] + 1);
+  _begin_Args.remove(_begin_Args.size() - 1);
+}
+
+int peekBegin(){
+  return _begin_Args.get(_begin_Args.size() - 1)[0];
 }
 
 String g_TOS(String name){

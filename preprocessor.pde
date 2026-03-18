@@ -33,7 +33,7 @@ String ext_drw_wrapEnd = ")`16)";
 PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
 ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
-IntList _repeat_Args = new IntList(); // stack for repeat arguments
+ArrayList<int[]> _begin_Args = new ArrayList<int[]>(); // stack for .begin .again .while .repeat
 
 //processing-java's directory must be added to PATH
 //--sketch refers to the directory, not the file
@@ -58,7 +58,7 @@ String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
 String _version_minor = "2";
 String _version_patch = "0";
-String _version_preRelease = "6";
+String _version_preRelease = "7";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch};
 void setup(){
