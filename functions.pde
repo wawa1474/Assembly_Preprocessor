@@ -137,8 +137,8 @@ String parseFunction(String input){
         String[] v2 = splitVersion(args[3].Name);
         for(int i = 0; i < v1.length; i++){
           String a1 = _version[i] != null ? _version[i] : "0";
-          String a2 = v1[i] != null ? v1[i] : "0";
-          String a3 = v2[i] != null ? v2[i] : "0";
+          String a2 = v1.length > i && v1[i] != null ? v1[i] : "0";
+          String a3 = v2.length > i && v2[i] != null ? v2[i] : "0";
           if(hyperVerboseOutput){ println(a1 + " " + args[1].Name + " " + a2 + " " + a3 + " = " + cond); }
           cond &= checkCondition(parseVariables(a1), args[1].Name, parseVariables(a2), parseVariables(a3), false);
         }
@@ -146,7 +146,7 @@ String parseFunction(String input){
         if(hyperVerboseOutput){ println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name); }
         for(int i = 0; i < v1.length; i++){
           String a1 = _version[i] != null ? _version[i] : "0";
-          String a2 = v1[i] != null ? v1[i] : "0";
+          String a2 = v1.length > i && v1[i] != null ? v1[i] : "0";
           if(hyperVerboseOutput){ println(a1 + " " + args[1].Name + " " + a2 + " = " + cond); }
           cond &= checkCondition(parseVariables(a1), args[1].Name, parseVariables(a2), null, false);
         }

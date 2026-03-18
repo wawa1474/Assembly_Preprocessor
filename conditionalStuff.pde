@@ -24,7 +24,7 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
         return !firstVar.String.equals(secondVar.String);
       
       case "": // check if var is defined
-        return _Vars.hasKey(firstToken.string.replace("%%",""));
+        return _Vars.hasKey(firstToken.string);
       
       default:
         return default_;
@@ -62,6 +62,14 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
       }else{
         float comp2 = compare(firstVar, thirdVar);
         return (comp < 0 && comp2 > 0) ^ invert; // v2 < v1 < v3
+      }
+    
+    case "<=>": // between or equal
+      if(thirdVar.Number != true){
+        return default_; // NAN
+      }else{
+        float comp2 = compare(firstVar, thirdVar);
+        return (comp < 0 && comp2 > 0) || comp == 0 || comp2 == 0; // v2 <= v1 <= v3
       }
     
     default:
