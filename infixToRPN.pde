@@ -141,7 +141,7 @@ String lineToRPN(String line, int index){
             break;
           
           case '\\': // escaped values, like macro args, global variables, built-in functions, etc.
-            TokenReturn tmp = cleanEscape(line, i);
+            TokenReturn tmp = cleanEscape(line, i, false);
             output += tmp.string;
             i = tmp.nextIndex;
             break; // may want to defer calculating anything within escaped values, unless they do their own infixToRPN work...

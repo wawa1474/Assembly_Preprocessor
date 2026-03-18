@@ -72,6 +72,10 @@ int g_DEPTH(String name){
   return Stacks.get(name).size();
 }
 
+void g_CLEAR(String name){
+  Stacks.get(name).clear();
+}
+
 void g_PUSHNEW(String name, String value){
   Stacks.put(name, new StringList(value));
 }

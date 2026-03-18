@@ -206,6 +206,9 @@ float parseLet(float firstVar, String action, float secondVar){
   }
 }
 
+//String getGlobalVariable(String name, boolean checkMacroArgs);
+//String getMacroArgument(String name, boolean checkGlobalVars);
+
 String getVariable(String name, boolean global){
   //println("getVariable: " + name + ", " + global);
   //println(getIndex());

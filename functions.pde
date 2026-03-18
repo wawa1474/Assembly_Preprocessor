@@ -86,8 +86,12 @@ String parseFunction(String input){
   
   if(output.length() <= 0){
     String sName = args.length >= 2 ? args[1].Name : "";
-    if(Stacks.size() <= 0){
-      output = "\\!{parseFunction:stack.noStacks}";
+    if(Stacks.size() <= 0){ // no stacks exist
+      if(args[0].Name.equals("push")){ // but we are pushing data
+        g_PUSHNEW(args[1].Name, args[2].Name); // so create new stack and append
+      }else{
+        output = "\\!{parseFunction:stack.noStacks}"; // otherwise output error message
+      }
     }else{
       if(Stacks.containsKey(sName)){ // stack exists
         int len = g_DEPTH(sName);
@@ -108,6 +112,10 @@ String parseFunction(String input){
             
             case "peek": // (TOS - TOS [TOS])
               output = g_PEEK(sName);
+              break;
+            
+            case "clear": // (TOS - TOS [TOS])
+              g_CLEAR(sName);
               break;
             
             case "pick": // (v1 v2 v3 #2 - v1 v2 v3 v1) [TOS=0, NOS=1, ...]

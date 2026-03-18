@@ -45,7 +45,7 @@ TokenReturn getNextToken(String line, int index){
           
           case '\\':
             gotString = true;
-            TokenReturn output = cleanEscape(line, index);
+            TokenReturn output = cleanEscape(line, index, false);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -91,7 +91,7 @@ TokenReturn getNextToken(String line, int index){
           
           case '\\': // escaped open-paren are still handled by cleanEscape() obviously...
             gotString = true;
-            TokenReturn output = cleanEscape(line, index);
+            TokenReturn output = cleanEscape(line, index, false);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -115,7 +115,7 @@ TokenReturn getNextToken(String line, int index){
   return new TokenReturn(token, index);
 }
 
-TokenReturn cleanEscape(String line, int index){
+TokenReturn cleanEscape(String line, int index, boolean runFunction){
   //println("[" + line + "]{" + index + "}");
   if(line.length() > 0 && index < line.length() && line.charAt(index) == '\\'){ index++; } // eat the incoming '\\'
   
@@ -216,7 +216,7 @@ TokenReturn cleanEscape(String line, int index){
             break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index);
+            TokenReturn output = cleanEscape(line, index, false);
             index = output.nextIndex;
             token += output.string;
             break;
@@ -251,13 +251,16 @@ TokenReturn cleanEscape(String line, int index){
   switch(type){
     case Argument: // macro argument
       //println("cleanEscape:Argument " + token);
-      token = getVariable(token, false);
+      token = getVariable(token, false); // don't check global variables
       break;
     case Variable: // global variable
-      token = getVariable(token, true);
+      token = getVariable(token, true); // don't check macro arguments
       break;
     case Function: // built-in function
-      token = parseFunction(token);
+      //println("cleanEscape:parseFunction");
+      if(runFunction){ // for some reason (bad programming probably...) parseFunction is being called twice for every function
+        token = parseFunction(token);
+      }
       break;
     case Builtin: // built-in variable
       token = getBuiltin(token);

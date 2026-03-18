@@ -72,8 +72,9 @@ void setup(){
     
     processInput(0, ParseState.Entry);
     
-    printArray(_Vars);
-    println(_outputFile);
+    print("Stacks: "); printArray(Stacks);
+    print("Variables: "); printArray(_Vars);
+    println("Output file: " + _outputFile);
     saveStrings(_outputFile, _output.toArray());
     
     println("Total Macros: " + Macros.size());
