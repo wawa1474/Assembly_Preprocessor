@@ -243,6 +243,7 @@ void getNewFile(PathReturn base, String line){
 
 void popFileIfLastLine(){
   while(getIndex() >= getFileLength() - 1 && _Files[_Files_Inputs].size() > 0){
+    if(_tmpFileHolder.file.Reverse == _PathReturn_Reverse_Macro){ popMacroArgs(); } // also pop macro's args from arg stack
     _Files_Type = _Files_Inputs;
     _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].remove(_Files[_Files_Inputs].size() - 1));
   }

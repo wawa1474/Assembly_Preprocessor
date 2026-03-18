@@ -50,11 +50,14 @@ void pushMacroArgs(String[] args){
 }
 
 String[] popMacroArgs(){
-  return _macro_Args2.remove(_macro_Args2.size()-1);
+  return _macro_Args2.remove(_macro_Args2.size() - 1);
 }
 
 String[] peekMacroArgs(){
-  return _macro_Args2.get(_macro_Args2.size()-1);
+  if(_macro_Args2.size() > 0){
+    return _macro_Args2.get(_macro_Args2.size() - 1);
+  }
+  return new String[0];
 }
 
 void finalizeNewMacro(){

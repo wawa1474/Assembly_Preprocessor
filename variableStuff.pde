@@ -42,7 +42,7 @@ VariableReturn parseVariables(String line){
   String value = "";
   String token = "";
   int state = 0;
-  boolean globalVar = false;
+  boolean isGlobalVar = false;
   
   for(int i = 0; i < line.length(); i++){
     char c = line.charAt(i);
@@ -55,7 +55,7 @@ VariableReturn parseVariables(String line){
             break;
           
           case '%':
-            globalVar = false;
+            isGlobalVar = false;
             value += token;
             token = "";
             state = 1;
@@ -74,7 +74,7 @@ VariableReturn parseVariables(String line){
       case 1: // eat extra '%'
         switch(c){
           case '%':
-            globalVar = true;
+            isGlobalVar = true;
             break;
           
           default:
@@ -88,7 +88,7 @@ VariableReturn parseVariables(String line){
         if(isAlpha(c) || isNumber(c) || c == '_'){
           token += c;
         }else{
-          value += getVariable(token, globalVar);
+          value += getVariable(token, isGlobalVar);
           i--;
           token = "";
           state = 0;
@@ -153,7 +153,7 @@ VariableReturn parseVariables(String line){
   }
   
   if(state == 2){
-    value += getVariable(token, globalVar);
+    value += getVariable(token, isGlobalVar);
     token = "";
   }
   

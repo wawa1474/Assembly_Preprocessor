@@ -22,6 +22,24 @@ boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
+void outputLine(String line, boolean skip){
+  if(!skip){
+    String tmp = cleanComments(parseVariables(line).String);
+    if(isLineEmpty(line) || !isLineEmpty(tmp)){ // if program line was empty, or line is NOT empty after processing
+      if(tmp.equals("0")){ println(getIndex()); }
+      _output.append(tmp); // output it!
+    }
+  }
+}
+
+boolean isLineEmpty(String line){
+  for(int i = 0; i < line.length(); i++){
+    char c = line.charAt(i);
+    if(!isWhitespace(c)){ return false; }
+  }
+  return true;
+}
+
 String cleanComments(String line){
   String output = "";
   int state = 0;
@@ -66,6 +84,10 @@ VariableReturn tryInt(String in){
         switch(c){
           case '0':
             state = 1;
+            break;
+          
+          case ' ':
+          case '\t':
             break;
           
           default:
@@ -134,6 +156,10 @@ VariableReturn tryInt(String in){
   }
   
   switch(state){
+    case 1: // just '0' as input!
+      output = "0";
+      state = 5;
+      break;
     case 5:
       if(!isNumber(c)){
         valid = false;
@@ -158,6 +184,10 @@ VariableReturn tryInt(String in){
       
       case 5: // decimal
         value = parseInt(output, 10);
+        break;
+      
+      default: // if a line is just spaces or tabs...
+        valid = false;
         break;
     }
   }

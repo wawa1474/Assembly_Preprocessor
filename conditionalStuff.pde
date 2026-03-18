@@ -166,10 +166,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
         break;
     }
     
-    if(!skip){
-      _output.append(cleanComments(parseVariables(line).String));
-    }
-    
+    outputLine(line, skip);
     popFileIfLastLine();
   }
 }

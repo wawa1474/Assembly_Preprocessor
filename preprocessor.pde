@@ -13,8 +13,12 @@ final static int _Files_Inputs = 0;
 final static int _Files_Macros = 1;
 int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
 // /\ this might want to be pushed/popped to allow recursive macro stuff...
-final static int _PathReturn_Reverse_Macro = -1;
-// /\ PathReturn's Reverse can be reused to mark a 'file' as a macro via setting it to -1, a value that can't otherwise be gotten
+final static int _PathReturn_Reverse_Macro = -1; // _tmpFileHolder.file.Reverse
+// /\ PathReturn's Reverse can be 'reused' to mark a 'file' as a macro via setting it to -1, a value that can't otherwise be gotten
+// TODO: recursive macros would require;
+//           getVariable(String, boolean) and parseVariables(String)
+//           as well as peekMacroArgs() and getFile()
+//         to be able to reverse traverse the stack to grab args from previous bits
 
 //processing-java's directory must be added to PATH
 //--sketch refers to the directory, not the file
@@ -71,6 +75,7 @@ void setup(){
     
     
     println("Total Macros: " + _Files[_Files_Macros].size());
+    println("Total Macro Args Pushed: " + _macro_Args2.size()); // should be 0 when done
     //for(int i = 0; i < _Files[_Files_Macros].size(); i++){
     //  FileHolder tmp = _Files[_Files_Macros].get(i);
     //  println("Macro Name: " + tmp.file.Name);
@@ -107,7 +112,10 @@ String getLine(){
 }
 
 int getFileLength(){
-  return _tmpFileHolder.contents.length;
+  if(_tmpFileHolder.contents != null){
+    return _tmpFileHolder.contents.length;
+  }
+  return 0;
 }
 
 void processInput(){
@@ -136,10 +144,7 @@ void processInput(){
         break;
     }
     
-    if(!skip){
-      _output.append(cleanComments(parseVariables(line).String));
-    }
-    
+    outputLine(line, skip);
     popFileIfLastLine();
   }
   
