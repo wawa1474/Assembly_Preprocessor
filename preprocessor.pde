@@ -40,7 +40,11 @@ IntList _repeat_Args = new IntList(); // stack for repeat arguments
       f64(1234.5678) 64 bit floating point number - Double (8 bytes)
 */
 
-String _VERSION = "V1234";
+String _program_name = "Assembly Preprocessor";
+String _version_major = "1"; // I don't know what version to really start at, but the code is fully functional
+String _version_minor = "0"; // and ready to be used to produce a large program
+String _version_patch = "0"; // so... I DECLARE THIS TO BE V1.0.0!
+String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch;
 void setup(){
   int time = millis();
   println("sketchPath() = " + sketchPath());
@@ -72,6 +76,10 @@ void setup(){
   }else{
     _Vars = new StringDict();
     _output = new StringList();
+    
+    _output.append("; This .obj file was produced by: " + _program_name + " " + _VERSION); // append some data to the start of the output file
+    _output.append("; " + getLabelUUID());
+    _output.append(""); _output.append("");
     
     updateVariable("__concatenateFiles", "true");
     updateVariable("__maintainComments", "false");
