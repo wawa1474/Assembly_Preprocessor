@@ -106,11 +106,7 @@ String getVariable(VariableReturn variable_, Macro macro_, String[] macroArgs_){
             if(a >= macroArgs_.length){
               return macro_.Arguments[a].defualt;
             }else{
-              if(macroArgs_[a].contains("\\")){
-                return variable_.variable.replace("%", cleanEscape(macroArgs_[a]));
-              }else{
-                return variable_.variable.replace("%", macroArgs_[a]);
-              }
+              return variable_.variable.replace("%", macroArgs_[a]);
             }
           }
         }

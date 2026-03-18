@@ -69,20 +69,16 @@ Token[] listToArray(ArrayList<Token> list){
   return out;
 }
 
-TokenReturn getNextToken(String line, int index, boolean space){
-  if(space == false){ return getNextToken(line, index); }
+TokenReturn getWhitespaceToken(String line, int index){
+  String token = "";
   
-  String firstToken = "";
-  int len = line.length();
-  if(len > 0 && index < len){
+  for(; index < line.length(); index++){
     char c = line.charAt(index);
-    while(index < len && isWhitespace(c)){ // eat leading whitespace
-      firstToken += c == ' ' ? ' ' : "\\t";
-      c = line.charAt(++index);
-    }
+    if(isWhitespace(c)){ token += c == ' ' ? ' ' : "\\t"; }
+    else{ break; }
   }
-  //print("getNextToken[" + firstToken + "]");
-  return new TokenReturn(firstToken.equals("") ? null : firstToken, index);
+  
+  return new TokenReturn(token.equals("") ? null : token, index);
 }
 
 TokenReturn getNextToken(String line, int index){

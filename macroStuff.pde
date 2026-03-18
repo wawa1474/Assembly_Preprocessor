@@ -82,7 +82,7 @@ void buildMacro(String[] file){
   String tmpS = "";
   ArrayList<Token> tmpTL = new ArrayList<Token>();
   for(int i = 0; i < file.length; i++){
-    TokenReturn tokRet = getNextToken(file[i],0,true);
+    TokenReturn tokRet = getWhitespaceToken(file[i],0);
     boolean stop = false;
     while(!stop){
       if(tokRet.string != null){
@@ -200,11 +200,7 @@ String[] parseMacro(Macro macro, String line){
             cur += "\t";
             break;
           default:
-            if(t.Str.contains("\\")){
-              cur += cleanEscape(t.Str);
-            }else{
-              cur += t.Str + " ";
-            }
+            cur += t.Str + " ";
             break;
         }
         break;
@@ -217,12 +213,7 @@ String[] parseMacro(Macro macro, String line){
             if(a >= macroArgs.length){
               cur += macro.Arguments[a].defualt;
             }else{
-              if(macroArgs[a].contains("\\")){
-                cur += t.Str.replace("%", cleanEscape(macroArgs[a]));
-              }else{
-                cur += t.Str.replace("%", macroArgs[a]);
-              }
-              //cur += t.Str.replace("%", args[a]);
+              cur += t.Str.replace("%", macroArgs[a]);
             }
             break;
           }
