@@ -1,10 +1,11 @@
 boolean checkIf(String line, int index){
   Token2 firstVar = getNextVariable(line, index);
-  Token2 action = getNextVariable(line, firstVar.nextIndex);
+  TokenReturn action = getNextToken(line, firstVar.nextIndex);
   Token2 secondVar = getNextVariable(line, action.nextIndex);
   
   if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-    switch(action.Identifier){
+    //println("checkIf " + firstVar.Integer + " " + action.string + " " + secondVar.Integer);
+    switch(action.string){
       case "==":
         return firstVar.Integer == secondVar.Integer; // check if integers are equal
       
@@ -27,7 +28,8 @@ boolean checkIf(String line, int index){
         return false;
     }
   }else{
-    switch(action.Identifier){
+    //println("checkIf " + getVariable(firstVar, null, null) + " " + action.string + " " + getVariable(secondVar, null, null));
+    switch(action.string){
       case "==":
         return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
       
@@ -42,16 +44,19 @@ boolean checkIf(String line, int index){
   //return false;
 }
 
-void parseIf(int curDepth){
-  int state = 0; // state machines FTW!
-  //int curDepth = 0; // current depth of if statements
-  int depth = 0; // added depth of if statements to ignore (when condition is false)
+void parseIf(String line_, int index_, int depth){ // current depth of if statements for debuging
+  //println("init line: " + _tmpFileHolder.indexArray + " : " + line_);
+  int state = checkIf(line_, index_) ? 1 : 2; // state machines FTW!
+  //println("init state: " + state + " @ " + depth);
+  _tmpFileHolder.indexArray++; // skip the .if line
   boolean skip = false;
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+    //println(_tmpFileHolder.indexArray + " : " + line);
     TokenReturn token = getNextToken(line,0);
     
+    //println("state: " + state);
     switch(state){
       case 0:
         switch(token.string){
@@ -66,30 +71,31 @@ void parseIf(int curDepth){
             skip = true;
             break;
           case ".if":
-            boolean ifTrue = checkIf(line, token.nextIndex);
-            if(ifTrue){ curDepth++; }
+            parseIf(line, token.nextIndex, depth+1);
             skip = true;
-            state = ifTrue ? 1 : 2;
             break;
           default:
             skip = checkMacros(token.string, line);
+            //println("skip0: " + skip);
             break;
         }
         break;
       
       case 1: // if statement true
         switch(token.string){
-          //case ".if": // not gonna worry about nested if statements for now...
+          case ".if":
+            parseIf(line, token.nextIndex, depth+1);
+            skip = true;
+            break;
           case ".else":
           case ".elseif":
             skip = true;
             state = 5;
             break;
           case ".endif":
-            curDepth--;
+            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
-            state = 0;
-            break;
+            return;
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
             buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
@@ -103,13 +109,17 @@ void parseIf(int curDepth){
           default:
             // append line
             skip = checkMacros(token.string, line);
+            //println("skip1: " + skip);
             break;
         }
         break;
       
       case 2: // if statement false
         switch(token.string){
-          //case ".if":
+          case ".if":
+            parseIf(line, token.nextIndex, depth+1);
+            skip = true;
+            break;
           case ".else":
             skip = true;
             state = 3;
@@ -120,10 +130,9 @@ void parseIf(int curDepth){
             state = ifTrue ? 1 : 2;
             break;
           case ".endif":
-            curDepth--;
+            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
-            state = 0;
-            break;
+            return;
           default:
             skip = true;
             break;
@@ -132,11 +141,14 @@ void parseIf(int curDepth){
       
       case 3: // append all until .endif
         switch(token.string){
-          case ".endif":
-            curDepth--;
+          case ".if":
+            parseIf(line, token.nextIndex, depth+1);
             skip = true;
-            state = 0;
             break;
+          case ".endif":
+            //println((_tmpFileHolder.indexArray) + " : " + line);
+            skip = true;
+            return;
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
             buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
@@ -150,6 +162,7 @@ void parseIf(int curDepth){
           default:
             // append line
             skip = checkMacros(token.string, line);
+            //println("skip3: " + skip);
             break;
         }
         break;
@@ -157,15 +170,24 @@ void parseIf(int curDepth){
       case 5: // eat all until .endif
         switch(token.string){
           case ".endif":
-            curDepth--;
+            //println((_tmpFileHolder.indexArray) + " : " + line);
             skip = true;
-            state = 0;
-            break;
+            return;
           default:
             skip = true;
             break;
         }
         break;
+    }
+    
+    if(!skip){
+      _output.append(line);
+    }
+    
+    if(_tmpFileHolder.indexArray >= _tmpFileHolder.contents.length - 1 && _FileStack.size > 0){
+      print("pop file: " + _tmpFileHolder.filename);
+      _tmpFileHolder = _FileStack.pop();
+      println(" for: " + _tmpFileHolder.filename);
     }
   }
 }

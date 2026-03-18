@@ -76,129 +76,29 @@ void setup(){
 void processInput(){
   _output = new StringList();
   
-  int state = 0; // state machines FTW!
-  int curDepth = 0; // current depth of if statements
-  int depth = 0; // added depth of if statements to ignore (when condition is false)
-  
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-    println(_tmpFileHolder.indexArray + " : " + line);
+    //println(_tmpFileHolder.indexArray + " : " + line);
     TokenReturn token = getNextToken(line,0);
     boolean skip = false;
     
-    switch(state){
-      case 0:
-        switch(token.string){
-          case ".include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line, token.nextIndex).string));
-            skip = true;
-            break;
-          case "#include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
-            skip = true;
-            break;
-          case ".if":
-            boolean ifTrue = checkIf(line, token.nextIndex);
-            if(ifTrue){ curDepth++; }
-            skip = true;
-            state = ifTrue ? 1 : 2;
-            break;
-          default:
-            skip = checkMacros(token.string, line);
-            break;
-        }
+    switch(token.string){
+      case ".include":
+        println((_tmpFileHolder.indexArray) + " : " + line);
+        buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line, token.nextIndex).string));
+        skip = true;
         break;
-      
-      case 1: // if statement true
-        switch(token.string){
-          //case ".if": // not gonna worry about nested if statements for now...
-          case ".else":
-          case ".elseif":
-            skip = true;
-            state = 5;
-            break;
-          case ".endif":
-            curDepth--;
-            skip = true;
-            state = 0;
-            break;
-          case ".include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
-            skip = true;
-            break;
-          case "#include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
-            skip = true;
-            break;
-          default:
-            // append line
-            skip = checkMacros(token.string, line);
-            break;
-        }
+      case "#include":
+        println((_tmpFileHolder.indexArray) + " : " + line);
+        getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+        skip = true;
         break;
-      
-      case 2: // if statement false
-        switch(token.string){
-          //case ".if":
-          case ".else":
-            skip = true;
-            state = 3;
-            break;
-          case ".elseif":
-            boolean ifTrue = checkIf(line, token.nextIndex);
-            skip = true;
-            state = ifTrue ? 1 : 2;
-            break;
-          case ".endif":
-            curDepth--;
-            skip = true;
-            state = 0;
-            break;
-          default:
-            skip = true;
-            break;
-        }
+      case ".if":
+        parseIf(line, token.nextIndex, 0);
+        skip = true;
         break;
-      
-      case 3: // append all until .endif
-        switch(token.string){
-          case ".endif":
-            curDepth--;
-            skip = true;
-            state = 0;
-            break;
-          case ".include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
-            skip = true;
-            break;
-          case "#include":
-            println((_tmpFileHolder.indexArray) + " : " + line);
-            getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
-            skip = true;
-            break;
-          default:
-            // append line
-            skip = checkMacros(token.string, line);
-            break;
-        }
-        break;
-      
-      case 5: // eat all until .endif
-        switch(token.string){
-          case ".endif":
-            curDepth--;
-            skip = true;
-            state = 0;
-            break;
-          default:
-            skip = true;
-            break;
-        }
+      default:
+        skip = checkMacros(token.string, line); // will skip outputting a raw macro line, but otherwise will append all lines
         break;
     }
     
