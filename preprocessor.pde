@@ -82,8 +82,8 @@ void setup(){
     processInput();
   }
   
-  println(parseVariable("le(%%lastWord`16)", TokenType.Variable));
-  println(getMacroArgs("dfw \"DOCON\", DOCON, 0x00"));
+  //println(parseVariable("le(%%lastWord`16)", TokenType.Variable));
+  //println(getMacroArgs("dfw \"DOCON\", DOCON, 0x00"));
   
   exit();
 }
@@ -108,7 +108,7 @@ void processInput(){
     
     String firstToken = getNextToken(line, 0).string;
     
-    println(tmpFileHolder.indexArray + " : " + line);
+    //println(tmpFileHolder.indexArray + " : " + line);
     //printArray(cleanTokens(splitToken(line)));
     //println();
     
@@ -123,7 +123,7 @@ void processInput(){
     for(int i = 0; i < _Macros.size(); i++){
       Macro tmp = _Macros.get(i);
       if(tmp.name.equals(firstToken)){
-        println(line);
+        //println(line);
         _output.append(parseMacro(tmp, line));
         skip = true;
       }

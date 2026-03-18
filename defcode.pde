@@ -112,12 +112,13 @@ String[] parseMacro(Macro macro, String line){
   StringList output = new StringList();
   String cur = "";
   
-  output.append(";" + line);
+  //output.append(";" + line);
   
   String[] args = getMacroArgs(line);
   
   for(int i = 0; i < macro.Tokens.length; i++){
-    println(macro.Tokens[i]);
+    //println(macro.Tokens[i]);
+    //cur += macro.Tokens[i];
     Token t = macro.Tokens[i];
     switch(t.Type){
       case External:
@@ -167,16 +168,16 @@ String[] parseMacro(Macro macro, String line){
       case Include:
         break;
       case Let: // TODO: .let needs to handle variables and arguments!
-        println("var {" + t.Variable + "} and {" + t.Str.replace("%", t.Value) + "}");
-        cur += ";.let " + t.Variable + " " + t.Str.replace("%", t.Value);
+        //println("var {" + t.Variable + "} and {" + t.Str.replace("%", t.Value) + "}");
+        //cur += ";.let " + t.Variable + " " + t.Str.replace("%", t.Value);
         String v = _Vars.get(t.Value);
         if(v != null){
-          println("set var {" + t.Variable + "} to {" + t.Value + "}");
+          //println("set var {" + t.Variable + "} to {" + t.Value + "}");
           _Vars.set(t.Variable, t.Str.replace("%", t.Value));
         }else{
           for(int a = 0; a < macro.Arguments.length; a++){
             if(macro.Arguments[a].name.equals(t.Value)){
-              println("set var {" + t.Str + "} to {" + args[a] + "}");
+              //println("set var {" + t.Str + "} to {" + args[a] + "}");
               _Vars.set(t.Variable, t.Str.replace("%", args[a]));
               break;
             }
@@ -187,7 +188,7 @@ String[] parseMacro(Macro macro, String line){
         break;
     }
   }
-  output.append(cur);
+  if(cur.length() > 0){ output.append(cur); }
   
   return output.toArray();
 }
@@ -217,7 +218,7 @@ Macro cleanMacro(Macro macro){
       case 0:
         if(s.equals(".let")){
           tmpT.Type = TokenType.Let;
-          newline = false;
+          newline = true;
           state = 1;
         }else if(s.equals("")){
           newline = false;
@@ -255,14 +256,14 @@ Macro cleanMacro(Macro macro){
         Token tmp = parseVariable(s, TokenType.Let); // TODO: rework parseVariable to work for .let
         tmpT.Str = tmp.Str;
         tmpT.Value = tmp.Value;
-        newline = false;
+        newline = true;
         push = true;
         break;
         
     }
     
     if(push){
-      println("cleanMacro{" + tmpT + "}");
+      //println("cleanMacro{" + tmpT + "}");
       tmpTL.add(tmpT);
       tmpT = new Token();
       state = 0;
@@ -337,6 +338,8 @@ String cleanEscape(String line){
             case 'v': // VERTICAL TAB
               output += "\\u{0B}";
               break;
+            //case 'x': // HEX INPUT
+            //  break;
             default:
               output += "\\u{" + hex(c) + "}";
               break;
@@ -404,7 +407,7 @@ Token parseVariable(String line, TokenType variable){
     }
   }
   
-  println(line + " =>= " + prefix + "%" + suffix + " : " + value);
+  //println(line + " =>= " + prefix + "%" + suffix + " : " + value);
   return new Token(variable, prefix + "%" + suffix, value);
 }
 
@@ -425,7 +428,7 @@ TokenReturn getNextToken(String line, int index, boolean space){
 }
 
 TokenReturn getNextToken(String line, int index){
-  println("getNextToken from " + line + " @ " + index);
+  //println("getNextToken from " + line + " @ " + index);
   String firstToken = "";
   int len = line.length();
   if(len == 1){
@@ -434,7 +437,7 @@ TokenReturn getNextToken(String line, int index){
   }else if(len > 0 && index < len){
     char c = line.charAt(index);
     while(index < len && isWhitespace(c)){ // eat leading whitespace
-      println(index + 1);
+      //println(index + 1);
       c = line.charAt(++index);
     }
     if(index < len){
