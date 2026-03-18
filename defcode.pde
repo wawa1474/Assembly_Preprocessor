@@ -18,6 +18,143 @@
 //  _output.append("\t#d16 le(" + label + "`16)");
 //}
 
+static final int Token_null = 0;
+enum TokenType{
+  Null,
+  Macro_Start,
+  Macro_Name,
+  Macro_Args,
+  Macro_End,
+  Let,
+}
+enum TokenState{
+  Error,
+  Default,
+  Macro,
+  Macro_Name,
+  Macro_Args,
+  Macro_End,
+  String,
+  Let,
+}
+
+Token[] listToArray(ArrayList<Token> list){
+  Token[] out = new Token[list.size()];
+  
+  for(int i = 0; i < out.length; i++){ // Token t : list
+    out[i] = list.get(i);
+  }
+  
+  return out;
+}
+
+ArrayList<Token> splitToken(String line){
+  line += '\n';
+  ArrayList<Token> tokens = new ArrayList<Token>();
+  String cur = "";
+  //TokenState state = TokenState.Default;
+  //TokenState state2 = TokenState.Default;
+  int state = 0;
+  
+  int index = 0;
+  boolean stop = false;
+  char c = ' ';
+  while(!stop){
+    if(index < line.length()){ c = line.charAt(index); }
+    if(index == line.length() || isWhitespace(c)){
+    }else{
+      switch(state){
+        case 0: // default
+          if(isNumber(c)){
+            state = 1; // number
+            cur+=c;
+          }else if(isAplha(c) || c == '_'){
+            state = 2; // identifier
+            cur+=c;
+          }else if(c == '.'){ // preprocessor directive
+            state = 3;
+            cur+=c;
+          }
+          break;
+        case 1: // number
+          if(isNumber(c) || c == '.'){
+            state = 1;
+            cur+=c;
+          }
+      }
+      
+      cur += c;
+      index++;
+    }
+  }
+  
+  //for(int i = 0; i < line.length(); i++){
+  //  char c = line.charAt(i);
+  //  if(!isWhitespace(c)){
+  //    cur += c;
+  //  }else{
+  //    switch(state){
+  //      case Default:
+  //        switch(cur.toLowerCase()){
+  //          case ".macro":
+  //            tokens.add(new Token(TokenType.Macro_Start));
+  //            state = TokenState.Macro;
+  //            state2 = TokenState.Default;
+  //            break;
+  //          case ".endm":
+  //            tokens.add(new Token(TokenType.Macro_End));
+  //            state = TokenState.Default;
+  //            state2 = TokenState.Default;
+  //            break;
+  //          case ".let":
+  //            tokens.add(new Token(TokenType.Let));
+  //            state = TokenState.Let;
+  //            break;
+  //        }
+  //        break;
+  //    }
+  //    switch(cur.toLowerCase()){
+  //      case ".macro":
+  //        switch(state){
+  //          case Default:
+  //            tokens.add(new Token(TokenType.Macro_Start));
+  //            state = TokenState.Macro;
+  //            state2 = TokenState.Default;
+  //            break;
+  //          default:
+  //            println("Attempted to start macro in bad spot!");
+  //            break;
+  //        }
+  //        break;
+  //      case ".endm":
+  //        switch(state){
+  //          case Macro:
+  //            tokens.add(new Token(TokenType.Macro_End));
+  //            state = TokenState.Default;
+  //            state2 = TokenState.Default;
+  //            break;
+  //          default:
+  //            println("Attempted to end macro outside of macro!");
+  //            break;
+  //        }
+  //        break;
+  //      case ".let":
+  //        switch(state){
+  //          case Let:
+  //            println("Attempted to .let a .let!?");
+  //            break;
+  //          default:
+  //            state2 = TokenState.Let;
+  //            break;
+  //        }
+  //        break;
+  //    }
+  //  }
+  //}
+  
+  return tokens;
+}
+
 void buildMacro(String line){
   String name = "";
   StringList args = new StringList();
@@ -205,8 +342,16 @@ boolean isAplha(char c){
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
+boolean isHex(char c){
+  return (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
 boolean isNumber(char c){
   return c >= '0' && c <= '9';
+}
+
+boolean isWhitespace(char c){
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
 LabelReplace[] _labelReplace = new LabelReplace[] {

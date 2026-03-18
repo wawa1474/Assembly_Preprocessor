@@ -66,6 +66,8 @@ void setup(){
     processInput();
   }
   
+  //String[] t = splitTokens("asd asdaf 1241 123.1241 hello world hele(asfas) asf_asfas(1231)");
+  //printArray(t);
   exit();
 }
 
@@ -182,10 +184,26 @@ class FileHolder{
 class Macro{
   String name;
   String[] output;
+  Token[] Tokens;
   
   Macro(String n, String[] o){
     name = n;
     output = o;
+  }
+  
+  Macro(String n, Token[] t){
+    name = n;
+    Tokens = t;
+  }
+}
+
+class Token{
+  TokenType Type;
+  String Str;
+  String Value;
+  
+  Token(TokenType t){
+    Type = t;
   }
 }
 
