@@ -146,8 +146,9 @@ void updateVariable(String var_, String value_){
   }
   
   switch(var_){ // update directive variables
-    case "maintainComments": maintainComments = valueBool; break;
-    case "showLines": showLines = valueBool; break;
+    case "__maintainComments": maintainComments = valueBool; break;
+    case "__showLines": showLines = valueBool; break;
+    case "__concatenateFiles": concatenateFiles = valueBool; break;
   }
 }
 

@@ -20,6 +20,7 @@ void pushMacroArgs(MacroArg[] args){
 }
 
 MacroArg[] popMacroArgs(){
+  if(MacroArgsStack == null || MacroArgsStack.size() == 0){ return null; }
   return MacroArgsStack.remove(MacroArgsStack.size() - 1);
 }
 

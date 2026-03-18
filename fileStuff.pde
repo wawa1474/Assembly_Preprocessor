@@ -243,7 +243,12 @@ void popFileIfLastLine(){
   //print("<" + Workers.size() + ">");printArray(Workers);
   while(getIndex() >= getFileLength() - 1 && Workers.size() > 0){
     //println("pop file");
-    if(CurrentWorker.Type == WorkerType.Macro && MacroArgsStack.size() > 0){ popMacroArgs(); } // also pop macro's args from arg stack
+    if(CurrentWorker.Type == WorkerType.Macro){
+      popMacroArgs(); // pop macro's args from arg stack
+    }else if(!concatenateFiles && CurrentWorker.Type == WorkerType.File){
+      saveStrings(CurrentWorker.File.file.toString() + ".obj", _output.toArray()); // save output to separate files
+      _output.clear(); // clear output for next file
+    }
     CurrentWorker = new Worker(popWorker());
   }
 }

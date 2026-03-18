@@ -5,6 +5,7 @@ StringDict _Vars;
 
 boolean maintainComments = false; // should comments be passed on, or cleaned up
 boolean showLines = false; // show all lines, including 'eaten' ones
+boolean concatenateFiles = true; // combine all input files into one output file
 
 PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
@@ -62,6 +63,10 @@ void setup(){
   }else{
     _Vars = new StringDict();
     _output = new StringList();
+    
+    updateVariable("__concatenateFiles", "true");
+    updateVariable("__maintainComments", "false");
+    updateVariable("__showLines", "false");
     
     processInput(0, ParseState.Entry);
     
