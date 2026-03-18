@@ -2,14 +2,18 @@ boolean checkIf(String line, int index){
   TokenReturn firstToken = getNextToken(line, index);
   TokenReturn action = getNextToken(line, firstToken.nextIndex);
   TokenReturn secondToken = getNextToken(line, action.nextIndex);
-  
+  return checkIf(firstToken, action.string, secondToken);
+}
+
+boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken){
   VariableReturn firstVar = parseVariables(firstToken.string);
   VariableReturn secondVar = parseVariables(secondToken.string);
+  //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
   
   if(firstVar.Number && secondVar.Number){
     return checkCondition(firstVar.Integer, action, secondVar.Integer);
   }else{
-    switch(action.string){
+    switch(action){
       case "==":
         return firstVar.String.equals(secondVar.String); // check if strings are equal
       
@@ -25,8 +29,8 @@ boolean checkIf(String line, int index){
   }
 }
 
-boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
-  switch(action.string){
+boolean checkCondition(int firstVar, String action, int secondVar){
+  switch(action){
     case "==":
       return firstVar == secondVar; // check if integers are equal
     

@@ -8,6 +8,10 @@ class VariableReturn{
     Integer = i;
     Number = b;
   }
+  
+  String toString(){
+    return Number ? "" + Integer : String;
+  }
 }
 
 void parseLet(String line, int index){

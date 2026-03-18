@@ -72,7 +72,7 @@ void setup(){
     _Vars = new StringDict();
     _output = new StringList();
     
-    processInput(0, 0);
+    processInput(0, ParseState.Entry);
     
     printArray(_Vars);
     println(_outputFile);

@@ -1,5 +1,15 @@
-void processInput(int depth_, int state_){ // current depth of if statements for debuging
-  int state = state_; // state machines FTW!
+enum ParseState{
+  Entry,
+  If_True,
+  If_False,
+  If_Skip,
+  Switch_Look,
+  Switch_Taken,
+  Switch_Skip,
+}
+
+void processInput(int depth_, ParseState state_){ // current depth of if statements for debuging
+  ParseState state = state_; // state machines FTW!
   int curDepth = depth_;
   
   for(; getIndex() < getFileLength(); incIndex()){
@@ -8,14 +18,14 @@ void processInput(int depth_, int state_){ // current depth of if statements for
     boolean skip = true;
     
     switch(state){
-      case 0:
+      case Entry:
         switch(token.string){
           case ".include": // .include "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
             break;
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? 1 : 2);
+            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
             break;
           case ".endif":
             return;
@@ -25,21 +35,25 @@ void processInput(int depth_, int state_){ // current depth of if statements for
           case ".macro":
             buildMacro(line, token.nextIndex);
             break;
+          case ".switch":
+            pushMacroArgs(new String[] {getNextToken(line, token.nextIndex).string});
+            processInput(depth_+1, ParseState.Switch_Look);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
       
-      case 1: // if statement true
+      case If_True: // if statement true
         switch(token.string){
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? 1 : 2);
+            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
             break;
           case ".else":
           case ".elseif":
-            state = 5;
+            state = ParseState.If_Skip;
             break;
           case ".endif":
             return;
@@ -52,24 +66,27 @@ void processInput(int depth_, int state_){ // current depth of if statements for
           case ".macro":
             buildMacro(line, token.nextIndex);
             break;
+          case ".switch":
+            pushMacroArgs(new String[] {getNextToken(line, token.nextIndex).string});
+            processInput(depth_+1, ParseState.Switch_Look);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
       
-      case 2: // if statement false
+      case If_False: // if statement false
         switch(token.string){
           case ".if":
             curDepth++;
             break;
           case ".else":
-            if(curDepth == depth_){ state = 3; }
+            if(curDepth == depth_){ state = ParseState.If_True; }
             break;
           case ".elseif":
             if(curDepth == depth_){
-              boolean ifTrue = checkIf(line, token.nextIndex);
-              state = ifTrue ? 1 : 2;
+              state = checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False;
             }
             break;
           case ".endif":
@@ -81,13 +98,53 @@ void processInput(int depth_, int state_){ // current depth of if statements for
         }
         break;
       
-      case 3: // append all until .endif
+      case If_Skip: // skip all until .endif
+        switch(token.string){
+          case ".if":
+            curDepth++;
+            break;
+          case ".endif":
+            curDepth--;
+            if(curDepth < depth_){ return; }
+            break;
+          default:
+            break;
+        }
+        break;
+      
+      case Switch_Look: // scan through lines looking for .case or .default
+        switch(token.string){
+          case ".case":
+            token = getNextToken(line, token.nextIndex);
+            if(checkIf(new TokenReturn(peekMacroArgs()[0], 0), token.string, getNextToken(line, token.nextIndex))){
+              state = ParseState.Switch_Taken;
+            }
+            break;
+          case ".default": // always take .default in this state
+            state = ParseState.Switch_Taken;
+            break;
+          case ".endsw":
+            popMacroArgs();
+            return;
+          default:
+            break;
+        }
+        break;
+        
+      case Switch_Taken: // case was found, output contents until .case, .default, or .endsw
         switch(token.string){
           case ".if":
             incIndex(); // skip the .if line
-            processInput(depth_+1, checkIf(line, token.nextIndex) ? 1 : 2);
+            processInput(depth_+1, checkIf(line, token.nextIndex) ? ParseState.If_True : ParseState.If_False);
             break;
-          case ".endif":
+          case ".case":
+          case ".default":
+            break;
+          case ".break":
+            state = ParseState.Switch_Skip;
+            break;
+          case ".endsw":
+            popMacroArgs();
             return;
           case ".include": // .include "path/name.ext"
             checkIncludeFile(line, token.nextIndex);
@@ -98,20 +155,27 @@ void processInput(int depth_, int state_){ // current depth of if statements for
           case ".macro":
             buildMacro(line, token.nextIndex);
             break;
+          case ".switch":
+            pushMacroArgs(new String[] {getNextToken(line, token.nextIndex).string});
+            processInput(depth_+1, ParseState.Switch_Look);
+            break;
           default:
             skip = checkMacros(token.string, line, token.nextIndex);//
             break;
         }
         break;
-      
-      case 5: // eat all until .endif
+        
+      case Switch_Skip: // skip all lines until .endsw is found
         switch(token.string){
-          case ".if":
+          case ".switch":
             curDepth++;
             break;
-          case ".endif":
+          case ".endsw":
             curDepth--;
-            if(curDepth < depth_){ return; }
+            if(curDepth < depth_){
+              popMacroArgs();
+              return;
+            }
             break;
           default:
             break;
