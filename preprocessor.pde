@@ -103,7 +103,7 @@ void processInput(){
           _tmpFileHolder.indexArray++;
           firstToken = getNextToken(line, 0);
           switch(firstToken.string){
-            case ".if": // needs to be recursive!
+            case ".if": // needs to be recursive! or state-based with a depth counter!
             case ".else":
             case ".elseif":
               eat = true;

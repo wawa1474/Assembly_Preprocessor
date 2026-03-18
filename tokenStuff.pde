@@ -86,28 +86,123 @@ TokenReturn getNextToken(String line, int index, boolean space){
 }
 
 TokenReturn getNextToken(String line, int index){
-  //println("getNextToken from " + line + " @ " + index);
-  String firstToken = "";
-  int len = line.length();
-  if(len == 1){
-    firstToken = line;
-    index++;
-  }else if(len > 0 && index < len){
+  //print("getNextToken from " + line + " @ " + index);
+  String token = "";
+  int state = 0;
+  boolean inString = false;
+  boolean gotString = false;
+  
+  for(; index < line.length() && state != -1; index++){
     char c = line.charAt(index);
-    while(index < len && isWhitespace(c)){ // eat leading whitespace
-      //println(index + 1);
-      c = line.charAt(++index);
-    }
-    if(index < len){
-      c = line.charAt(index++); // get first non-whitespace character
-      if(index == len && len == 1){ firstToken += c; } // handle single character line
-      while(index < len && !isWhitespace(c)){ // keep adding characters to token until whitespace is encountered
-        firstToken += c;
-        c = line.charAt(index++);
-      }
-      if(index == len && len != 1 && !isWhitespace(c)){ firstToken += c; } // handle last character on multi-character line when not followed by whitespace
+    switch(state){
+      case 0:
+        switch(c){
+          case '"':
+            token += c;
+            inString = true;
+            gotString = true;
+            state = 1;
+            break;
+          
+          case '\\':
+            gotString = true;
+            state = 2;
+            break;
+          
+          case ' ':
+          case '\t':
+            state = gotString ? -1 : 0;
+            break;
+          
+          default:
+            token += c;
+            gotString = true;
+            break;
+        }
+        break;
+      
+      case 1: // build escaped value or string
+        switch(c){
+          case '\\':
+            state = 2;
+            break;
+          case '"':
+            token += c;
+            inString = false;
+            state = 0;
+            break;
+          default:
+            token += c;
+            break;
+        }
+        break;
+      
+      case 2: // build value
+        if(c == 'u'){
+          state = 3;
+        }else if(c == '"'){
+          token += "\\\"";
+          state = inString ? 1 : 0;
+        }else{
+          switch(c){
+            case '0': // NULL
+              token += "\\u{00}";
+              break;
+            case 'a': // BELL
+              token += "\\u{07}";
+              break;
+            case 'b': // BACKSPACE
+              token += "\\u{08}";
+              break;
+            case 'e': // ESCAPE SEQUENCE
+              token += "\\u{1B}";
+              break;
+            case 'f': // FORM FEED
+              token += "\\u{0C}";
+              break;
+            case 'n': // NEWLINE
+              token += "\\u{0A}";
+              break;
+            case 'r': // CARRIAGE RETURN
+              token += "\\u{0D}";
+              break;
+            case 't': // TAB
+              token += "\\u{09}";
+              break;
+            case 'v': // VERTICAL TAB
+              token += "\\u{0B}";
+              break;
+            //case 'x': // HEX INPUT
+            //  break;
+            default:
+              token += "\\u{" + hex(c) + "}";
+              break;
+          }
+          state = inString ? 1 : 0;
+        }
+        break;
+      
+      case 3: // start unicode
+        if(c == '{'){
+          token += "\\u{";
+          state = 4;
+        }
+        break;
+      
+      case 4: // build unicode
+        token += c;
+        if(c == '}'){
+          state = inString ? 1 : 0;
+        }
+        break;
     }
   }
-  //print("getNextToken[" + firstToken + "]");
-  return new TokenReturn(firstToken, index);
+  
+  if(line.length() == 1 && token.equals("")){
+    token = line;
+    index++;
+  }
+  
+  //println(" got " + token);
+  return new TokenReturn(token, index);
 }
