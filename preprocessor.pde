@@ -1,17 +1,11 @@
-String[] input;
 StringList _output;
-IntDict defines;
-String link = "0";
-boolean _followIncludes = true;
 ArrayList<FileHolder> _FileHolder; // array of all loaded files
 IntList _FileStack; // stack to push file indeces to as #include's are encountered
 boolean _exit = true;
 FileHolder _tmpFileHolder = new FileHolder();
 ArrayList<Macro> _Macros;
-//ArrayList<Variable> _Vars;
 StringDict _Vars;
 String baseDirectory = "";
-StringList _LoadedFile;
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -44,8 +38,6 @@ void setup(){
       if(arg.contains("--input")){
         _tmpFileHolder.filename = split(arg, '=')[1];
         _exit = false;
-      }else if(arg.contains("--no-include")){
-        _followIncludes = false;
       }else if(arg.contains("--help")){
         _exit = true;
       }
@@ -58,10 +50,8 @@ void setup(){
     println("--help - Show this help text. Congratulations.");
     println();
     println("--input=<file.ext> - Specify the input file.");
-    println("\tOutput filenames will be <input-filename>.obj");
-    println("\tIncludes will use their respective filename. <include-directory>\\<include-filename>.obj");
-    println("--no-include - Don't recurse through includes.");
-    println("\tYou can also disable recursing certain includes by preceding it with #no-include. (#no-include \"include.ext\")");
+    println("\tOutput filename will be <input-filename>.obj");
+    println("\t#include's will be opened and concatenated into a single output file.");
   }else{
     _FileHolder = new ArrayList<FileHolder>();
     _FileStack = new IntList();
@@ -95,12 +85,10 @@ void processInput(){
   _tmpFileHolder.contents = loadStrings(_tmpFileHolder.filename);
   String[] stmp = split(_tmpFileHolder.filename, ".\\");
   _tmpFileHolder.output = split(stmp[stmp.length-1], '.')[0] + ".obj";
-  _tmpFileHolder.followIncludes = _followIncludes;
   _tmpFileHolder.indexArray = 0;
   _tmpFileHolder.indexChar = 0;
   
   _output = new StringList();
-  defines = new IntDict();
   
   boolean skip = false;
   while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){ //1890){//
@@ -221,7 +209,6 @@ void processInput(){
 class FileHolder{
   String filename;
   String output;
-  boolean followIncludes;
   String[] contents;
   int indexArray;
   int indexChar;
@@ -381,47 +368,4 @@ class Token{
       return "{" + Type.name() + "} " + Str;
     }
   }
-}
-
-class Variable{
-  String name;
-  String value;
-  
-  Variable(String n, String v){
-    name = n;
-    value = v;
-  }
-}
-
-String[] breakLine(String macro, String line){
-  StringList out = new StringList();
-  String tmp = "";
-  boolean str = false;
-  int start = line.indexOf(macro) + macro.length();
-  
-  for(int i = start; i < line.length(); i++){
-    char c = line.charAt(i);
-    if(c == '\\' && str){
-      tmp += "\\u{";
-      i++;
-      tmp += hex(line.charAt(i),2);
-      tmp += "}";
-      continue;
-    }
-    else if(c == '"'){ str = !str; }
-    else if(c == ';' && !str){ break; }
-    else if(c == ' '){ continue; }
-    //if(c == ',' && !(line.charAt(i-1) == '"' && line.charAt(i+1) == '"')){
-    else if(c == ','){
-      if(str != true){
-        out.append(tmp);
-        tmp = "";
-        continue;
-      }
-    }
-    tmp += c;
-  }
-  out.append(tmp);
-  
-  return out.toArray();
 }
