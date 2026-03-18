@@ -48,12 +48,21 @@ class Variable{
 class Token2{
   TokenType Type = TokenType.Null;
   String Value;
+  int Integer;
   Variable[] Variables;
   int nextIndex;
   
   Token2(TokenType t, String n, Variable[] v, int r){
     Type = t;
     Value = n;
+    Variables = v;
+    nextIndex = r;
+  }
+  
+  Token2(TokenType t, String n, int i, Variable[] v, int r){
+    Type = t;
+    Value = n;
+    Integer = i;
     Variables = v;
     nextIndex = r;
   }
