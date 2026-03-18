@@ -259,7 +259,7 @@ MacroArg[] getMacroArgs(String line, int index){
           //  break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index, false);
+            TokenReturn output = cleanEscape(line, index, true);
             index = output.nextIndex;
             token += output.string;
             break;
