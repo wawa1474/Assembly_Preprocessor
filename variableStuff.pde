@@ -52,6 +52,137 @@ Token parseVariable(String line, TokenType variable){
   return new Token(variable, prefix + "%" + suffix, value);
 }
 
+Token getNextVariable(String line, int index){
+  String prefix = "";
+  String value = "";
+  String token = "";
+  int state = 0;
+  boolean inString = false;
+  boolean gotString = false;
+  TokenType type = TokenType.External;
+  
+  for(; index < line.length() && state != -1; index++){
+    char c = line.charAt(index);
+    
+    switch(state){
+      case 0: // build prefix
+        switch(c){
+          case '"':
+            token += c;
+            inString = !inString;
+            gotString = true;
+            break;
+          
+          case '%': // how do we handle multiple vars/args in a token?
+            prefix = token;
+            token = "";
+            type = TokenType.Argument;
+            state = 1;
+            break;
+          
+          case ' ':
+          case '\t':
+            if(inString){
+              token += c;
+              gotString = true;
+            }else{
+              state = gotString ? -1 : 0;
+            }
+            break;
+          
+          case '\\':
+            state = 20;
+            break;
+          
+          default:
+            token += c;
+            break;
+        }
+        break;
+      
+      case 1: // eat extra '%'
+        switch(c){
+          case '%':
+            type = TokenType.Variable;
+            break;
+          
+          default:
+            token += c;
+            state = 2;
+        }
+        break;
+      
+      case 2: // build value
+        if(isAlpha(c) || isNumber(c) || c == '_'){
+          token += c;
+        }else{
+          value = token;
+          token = "" + c;
+          state = 0;
+        }
+        break;
+      
+      case 20: // build value
+        if(c == 'u'){
+          state = 30;
+        }else{
+          switch(c){
+            case '0': // NULL
+              token += "\\u{00}";
+              break;
+            case 'a': // BELL
+              token += "\\u{07}";
+              break;
+            case 'b': // BACKSPACE
+              token += "\\u{08}";
+              break;
+            case 'e': // ESCAPE SEQUENCE
+              token += "\\u{1B}";
+              break;
+            case 'f': // FORM FEED
+              token += "\\u{0C}";
+              break;
+            case 'n': // NEWLINE
+              token += "\\u{0A}";
+              break;
+            case 'r': // CARRIAGE RETURN
+              token += "\\u{0D}";
+              break;
+            case 't': // TAB
+              token += "\\u{09}";
+              break;
+            case 'v': // VERTICAL TAB
+              token += "\\u{0B}";
+              break;
+            //case 'x': // HEX INPUT
+            //  break;
+            default:
+              token += "\\u{" + hex(c) + "}";
+              break;
+          }
+          state = 0;
+        }
+        break;
+      
+      case 30: // start unicode
+        if(c == '{'){
+          token += "\\u{";
+          state = 40;
+        }
+        break;
+      
+      case 40: // build unicode
+        token += c;
+        if(c == '}'){
+          state = 0;
+        }
+        break;
+    }
+  }
+  
+  return new Token(type, prefix + "%" + token, value, index);
+}
+
 VariableReturn parseVariable(String line){
   String value = "";
   boolean global = false;

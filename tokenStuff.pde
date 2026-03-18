@@ -24,6 +24,7 @@ class Token{
   String Value;
   String Variable;
   Macro macro;
+  int nextIndex;
   
   Token(){}
   
@@ -44,6 +45,13 @@ class Token{
     Type = t;
     Str = s;
     Value = v;
+  }
+  
+  Token(TokenType t, String s, String v, int r){
+    Type = t;
+    Str = s;
+    Value = v;
+    nextIndex = r;
   }
   
   String toString(){
