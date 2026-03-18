@@ -192,7 +192,7 @@ String[] parseMacro(Macro macro, String line){
     Token t = macro.Tokens[i];
     switch(t.Type){
       case External:
-        switch(t.Str){
+        switch(t.Identifier){
           case "\\n":
             output.append(cur);
             cur = "";
@@ -201,7 +201,7 @@ String[] parseMacro(Macro macro, String line){
             cur += "\t";
             break;
           default:
-            cur += t.Str + " ";
+            cur += t.Identifier + " ";
             break;
         }
         break;
@@ -214,7 +214,7 @@ String[] parseMacro(Macro macro, String line){
             if(a >= macroArgs.length){
               cur += macro.Arguments[a].defualt;
             }else{
-              cur += t.Str.replace("%", macroArgs[a]);
+              cur += t.Identifier.replace("%", macroArgs[a]);
             }
             break;
           }
@@ -225,7 +225,7 @@ String[] parseMacro(Macro macro, String line){
       case Label:
         break;
       case Variable:
-        cur += t.Str.replace("%", _Vars.get(t.Value));
+        cur += t.Identifier.replace("%", _Vars.get(t.Value));
         break;
       case Include:
         break;
@@ -235,12 +235,12 @@ String[] parseMacro(Macro macro, String line){
         String v = _Vars.get(t.Value);
         if(v != null){
           //println("set var {" + t.Variable + "} to {" + t.Value + "}");
-          _Vars.set(t.Variable, t.Str.replace("%", t.Value));
+          _Vars.set(t.Variable, t.Identifier.replace("%", t.Value));
         }else{
           for(int a = 0; a < macro.Arguments.length; a++){
             if(macro.Arguments[a].name.equals(t.Value)){
               //println("set var {" + t.Str + "} to {" + args[a] + "}");
-              _Vars.set(t.Variable, t.Str.replace("%", macroArgs[a]));
+              _Vars.set(t.Variable, t.Identifier.replace("%", macroArgs[a]));
               break;
             }
           }
@@ -273,7 +273,7 @@ Macro cleanMacro(Macro macro){
   Token tmpT = new Token();
   boolean newline = false;
   for(int i = 0; i < macro.Tokens.length; i++){
-    String s = macro.Tokens[i].Str;
+    String s = macro.Tokens[i].Identifier;
     //println("{{{" + s + "}}}");
     boolean push = false;
     switch(state){
@@ -297,7 +297,7 @@ Macro cleanMacro(Macro macro){
           push = true;
         }else{
           tmpT.Type = TokenType.External;
-          tmpT.Str = s;
+          tmpT.Identifier = s;
           if(s.equals("\\n")){
             if(!newline){ push = true; }
             newline = true;
@@ -316,7 +316,7 @@ Macro cleanMacro(Macro macro){
       
       case 2:
         Token tmp = parseVariable(s, TokenType.Let); // TODO: rework parseVariable to work for .let
-        tmpT.Str = tmp.Str;
+        tmpT.Identifier = tmp.Identifier;
         tmpT.Value = tmp.Value;
         newline = true;
         push = true;

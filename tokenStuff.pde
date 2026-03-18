@@ -47,7 +47,7 @@ class Variable{
 
 class Token2{
   TokenType Type = TokenType.Null;
-  String Value;
+  String Identifier;
   int Integer;
   Variable[] Variables;
   int nextIndex;
@@ -56,19 +56,19 @@ class Token2{
   
   Token2(TokenType t, String n){
     Type = t;
-    Value = n;
+    Identifier = n;
   }
   
   Token2(TokenType t, String n, Variable[] v, int r){
     Type = t;
-    Value = n;
+    Identifier = n;
     Variables = v;
     nextIndex = r;
   }
   
   Token2(TokenType t, String n, int i, Variable[] v, int r){
     Type = t;
-    Value = n;
+    Identifier = n;
     Integer = i;
     Variables = v;
     nextIndex = r;
@@ -90,7 +90,7 @@ class Token2{
 
 class Token{
   TokenType Type = TokenType.Null;
-  String Str;
+  String Identifier;
   String Value;
   String Variable;
   Macro macro;
@@ -99,36 +99,36 @@ class Token{
   Token(){}
   
   Token(String s){
-    Str = s;
+    Identifier = s;
   }
   
   Token(TokenType t, String s){
     Type = t;
-    Str = s;
+    Identifier = s;
   }
   
   Token(TokenType t, String s, String v){
     Type = t;
-    Str = s;
+    Identifier = s;
     Value = v;
   }
   
   Token(TokenType t, String s, String v, int r){
     Type = t;
-    Str = s;
+    Identifier = s;
     Value = v;
     nextIndex = r;
   }
   
   String toString(){
     if(Type == TokenType.Argument || Type == TokenType.Variable){
-      return "{" + Type.name() + "} " + Str.replace("%", Value);
+      return "{" + Type.name() + "} " + Identifier.replace("%", Value);
     //if(Type == TokenType.Macro){
     //  return "{Macro} " + macro.argString();
     }else if(Type == TokenType.Let){
-      return "{Let} " + Str + " = " + Value.replace("%", Variable);
+      return "{Let} " + Identifier + " = " + Value.replace("%", Variable);
     }else{
-      return "{" + Type.name() + "} " + Str;
+      return "{" + Type.name() + "} " + Identifier;
     }
   }
 }

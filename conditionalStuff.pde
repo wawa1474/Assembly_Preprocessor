@@ -4,7 +4,7 @@ boolean checkIf(String line, int index){
   Token2 secondVar = getNextVariable(line, action.nextIndex);
   
   if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-    switch(action.Value){
+    switch(action.Identifier){
       case "==":
         return firstVar.Integer == secondVar.Integer; // check if integers are equal
       
@@ -27,7 +27,7 @@ boolean checkIf(String line, int index){
         return false;
     }
   }else{
-    switch(action.Value){
+    switch(action.Identifier){
       case "==":
         return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
       

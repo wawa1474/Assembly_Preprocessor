@@ -248,7 +248,7 @@ Token2 getNextVariable(String line, int index){
 }
 
 String getVariable(Token2 variable_, Macro macro_, String[] macroArgs_){
-  String output = variable_.Value;
+  String output = variable_.Identifier;
   if(variable_.Variables == null || variable_.Variables.length == 0){ return output; }
   
   for(int i = 0; i < variable_.Variables.length; i++){
