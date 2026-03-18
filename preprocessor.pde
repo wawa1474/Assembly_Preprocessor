@@ -7,6 +7,8 @@ StringDict _Vars; // variables that can be changed
 StringDict _Equates; // variables that are set once and can't be changed
 ArrayList<StringDict> _TmpMacroVars; // transitory variables that are deleted at the end of a macro
 HashMap<String, StringList> Stacks = new HashMap<String, StringList>(); // hashmap of data stacks for use in complex preprocessing
+String storageOrigin = ""; // for use with .org and .dfs, allowing automatic address assignment for assembly variables
+int storageOffset = 0;      // ditto
 
 boolean maintainComments = false; // should comments be passed on, or cleaned up
 boolean showLines = false; // show all lines, including 'eaten' ones

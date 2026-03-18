@@ -1,3 +1,7 @@
+String getLabelUUID(){
+  return UUID.randomUUID().toString().replace('-', '_');
+}
+
 boolean isAlpha(char c){
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }

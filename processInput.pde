@@ -35,6 +35,24 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".switch": doSwitch(line, token, depth_); break;
           case ".repeat": doRepeat(depth_); break;
           case "/*": cleanMultilineComments(); break;
+          case ".org":
+            storageOrigin = "dfsOrgLabel_" + getLabelUUID();
+            line = storageOrigin + " = " + getNextToken(line, token.nextIndex).string;
+            storageOffset = 0;
+            skip = false;
+            break;
+          case ".dfs":
+            token = getNextToken(line, token.nextIndex);
+            String name = token.string;
+            token = getNextToken(line, token.nextIndex);
+            String len = token.string;
+            
+            line = name + " = " + // variable =
+              storageOrigin + " + " + // origin +
+              storageOffset; // length
+            storageOffset += tryInt(len).Integer;
+            skip = false;
+            break;
           default: skip = checkMacros(token.string, line, token.nextIndex); break;
         }
         break;

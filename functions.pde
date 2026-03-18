@@ -79,7 +79,7 @@ String parseFunction(String input){
       break;
     
     case "uuid":
-      output = UUID.randomUUID().toString().replace('-', '_');
+      output = getLabelUUID();
       break;
     
     case "label":
