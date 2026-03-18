@@ -48,6 +48,14 @@ class VariableReturn{
     Type = t;
   }
   
+  String getNumber(){
+    switch(Type){
+      case Integer: return "" + Integer;
+      case Float: return "" + Float;
+      default: return "0";
+    }
+  }
+  
   String type(){
     switch(Type){
       case Integer: return "Integer";
@@ -223,7 +231,18 @@ String getVariable(String name, boolean global, int depth){
       built-in functions syntax could be \#{func, (arg, arg2)} or? \#func{arg1, arg2} or? \#func{arg1, arg2}#
       using {} grabs attention better...
 */
-VariableReturn parseVariables(String line, int depth){
+
+//VariableReturn parseVariables(String line, int depth){ // just checking if input is int
+//  if(line.length() > 0){
+//    VariableReturn tmp = tryInt(line);
+//    if(tmp.Number){ return tmp; }
+//  }
+  
+//  return new VariableReturn(line);
+//}
+
+// only? needed by outputLine(String line, boolean skip)
+VariableReturn parseVariables(String line, int depth){ // going through entire line to convert remaining bits into final output
   //println("parseVariables: " + line);
   String value = "";
   String token = "";
@@ -253,7 +272,7 @@ VariableReturn parseVariables(String line, int depth){
                 break;
               case Function: // built-in function
                 value += token; token = "";
-                //value += getVariable(output.String, isGlobalVar, depth);
+                value += parseFunction(output.String);
                 break;
               default:
                 token += output.String;

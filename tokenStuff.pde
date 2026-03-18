@@ -46,6 +46,7 @@ TokenReturn getNextToken(String line, int index){
                 break;
               case Function: // built-in function
                 //token += getVariable(output.String, isGlobalVar, depth);
+                token += parseFunction(output.String);
                 break;
               default:
                 token += output.String;
@@ -133,10 +134,11 @@ VariableReturn cleanEscape(String line, int index){
             tmpState = 1;
             break;
           case '#': // built-in function
-            token += "\\#";
-            //outputEscape = false;
+            //token += "\\#";
+            outputEscape = false;
             type = VariableType.Function;
             tmpState = 1;
+            break;
           case '%': // macro arg
             //token += "\\%";
             outputEscape = false;

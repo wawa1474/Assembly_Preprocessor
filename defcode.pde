@@ -26,7 +26,7 @@ void outputLine(String line, boolean skip){
   if(!skip){
     String tmp = cleanComments(parseVariables(line, 0).String);
     if(isLineEmpty(line) || !isLineEmpty(tmp)){ // if program line was empty, or line is NOT empty after processing
-      if(tmp.equals("0")){ println(getIndex()); }
+      //if(tmp.equals("0")){ println(getIndex()); }
       _output.append(tmp); // output it!
     }
   }
@@ -38,6 +38,7 @@ boolean isLineEmpty(String line){
     if(!isWhitespace(c)){ return false; }
   }
   return true;
+  //return line.strip().length() == 0; // cleaner, but also slower?
 }
 
 String cleanComments(String line){

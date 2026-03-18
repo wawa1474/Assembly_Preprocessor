@@ -66,14 +66,14 @@ String[] getMacroArgs(String line, int index){
           //  }
           //  break;
           
-          case ' ': // each of these are tokens
-            if(!inString){
-              if(token.length() != 0){ Args.append(token); } // don't, split, on,[ ]after, comma
-              token = "";
-            }else{
-              token += c;
-            }
-            break;
+          //case ' ': // each of these are tokens
+          //  if(!inString){
+          //    if(token.length() != 0){ Args.append(token); } // don't, split, on,[ ]after, comma
+          //    token = "";
+          //  }else{
+          //    token += c;
+          //  }
+          //  break;
             
           
           case '\\':
