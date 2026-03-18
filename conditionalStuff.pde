@@ -54,7 +54,7 @@ boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
 void parseIf(String line_, int index_, int depth_){ // current depth of if statements for debuging
   int state = checkIf(line_, index_) ? 1 : 2; // state machines FTW!
   _tmpFileHolder.indexArray++; // skip the .if line
-  int curDepth = 1;
+  int curDepth = depth_;
   
   for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length; _tmpFileHolder.indexArray++){
     String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
@@ -111,17 +111,17 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             curDepth++;
             break;
           case ".else":
-            if(curDepth == 1){ state = 3; }
+            if(curDepth == depth_){ state = 3; }
             break;
           case ".elseif":
-            if(curDepth == 1){
+            if(curDepth == depth_){
               boolean ifTrue = checkIf(line, token.nextIndex);
               state = ifTrue ? 1 : 2;
             }
             break;
           case ".endif":
             curDepth--;
-            if(curDepth <= 0){ return; }
+            if(curDepth < depth_){ return; }
             break;
           default:
             break;
@@ -154,7 +154,7 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             break;
           case ".endif":
             curDepth--;
-            if(curDepth <= 0){ return; }
+            if(curDepth < depth_){ return; }
             break;
           default:
             break;
