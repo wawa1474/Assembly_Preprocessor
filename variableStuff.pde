@@ -175,6 +175,15 @@ String getVariable(String name, boolean global){
   %??id = drop one '?' and pass "%?id"
   %#id = drop leading "%#" and padd "id" (allows building macros with macros)
   %?#id = drop '?' and pass "%#id"
+  
+  change syntax? to \%{identifier} or? \%identifier%
+    allows picking out stuff from anywhere in the code (strings, labels, args, etc.)
+    and allows adding extra stuff \%{passCount, identifier}
+    maybe seperate symbol per type? (\% = macro arg, \& = global var, \# = built-in function)
+      macro arg would be \%{identifier} or? \%identifier%
+      global var would be \&{identifier} or? \&identifier&
+      built-in functions syntax could be \#{func, (arg, arg2)} or? \#func{arg1, arg2} or? \#func{arg1, arg2}#
+      using {} grabs attention better...
 */
 VariableReturn parseVariables(String line){
   //println("parseVariables: " + line);
