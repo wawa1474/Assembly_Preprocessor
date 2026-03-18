@@ -1,13 +1,3 @@
-class VariableReturn{
-  String variable;
-  TokenType type;
-  
-  VariableReturn(TokenType t, String v){
-    variable = v;
-    type = t;
-  }
-}
-
 void parseLet(String line, int index){
   TokenReturn variable = getNextToken(line, index);
   Token2 value = getNextVariable(line, variable.nextIndex);

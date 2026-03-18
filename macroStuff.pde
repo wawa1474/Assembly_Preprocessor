@@ -59,7 +59,6 @@ String[] peekMacroArgs(){
 
 void finalizeNewMacro(){
   println("Finalize Macro! " + _macro_Name);
-  //printArray(_macro_Content.toArray());
   _Files[_Files_Macros].add(
     new FileHolder(
       new PathReturn(_macro_Name, _macro_Args),
@@ -73,7 +72,6 @@ boolean checkMacros(String macro, String line, int index){
   for(int i = 0; i < _Files[_Files_Macros].size(); i++){
     if(_Files[_Files_Macros].get(i).file.Name.equals(macro)){ // this is some hairy indirection...
       _Files_Type = _Files_Macros;
-      //_Files_Current = i;
       //_output.append("; " + line);
       //println("push file for macro: " + line + " on line: " + getIndex());
       if(_tmpFileHolder.contents != null && checkFileName()){

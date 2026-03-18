@@ -51,24 +51,8 @@ class PathReturn{ // "../../path/to/file/code.asm"
     Reverse = file.Reverse;
   }
   
-  String getPathPartial(){
-    String output = "";
-    for(int i = Reverse; i < PathArray.length; i++){
-      output += PathArray[i] + "\\";
-    }
-    return output;
-  }
-  
   String getFile(){
     return Name + "." + Extension;
-  }
-  
-  String getAll(){
-    String output = "";
-    for(int i = 0; i < Reverse; i++){
-      output += "..\\";
-    }
-    return output + toString();
   }
   
   String toString(){
@@ -294,23 +278,13 @@ void getNewFile(PathReturn base, PathReturn file){
 }
 
 void getNewFile(PathReturn base, String line){
-  //_FileStack.push(_tmpFileHolder);
   getNewFile(base, splitFilepath(line.replace("\"", "")));
   setIndex(-1); // needs to be -1 due to a ++ at end of main loop
 }
 
 void popFileIfLastLine(){
-  // end of macro parsing would result in returning to last file on stack, instead of actually popping anything
-  // _Files_Current would = _Files[_Files_Inputs].size - 1, and _Files_Type would = _Files_Inputs
-  //if(_Files_Type == _Files_Macros){
-  //  if(_Files[_Files_Inputs].size() > 0){
-  //    _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].get(_Files[_Files_Inputs].size() - 1));
-  //  }
-  //  _Files_Type = _Files_Inputs;
-  //}
   while(getIndex() >= getLineLength() - 1 && _Files[_Files_Inputs].size() > 0){ // _FileStack.size > 0){
     println("pop file: [" + _Files[_Files_Inputs].size() + "] " + getFile().file);
-    //_tmpFileHolder = _FileStack.pop();
     _Files_Type = _Files_Inputs;
     _tmpFileHolder = new FileHolder(_Files[_Files_Inputs].remove(_Files[_Files_Inputs].size() - 1));
     println(" for: " + getFile().file);
