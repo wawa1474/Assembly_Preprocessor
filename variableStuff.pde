@@ -8,6 +8,13 @@ class VariableReturn{
   }
 }
 
+void parseLet(String line, int index){
+  TokenReturn variable = getNextToken(line, index);
+  Token2 value = getNextVariable(line, variable.nextIndex);
+  
+  _Vars.set(variable.string, value.Identifier);
+}
+
 Token parseVariable(String line, TokenType variable){
   String prefix = "";
   String value = "";
@@ -70,6 +77,7 @@ Token2 getNextVariable(String line, int index){
   boolean gotString = false;
   ArrayList<Variable> vars = new ArrayList<Variable>();
   VarType vType = VarType.Null;
+  //println("getNextVariable: " + line + " @ " + index);
   
   for(; index < line.length() && state != -1; index++){
     char c = line.charAt(index);
@@ -84,6 +92,7 @@ Token2 getNextVariable(String line, int index){
             break;
           
           case '%': // how do we handle multiple vars/args in a token?
+            //println("getNextVariable: %1");
             vType = VarType.Macro_Arg;
             value += token;
             token = "";
@@ -116,6 +125,7 @@ Token2 getNextVariable(String line, int index){
       case 1: // eat extra '%'
         switch(c){
           case '%':
+            //println("getNextVariable: %2");
             vType = VarType.Global_Var;
             break;
           
@@ -132,6 +142,7 @@ Token2 getNextVariable(String line, int index){
         }else{
           vars.add(new Variable(vType, token));
           value += "\\%{" + (vars.size()-1) + "}";
+          //println("build value: " + value);
           index--;
           token = "";
           state = 0;
@@ -197,7 +208,15 @@ Token2 getNextVariable(String line, int index){
     }
   }
   
+  if(state == 2){
+    vars.add(new Variable(vType, token));
+    value += "\\%{" + (vars.size()-1) + "}";
+    //println("build value: " + value);
+    token = "";
+  }
+  
   value += token;
+  //println("getNextVariable " + value);
   
   TokenType type = TokenType.External;
   int integer = 0;

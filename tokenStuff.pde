@@ -75,16 +75,13 @@ class Token2{
   }
   
   String toString(){
-    if(Type == TokenType.Argument || Type == TokenType.Variable){
-      //return "{" + Type.name() + "} " + Str.replace("%", Name);
-    //if(Type == TokenType.Macro){
-    //  return "{Macro} " + macro.argString();
-    }else if(Type == TokenType.Let){
-      //return "{Let} " + Str + " = " + Name.replace("%", Variable);
-    }else{
-      //return "{" + Type.name() + "} " + Str;
+    switch(Type){
+      case Number:
+        return "[" + Type.name() + "] " + Integer;
+      default:
+        return "[" + Type.name() + "] " + Identifier;
     }
-    return "";
+    //return "";
   }
 }
 

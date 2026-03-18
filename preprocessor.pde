@@ -97,6 +97,10 @@ void processInput(){
         parseIf(line, token.nextIndex, 0);
         skip = true;
         break;
+      case ".let":
+        parseLet(line, token.nextIndex);
+        skip = true;
+        break;
       default:
         skip = checkMacros(token.string, line); // will skip outputting a raw macro line, but otherwise will append all lines
         break;

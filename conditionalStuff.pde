@@ -2,46 +2,61 @@ boolean checkIf(String line, int index){
   Token2 firstVar = getNextVariable(line, index);
   TokenReturn action = getNextToken(line, firstVar.nextIndex);
   Token2 secondVar = getNextVariable(line, action.nextIndex);
+  //println("checkIf2 " + firstVar + " " + action.string + " " + secondVar);
+  //println("checkIf2 " + firstVar.Type.name() + " " + action.string + " " + secondVar.Type.name());
   
   if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
-    //println("checkIf " + firstVar.Integer + " " + action.string + " " + secondVar.Integer);
-    switch(action.string){
-      case "==":
-        return firstVar.Integer == secondVar.Integer; // check if integers are equal
-      
-      case "!=":
-        return firstVar.Integer != secondVar.Integer;
-      
-      case ">":
-        return firstVar.Integer > secondVar.Integer;
-      
-      case "<":
-        return firstVar.Integer < secondVar.Integer;
-      
-      case ">=":
-        return firstVar.Integer >= secondVar.Integer;
-      
-      case "<=":
-        return firstVar.Integer <= secondVar.Integer;
-      
-      default:
-        return false;
-    }
+    //println("checkIf1 " + firstVar + " " + action.string + " " + secondVar);
+    return checkCondition(firstVar.Integer, action, secondVar.Integer);
   }else{
-    //println("checkIf " + getVariable(firstVar, null, null) + " " + action.string + " " + getVariable(secondVar, null, null));
-    switch(action.string){
-      case "==":
-        return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
-      
-      case "!=":
-        return !getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null));
-      
-      default:
-        return false;
+    firstVar = getNextVariable(getVariable(firstVar, null, null), 0);
+    secondVar = getNextVariable(getVariable(secondVar, null, null), 0);
+    //println("checkIf2 " + firstVar + " " + action.string + " " + secondVar);
+    //println("checkIf2 " + firstVar.Type.name() + " " + action.string + " " + secondVar.Type.name());
+    if(firstVar.Type == TokenType.Number && secondVar.Type == TokenType.Number){
+      //println("checkIf3 " + firstVar + " " + action.string + " " + secondVar);
+      return checkCondition(firstVar.Integer, action, secondVar.Integer);
+    }else{
+      //println("checkIf4 " + getVariable(firstVar, null, null) + " " + action.string + " " + getVariable(secondVar, null, null));
+      switch(action.string){
+        case "==":
+          return getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null)); // check if strings are equal
+        
+        case "!=":
+          return !getVariable(firstVar, null, null).equals(getVariable(secondVar, null, null));
+        
+        default:
+          return false;
+      }
     }
   }
   
   //return false;
+}
+
+boolean checkCondition(int firstVar, TokenReturn action, int secondVar){
+  switch(action.string){
+    case "==":
+      return firstVar == secondVar; // check if integers are equal
+    
+    case "!=":
+      return firstVar != secondVar;
+    
+    case ">":
+      return firstVar > secondVar;
+    
+    case "<":
+      return firstVar < secondVar;
+    
+    case ">=":
+      return firstVar >= secondVar;
+    
+    case "<=":
+      return firstVar <= secondVar;
+    
+    default:
+      return false;
+  }
 }
 
 void parseIf(String line_, int index_, int depth){ // current depth of if statements for debuging
@@ -74,6 +89,10 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
             parseIf(line, token.nextIndex, depth+1);
             skip = true;
             break;
+          case ".let":
+            parseLet(line, token.nextIndex);
+            skip = true;
+            break;
           default:
             skip = checkMacros(token.string, line);
             //println("skip0: " + skip);
@@ -104,6 +123,10 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
           case "#include":
             println((_tmpFileHolder.indexArray) + " : " + line);
             getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
+            break;
+          case ".let":
+            parseLet(line, token.nextIndex);
             skip = true;
             break;
           default:
@@ -157,6 +180,10 @@ void parseIf(String line_, int index_, int depth){ // current depth of if statem
           case "#include":
             println((_tmpFileHolder.indexArray) + " : " + line);
             getNewFile(_tmpFileHolder.baseDirectory, getNextToken(line, token.nextIndex).string);
+            skip = true;
+            break;
+          case ".let":
+            parseLet(line, token.nextIndex);
             skip = true;
             break;
           default:
