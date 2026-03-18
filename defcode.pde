@@ -280,7 +280,14 @@ Token[] cleanTokens(Token[] input){ // Input is only a single line's worth of to
 
 void buildMacro(String[] file){
   for(int i = 0; i < file.length; i++){
-    println(file[i]);
+    TokenReturn token = getNextToken(file[i],0);
+    while(token.nextIndex < file[i].length()){
+      print("{" + token.Token + "} ");
+      token = getNextToken(file[i],token.nextIndex);
+    }
+    print("{" + token.Token + "} ");
+    println();
+    //println("{" + token.Token + "} " + file[i]);
   }
 }
 
@@ -481,6 +488,38 @@ boolean isNumber(char c){
 
 boolean isWhitespace(char c){
   return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+TokenReturn getNextToken(String line, int index){
+  String firstToken = "";
+  int len = line.length();
+  if(len > 0 && index < len){
+    char c = line.charAt(index);
+    while(index < len && isWhitespace(c)){ // eat leading whitespace
+      c = line.charAt(++index);
+    }
+    if(index < len){
+      c = line.charAt(index++); // get first non-whitespace character
+      if(index == len && len == 1){ firstToken += c; } // handle single character line
+      while(index < len && !isWhitespace(c)){ // keep adding characters to token until whitespace is encountered
+        firstToken += c;
+        c = line.charAt(index++);
+      }
+      if(index == len && len != 1 && !isWhitespace(c)){ firstToken += c; } // handle last character on multi-character line when not followed by whitespace
+    }
+  }
+  //print("[" + firstToken + "]");
+  return new TokenReturn(firstToken, index);
+}
+
+class TokenReturn{
+  String Token;
+  int nextIndex;
+  
+  TokenReturn(String t, int n){
+    Token = t;
+    nextIndex = n;
+  }
 }
 
 LabelReplace[] _labelReplace = new LabelReplace[] {

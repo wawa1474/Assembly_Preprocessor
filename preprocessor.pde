@@ -10,6 +10,7 @@ ArrayList<Macro> _Macros;
 //ArrayList<Variable> _Vars;
 StringDict _Vars;
 String baseDirectory = "";
+StringList _LoadedFile;
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -102,14 +103,16 @@ void processInput(){
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
     
+    String firstToken = getNextToken(line, 0).Token;
+    
     //print(tmpFileHolder.indexArray);
     //printArray(cleanTokens(splitToken(line)));
     //println();
     
-    if(line.contains(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
+    if(firstToken.equals(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
       println((tmpFileHolder.indexArray-1) + " : " + line);
       buildMacro(loadStrings(baseDirectory + split(line, " ")[1]));
-    }else if(line.contains("#include")){ // include assembly file, which will be concatenated into one large .obj output file
+    }else if(firstToken.equals("#include")){ // include assembly file, which will be concatenated into one large .obj output file
       println((tmpFileHolder.indexArray-1) + " : " + line);
     }
     
