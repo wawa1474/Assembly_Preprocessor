@@ -82,7 +82,7 @@ void processInput(){
         switch(token.string){
           case ".include":
             println((_tmpFileHolder.indexArray) + " : " + line);
-            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + split(line, " ")[1]));
+            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
             skip = true;
             break;
           case "#include":
@@ -103,50 +103,8 @@ void processInput(){
             if(ifTrue){ curDepth++; }
             skip = true;
             state = ifTrue ? 1 : 2;
-            //boolean con = true;
-            //boolean eat = false;
-            //println((_tmpFileHolder.indexArray) + " : " + line + " = " + ifTrue);
-            //if(ifTrue){
-            //  while(con == true && _tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
-            //    _tmpFileHolder.indexArray++;
-            //    line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-            //    token = getNextToken(line, 0);
-            //    switch(token.string){
-            //      case ".if": // needs to be recursive! or state-based with a depth counter!
-            //      case ".else":
-            //      case ".elseif":
-            //        eat = true;
-            //        break;
-            //      case ".endif":
-            //        con = false;
-            //        eat = false;
-            //        break;
-            //      default:
-            //        _output.append(line);
-            //        break;
-            //    }
-            //  }
-            //  if(eat){
-            //    while(_tmpFileHolder.indexArray < _tmpFileHolder.contents.length){
-            //      _tmpFileHolder.indexArray++;
-            //      line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
-            //      token = getNextToken(line, 0);
-            //      if(token.string.equals(".endif")){
-            //        break;
-            //      }
-            //    }
-            //  }
-            //}
             break;
           default:
-            //for(int i = 0; i < _Macros.size(); i++){
-            //  Macro tmp = _Macros.get(i);
-            //  if(tmp.name.equals(token.string)){
-            //    //println(line);
-            //    _output.append(parseMacro(tmp, line));
-            //    skip = true;
-            //  }
-            //}
             skip = checkMacros(token.string, line);
             break;
         }
@@ -164,6 +122,13 @@ void processInput(){
             curDepth--;
             skip = true;
             state = 0;
+            break;
+          case ".include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
+            skip = true;
+            break;
+          case "#include":
             break;
           default:
             // append line
@@ -201,6 +166,13 @@ void processInput(){
             curDepth--;
             skip = true;
             state = 0;
+            break;
+          case ".include":
+            println((_tmpFileHolder.indexArray) + " : " + line);
+            buildMacro(loadStrings(_tmpFileHolder.baseDirectory + getNextToken(line,token.nextIndex).string));
+            skip = true;
+            break;
+          case "#include":
             break;
           default:
             // append line
