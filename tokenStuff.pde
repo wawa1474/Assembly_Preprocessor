@@ -212,6 +212,7 @@ TokenReturn cleanEscape(String line, int index, int depth){
   
   switch(type){
     case Argument: // macro argument
+      //println("cleanEscape:Argument " + token);
       token = getVariable(token, false, depth);
       break;
     case Variable: // global variable

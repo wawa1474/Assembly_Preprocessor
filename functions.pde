@@ -2,8 +2,9 @@
 
 String parseFunction(String input){
   //println("parseFunction: " + input);
-  String[] args = getMacroArgs(input, 0, 0);
-//VariableReturn[] argsInt = new VariableReturn[args.length];
+  MacroArg[] args = getMacroArgs(input, 0, 0);
+  //printArray(args);
+  //VariableReturn[] argsInt = new VariableReturn[args.length];
   //printArray(args);
   String output = "";
   
@@ -11,14 +12,14 @@ String parseFunction(String input){
   //  argsInt[i] = tryInt(args[i]);
   //}
   
-  switch(args[0]){
+  switch(args[0].Name){
     case "strlen":
-      output += args[1].length();
+      output += args[1].Name.length();
       break;
     
     case "random":
-      VariableReturn min = tryInt(args[1]);
-      VariableReturn max = tryInt(args[2]);
+      VariableReturn min = tryInt(args[1].Name);
+      VariableReturn max = tryInt(args[2].Name);
       switch(min.Type){
         case Integer:
           switch(max.Type){
@@ -39,8 +40,8 @@ String parseFunction(String input){
       break;
     
     case "pow":
-      VariableReturn base = tryInt(args[1]);
-      VariableReturn exponent = tryInt(args[2]);
+      VariableReturn base = tryInt(args[1].Name);
+      VariableReturn exponent = tryInt(args[2].Name);
       switch(base.Type){
         case Integer:
           switch(exponent.Type){
@@ -61,11 +62,11 @@ String parseFunction(String input){
       break;
     
     case "goto":
-      setIndex(tryInt(args[1]).Integer);
+      setIndex(tryInt(args[1].Name).Integer);
       break;
     
     case "toInt":
-      min = tryInt(args[1]);
+      min = tryInt(args[1].Name);
       switch(min.Type){
         case Integer: output += min.Integer; break;
         case Float: output += min.Float; break;

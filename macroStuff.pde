@@ -1,5 +1,6 @@
 ArrayList<Macro> MacroStack = new ArrayList<Macro>(); // stack of macros for (nested) macros
 ArrayList<MacroArg[]> MacroArgsStack = new ArrayList<MacroArg[]>(); // stack of macro args for (nested) macros
+MacroArg[] CurrentMacroArgs;
 HashMap<String, Macro> Macros = new HashMap<String, Macro>(); // hashmap of defined macros
 
 ArrayList<Worker> Workers = new ArrayList<Worker>(); // how do we handle which file/macro we're currently working on!?
@@ -20,17 +21,19 @@ class Worker{
   Worker(){}
   
   Worker(Worker w_){
-    Type = w_.Type;
-    LineIndex = w_.LineIndex;
-    CharacterIndex = w_.CharacterIndex;
-    switch(Type){
-      case Macro:
-        Macro = new Macro(w_.Macro);
-        break;
-      
-      case File:
-        File = new FileHolder(w_.File);
-        break;
+    if(w_ != null){
+      Type = w_.Type;
+      LineIndex = w_.LineIndex;
+      CharacterIndex = w_.CharacterIndex;
+      switch(Type){
+        case Macro:
+          Macro = new Macro(w_.Macro);
+          break;
+        
+        case File:
+          File = new FileHolder(w_.File);
+          break;
+      }
     }
   }
   
@@ -42,6 +45,42 @@ class Worker{
   Worker(FileHolder f_){
     Type = WorkerType.File;
     File = f_;
+  }
+  
+  String getLine(int index_){
+    switch(Type){
+      case Macro: return Macro.Content[index_];
+      case File: return File.contents[index_];
+      default: return null;
+    }
+  }
+  
+  int getLength(){
+    switch(Type){
+      case Macro: return Macro.Content.length;
+      case File: return File.contents.length;
+      default: return 0;
+    }
+  }
+  
+  String getFileName(){
+    switch(Type){
+      case Macro: return Macro.Name;
+      case File: return File.file.Name;
+      default: return null;
+    }
+  }
+  
+  void loadFile(PathReturn directory, PathReturn file_){
+    Type = WorkerType.File;
+    if(File == null){ File = new FileHolder(); }
+    if(File.file == null){ File.file = new PathReturn(); }
+    File.file.setPath(directory, file_);
+    File.load();
+  }
+  
+  String toString(){
+    return Type == WorkerType.File ? "File" : "Macro";
   }
 }
 
@@ -57,9 +96,13 @@ class MacroArg{
   }
   
   MacroArg strip(){ // strip leading/trailing spaces
-    Name = Name.strip();
-    Value = Value.strip();
+    if(Name != null){ Name = Name.strip(); }
+    if(Value != null){ Value = Value.strip(); }
     return this;
+  }
+  
+  String toString(){
+    return "<" + Name + ":" + Value + ">";
   }
 }
 
@@ -90,11 +133,11 @@ class Macro{ // MacroFile combined class? plus a pun...
   }
 }
 
-void buildMacroHash(String line_, int index_){
+void buildMacro(String line_, int index_){
   TokenReturn token = getNextToken(line_, index_);
   int originLine = getIndex();
   String name = token.string;
-  MacroArg[] args = getMacroArgsHash(line_, token.nextIndex, 0);
+  MacroArg[] args = getMacroArgs(line_, token.nextIndex, 0);
   StringList content = new StringList();
   IntList lineNum = new IntList();
   int state = 0;
@@ -119,7 +162,7 @@ void buildMacroHash(String line_, int index_){
   decIndex(); // main loops ++ at end, so we have to -- to be on correct line for next main loop
 }
 
-MacroArg[] getMacroArgsHash(String line, int index, int depth){
+MacroArg[] getMacroArgs(String line, int index, int depth){
   //println("getMacroArgs: " + line);
   ArrayList<MacroArg> args = new ArrayList<MacroArg>();
   MacroArg tmp = new MacroArg();
@@ -163,12 +206,12 @@ MacroArg[] getMacroArgsHash(String line, int index, int depth){
             break;
           
           case '=':
-            if(!inString && isDefault == true){
-              // error!
-            }else{
+            if(!inString){
               isDefault = true;
               tmp.Name = token;
               token = "";
+            }else{
+              token += c;
             }
             break;
           
@@ -244,164 +287,32 @@ MacroArg[] getMacroArgsHash(String line, int index, int depth){
         break;
     }
   }
+  if(token.length() != 0){
+    if(isDefault == true){ tmp.Value = token; }
+    else{ tmp.Name = token; }
+    args.add(new MacroArg(tmp.strip()));
+  }
   
-  return (MacroArg[])args.toArray();
+  MacroArg[] output = new MacroArg[args.size()];
+  for(int i = 0; i < output.length; i++){
+    output[i] = args.get(i);
+  }
+  
+  return output;
 }
 
-boolean checkMacrosHash(String macro, String line, int index){
+boolean checkMacros(String macro, String line, int index){
   Macro tmp = Macros.get(macro);
   if(tmp != null){
+    //println("checkMacro: " + macro);
     //_Files_Type = _Files_Macros; // now handled by worker.type
     Workers.add(new Worker(CurrentWorker)); // _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
     CurrentWorker = new Worker(tmp); // _tmpFileHolder = new FileHolder(tmp);
     setIndex(-1); // needs to be -1 due to a ++ at end of main loop
-    MacroArgsStack.add(getMacroArgsHash(line, index, 0)); // pushMacroArgs(getMacroArgs(line, index, 0));
+    if(CurrentMacroArgs != null){ MacroArgsStack.add(CurrentMacroArgs); }
+    CurrentMacroArgs = getMacroArgs(line, index, 0); // MacroArgsStack.add(getMacroArgsHash(line, index, 0)); // pushMacroArgs(getMacroArgs(line, index, 0));
+    //printArray(CurrentMacroArgs);
     return true;
-  }
-  return false;
-}
-
-void buildMacro(String line_, int index){
-  println("Start Macro!");
-  TokenReturn token = getNextToken(line_, index);
-  _macro_Name = token.string;
-  _macro_Args = getMacroArgs(line_, token.nextIndex, 0);
-  int state = 0;
-  incIndex(); // skip .macro line
-  
-  for(; getIndex() < getFileLength() && state != -1; incIndex()){
-    String line = getLine();
-    token = getNextToken(line,0);
-    
-    switch(token.string){
-      case ".endm":
-        finalizeNewMacro();
-        state = -1;
-        break;
-      default:
-        _macro_Content.append(line);
-        break;
-    }
-  }
-  
-  decIndex(); // main loops ++ at end, so we have to -- to be on correct line for next main loop
-}
-
-String[] getMacroArgs(String line, int index, int depth){
-  //println("getMacroArgs: " + line);
-  StringList Args = new StringList();
-  String token = "";
-  boolean inString = false;
-  int state = 0;
-  boolean prevNeedSpace = false;
-  int parenDepth = 0;
-  
-  for(; index < line.length() && state != -1; index++){
-    char c = line.charAt(index);
-    //print(c);
-    
-    switch(state){
-      case 0:
-        switch(c){
-          case ';':
-            if(inString){
-              token += c;
-            }else{
-              Args.append(token);
-              token = "";
-              state = -1;
-            }
-            break;
-          
-          case ',': // each, , of, these, are, tokens = ["each", "", "of", "these", "are", "tokens"]
-            if(!inString){
-              Args.append(token);
-              token = "";
-            }else{
-              token += c;
-            }
-            break;
-          
-          //case ' ':
-          //  if(prevNeedSpace){
-          //    token += c;
-          //    prevNeedSpace = false;
-          //  }
-          //  break;
-          
-          //case ' ': // each of these are tokens
-          //  if(!inString){
-          //    if(token.length() != 0){ Args.append(token); } // don't, split, on,[ ]after, comma
-          //    token = "";
-          //  }else{
-          //    token += c;
-          //  }
-          //  break;
-            
-          
-          case '\\':
-            TokenReturn output = cleanEscape(line, index, depth);
-            index = output.nextIndex;
-            token += output.string;
-            break;
-          
-          case '(':
-            token += c;
-            if(!inString){ parenDepth++; }
-            break;
-          
-          case ')':
-            token += c;
-            if(!inString){ parenDepth--; }
-            break;
-          
-          case '"':
-            inString = !inString;
-          default:
-            token += c;
-            if(isNumber(c) || isAlpha(c)){ prevNeedSpace = true; }
-            else{ prevNeedSpace = false; }
-            break;
-        }
-        break;
-    }
-  }
-  //println();
-  if(token.length() != 0){ Args.append(token); }
-  
-  String[] output = new String[Args.size()];
-  for(int i = 0; i < output.length; i++){
-    output[i] = Args.get(i).strip();
-  }
-  
-  //printArray(output);
-  return output;//Args.toArray();
-}
-
-void finalizeNewMacro(){
-  println("Finalize Macro! " + _macro_Name);
-  _Files[_Files_Macros].add(
-    new FileHolder(
-      new PathReturn(_macro_Name, _macro_Args, _PathReturn_Reverse_Macro),
-      _macro_Content.toArray()
-    )
-  );
-  _macro_Content.clear();
-}
-
-boolean checkMacros(String macro, String line, int index){
-  //hm.get("");
-  for(int i = 0; i < _Files[_Files_Macros].size(); i++){
-    if(_Files[_Files_Macros].get(i).file.Name.equals(macro)){ // this is some hairy indirection...
-      _Files_Type = _Files_Macros;
-      //if(_tmpFileHolder.contents != null && checkFileName()){ // this might be causing issues...
-        _Files[_Files_Inputs].add(new FileHolder(_tmpFileHolder));
-      //}
-      _tmpFileHolder = new FileHolder(_Files[_Files_Macros].get(i));
-      setIndex(-1); // needs to be -1 due to a ++ at end of main loop
-      pushMacroArgs(getMacroArgs(line, index, 0));
-      return true;
-    }
   }
   return false;
 }

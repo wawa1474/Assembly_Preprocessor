@@ -15,18 +15,18 @@ ParseState checkCase(String line, TokenReturn token, ParseState state){
   return state;
 }
 
-void pushMacroArgs(String[] args){
-  _macro_Args2.add(args);
+void pushMacroArgs(MacroArg[] args){
+  MacroArgsStack.add(args);
 }
 
-String[] popMacroArgs(){
-  return _macro_Args2.remove(_macro_Args2.size() - 1);
+MacroArg[] popMacroArgs(){
+  return MacroArgsStack.remove(MacroArgsStack.size() - 1);
 }
 
-String[] peekMacroArgs(int depth){
-  int size = _macro_Args2.size() - 1;
+MacroArg[] peekMacroArgs(int depth){
+  int size = MacroArgsStack.size() - 1;
   if(size >= 0 && depth <= size){
-    return _macro_Args2.get(size - depth);
+    return MacroArgsStack.get(size - depth);
   }
   return null;
 }

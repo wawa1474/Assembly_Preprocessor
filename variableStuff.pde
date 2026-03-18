@@ -192,19 +192,19 @@ String getVariable(String name, boolean global, int depth){
   if(global && _Vars != null && _Vars.hasKey(name)){
     return _Vars.get(name);
   }else if(!global){
-    String[] lineMacroArgs = peekMacroArgs(depth);
+    MacroArg[] lineMacroArgs = CurrentMacroArgs;
+    //print("lineMacroArgs: ");printArray(lineMacroArgs);
     if(lineMacroArgs != null){
-      FileHolder curMacro = getFile();
-      //printArray(curMacro.file.PathArray);
-      for(int a = 0; a < curMacro.file.PathArray.length; a++){
-        String[] def = curMacro.file.PathArray[a].split("=");
-        if(def[0].equals(name)){
-          if(a >= lineMacroArgs.length || lineMacroArgs[a].length() == 0){ // ["this","is","a"], ["this","","","token"]
-            if(def.length > 1){ return def[1]; }
+      MacroArg[] curMacro = CurrentWorker.Macro.Args;
+      //print("curMacro: ");print("<" + curMacro.length + ">");printArray(curMacro);
+      for(int a = 0; a < curMacro.length; a++){
+        if(curMacro[a].Name.equals(name)){
+          if(a >= lineMacroArgs.length || lineMacroArgs[a].Name.length() == 0){ // ["this","is","a"], ["this","","","token"]
+            if(curMacro[a].Value != null){ return curMacro[a].Value; }
             else{ return "\\!{macro arg '" + name + "' does not have a default value!}"; }
           }else{
-            if(lineMacroArgs[a].contains("%")){ return parseVariables(lineMacroArgs[a], depth+1).toString(); }
-            else{ return parseVariables(lineMacroArgs[a], depth).toString(); }
+            if(lineMacroArgs[a].Name.contains("%")){ return parseVariables(lineMacroArgs[a].Name, depth+1).toString(); }
+            else{ return parseVariables(lineMacroArgs[a].Name, depth).toString(); }
           }
         }
       }
@@ -216,7 +216,7 @@ String getVariable(String name, boolean global, int depth){
       return "" + getIndex();
   }
   
-  return "\\!{unknown arg/var '" + name + "'}";
+  return "\\!{getVariable:unknown_" + (global ? "var" : "arg") + ", " + name + "}";
 }
 
 /*
