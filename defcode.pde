@@ -61,8 +61,6 @@ Token[] splitToken(String line){
   line += '\n';
   ArrayList<Token> tokens = new ArrayList<Token>();
   String cur = "";
-  //TokenState state = TokenState.Default;
-  //TokenState state2 = TokenState.Default;
   int state = 0;
   int prevState = 0;
   
@@ -199,102 +197,7 @@ Token[] splitToken(String line){
     }
   }
   
-  
-  
-  //while(!stop){
-  //  if(index < line.length()){ c = line.charAt(index); }
-  //  if(index == line.length() || isWhitespace(c)){
-  //  }else{
-  //    switch(state){
-  //      case 0: // default
-  //        if(isNumber(c)){
-  //          state = 1; // number
-  //          cur+=c;
-  //        }else if(isAplha(c) || c == '_'){
-  //          state = 2; // identifier
-  //          cur+=c;
-  //        }else if(c == '.'){ // preprocessor directive
-  //          state = 3;
-  //          cur+=c;
-  //        }
-  //        break;
-  //      case 1: // number
-  //        if(isNumber(c) || c == '.'){
-  //          state = 1;
-  //          cur+=c;
-  //        }
-  //    }
-      
-  //    cur += c;
-  //    index++;
-  //  }
-  //}
-  
-  //for(int i = 0; i < line.length(); i++){
-  //  char c = line.charAt(i);
-  //  if(!isWhitespace(c)){
-  //    cur += c;
-  //  }else{
-  //    switch(state){
-  //      case Default:
-  //        switch(cur.toLowerCase()){
-  //          case ".macro":
-  //            tokens.add(new Token(TokenType.Macro_Start));
-  //            state = TokenState.Macro;
-  //            state2 = TokenState.Default;
-  //            break;
-  //          case ".endm":
-  //            tokens.add(new Token(TokenType.Macro_End));
-  //            state = TokenState.Default;
-  //            state2 = TokenState.Default;
-  //            break;
-  //          case ".let":
-  //            tokens.add(new Token(TokenType.Let));
-  //            state = TokenState.Let;
-  //            break;
-  //        }
-  //        break;
-  //    }
-  //    switch(cur.toLowerCase()){
-  //      case ".macro":
-  //        switch(state){
-  //          case Default:
-  //            tokens.add(new Token(TokenType.Macro_Start));
-  //            state = TokenState.Macro;
-  //            state2 = TokenState.Default;
-  //            break;
-  //          default:
-  //            println("Attempted to start macro in bad spot!");
-  //            break;
-  //        }
-  //        break;
-  //      case ".endm":
-  //        switch(state){
-  //          case Macro:
-  //            tokens.add(new Token(TokenType.Macro_End));
-  //            state = TokenState.Default;
-  //            state2 = TokenState.Default;
-  //            break;
-  //          default:
-  //            println("Attempted to end macro outside of macro!");
-  //            break;
-  //        }
-  //        break;
-  //      case ".let":
-  //        switch(state){
-  //          case Let:
-  //            println("Attempted to .let a .let!?");
-  //            break;
-  //          default:
-  //            state2 = TokenState.Let;
-  //            break;
-  //        }
-  //        break;
-  //    }
-  //  }
-  //}
-  
-  return listToArray(tokens);//(Token[])tokens.toArray();
+  return listToArray(tokens);
 }
 
 Token[] cleanTokens(Token[] input){ // Input is only a single line's worth of tokens!
@@ -372,7 +275,13 @@ Token[] cleanTokens(Token[] input){ // Input is only a single line's worth of to
       break;
   }
   
-  return listToArray(tokens);//(Token[])tokens.toArray();
+  return listToArray(tokens);
+}
+
+void buildMacro(String[] file){
+  for(int i = 0; i < file.length; i++){
+    println(file[i]);
+  }
 }
 
 void buildMacro(String line){
@@ -624,90 +533,3 @@ class LabelReplace{
     original = c; replace = s;
   }
 }
-
-//void output_defword(String[] line){
-//  String name = line[0];
-//  String namelen = line[1];
-//  String flags = line[2];
-//  String label = line[3];
-//  _output.append("\t#bank data");
-//  _output.append("\t#align 2");
-//  _output.append("name_" + label + ":");
-//  _output.append("\t#d16 le(" + link + "`16)");
-//  link = "name_" + label;
-//  _output.append("\t#d16 le((" + (!flags.equals("") ? (flags + " + ") : "") + namelen + ")`16)");
-//  _output.append("\t#d " + name);
-//  _output.append("\t#align 2");
-//  _output.append(label + ":");
-//  _output.append("\t#d16 le(DOCOL`16)");
-//}
-
-//void output_defcode(String[] line){
-//  String name = line[0];
-//  String namelen = line[1];
-//  String flags = line[2];
-//  String label = line[3];
-//  _output.append("\t#bank data");
-//  _output.append("\t#align 2");
-//  _output.append("name_" + label + ":");
-//  _output.append("\t#d16 le(" + link + "`16)");
-//  link = "name_" + label;
-//  _output.append("\t#d16 le((" + (!flags.equals("") ? (flags + " + ") : "") + namelen + ")`16)");
-//  _output.append("\t#d " + name);
-//  _output.append("\t#align 2");
-//  _output.append(label + ":");
-//  _output.append("\t#d16 le(code_" + label + "`16)");
-//  _output.append("\t#bank text");
-//  _output.append("code_" + label + ":");
-//}
-
-//void output_defvar(String[] line){
-//  String name = line[0];
-//  String namelen = line[1];
-//  String flags = line[2];
-//  String label = line[3];
-//  String initial;
-//  if(line.length == 4){ initial = "0"; }
-//  else{ initial = line[4]; }
-//  _output.append("\t#bank data");
-//  _output.append("\t#align 2");
-//  _output.append("name_" + label + ":");
-//  _output.append("\t#d16 le(" + link + "`16)");
-//  link = "name_" + label;
-//  _output.append("\t#d16 le((" + (!flags.equals("") ? (flags + " + ") : "") + namelen + ")`16)");
-//  _output.append("\t#d " + name);
-//  _output.append("\t#align 2");
-//  _output.append(label + ":");
-//  _output.append("\t#d16 le(code_" + label + "`16)");
-//  _output.append("\t#bank text");
-//  _output.append("code_" + label + ":");
-//  _output.append("\tmov RB, [PC] var_" + label);
-//  _output.append("\tmov push, RS[RB]");
-//  _output.append("\tNEXT");
-//  _output.append("\t#bank data");
-//  _output.append("\t#align 2");
-//  _output.append("var_" + label + ":");
-//  _output.append("\t#d16 le(" + initial + "`16)");
-//}
-
-//void output_defconst(String[] line){
-//  String name = line[0];
-//  String namelen = line[1];
-//  String flags = line[2];
-//  String label = line[3];
-//  String value = line[4];
-//  _output.append("\t#bank data");
-//  _output.append("\t#align 2");
-//  _output.append("name_" + label + ":");
-//  _output.append("\t#d16 le(" + link + "`16)");
-//  link = "name_" + label;
-//  _output.append("\t#d16 le((" + (!flags.equals("") ? (flags + " + ") : "") + namelen + ")`16)");
-//  _output.append("\t#d " + name);
-//  _output.append("\t#align 2");
-//  _output.append(label + ":");
-//  _output.append("\t#d16 le(code_" + label + "`16)");
-//  _output.append("\t#bank text");
-//  _output.append("code_" + label + ":");
-//  _output.append("\tmov push, [PC] " + value);
-//  _output.append("\tNEXT");
-//}

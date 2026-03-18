@@ -9,6 +9,7 @@ FileHolder tmpFileHolder = new FileHolder();
 ArrayList<Macro> _Macros;
 //ArrayList<Variable> _Vars;
 StringDict _Vars;
+String baseDirectory = "";
 
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
@@ -63,11 +64,23 @@ void setup(){
     _FileHolder = new ArrayList<FileHolder>();
     _Macros = new ArrayList<Macro>();
     _Vars = new StringDict(); //ArrayList<Variable>();
+    //for(int i = tmpFileHolder.filename.length() - 1; i >= 0; i--){
+    //  if(tmpFileHolder.filename.charAt(i) == '\\' || tmpFileHolder.filename.charAt(i) == '/'){
+    //    //baseDirectory = tmpFileHolder.filename.lastIndexOf()
+    //    //baseDirectory = tmpFileHolder.filename.subSequence(0,i);
+    //    //baseDirectory = tmpFileHolder.filename.substring(0,i);
+    //    String b = tmpFileHolder.filename;
+    //    baseDirectory = b.substring(0,b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\"));
+    //    println(baseDirectory);
+    //    break;
+    //  }
+    //}
+    String b = tmpFileHolder.filename;
+    baseDirectory = b.substring(0, 1 + (b.contains("/")?b.lastIndexOf("/"):b.lastIndexOf("\\")));
+    println(baseDirectory);
     processInput();
   }
   
-  //String[] t = splitTokens("asd asdaf 1241 123.1241 hello world hele(asfas) asf_asfas(1231)");
-  //printArray(t);
   exit();
 }
 
@@ -89,9 +102,16 @@ void processInput(){
     String line = tmpFileHolder.contents[tmpFileHolder.indexArray];
     tmpFileHolder.indexArray++;
     
-    print(tmpFileHolder.indexArray);
-    printArray(cleanTokens(splitToken(line)));
-    println();
+    //print(tmpFileHolder.indexArray);
+    //printArray(cleanTokens(splitToken(line)));
+    //println();
+    
+    if(line.contains(".include")){ // include macro definition file ('.' may need to be configurable based on assembler)
+      println((tmpFileHolder.indexArray-1) + " : " + line);
+      buildMacro(loadStrings(baseDirectory + split(line, " ")[1]));
+    }else if(line.contains("#include")){ // include assembly file, which will be concatenated into one large .obj output file
+      println((tmpFileHolder.indexArray-1) + " : " + line);
+    }
     
     //if(line.contains(".let")){
     //  setVariable(line);
@@ -103,66 +123,16 @@ void processInput(){
     //  continue;
     //}
     ////else if(line.contains("dfw")){
-    ////  output_dfw(breakLine(tmpFileHolder.indexArray, "dfw", 4, line));
+    ////  output_dfw(breakLine("dfw", line));
     ////}
     //else{
     //  for(int i = 0; i < _Macros.size(); i++){
     //    Macro m = _Macros.get(i);
     //    if(line.contains(m.name)){
-    //      outputMacro(m, breakLine(tmpFileHolder.indexArray-1, m.name, m.name.length()+1, line));
+    //      outputMacro(m, breakLine(m.name, line));
     //      skip = true; break;
     //    }
     //  }
-    //}
-    
-    //if(line.contains("defword")){
-    //  output_defword(breakLine(i, "defword", 8, line));
-    //  continue;
-    //}else if(input[i].contains("defcode")){
-    //  output_defcode(breakLine(i, "defcode", 8, line));
-    //  continue;
-    //}else if(input[i].contains("defvar")){
-    //  output_defvar(breakLine(i, "defvar", 7, line));
-    //  continue;
-    //}else if(input[i].contains("defconst")){
-    //  output_defconst(breakLine(i, "defconst", 9, line));
-    //  continue;
-    //}else if(line.contains("#def")){
-    //  String[] def = split(line, ' ');
-    //  if(defines.hasKey(def[1])){
-    //    println("\"" + def[1] + "\" already defined!");
-    //  }else{
-    //    defines.set(def[1],0);
-    //  }
-    //  continue;
-    //}else if(line.contains("#ifdef")){
-    //  String[] def = split(line, ' ');
-    //  if(defines.hasKey(def[1])){
-    //    while(!line.contains("#endifdef")){
-    //      line = tmpFileHolder.contents[i++];
-    //      output.append(line); // append lines for assembly
-    //    }
-    //  }else{
-    //    while(!line.contains("#endifdef")){
-    //      line = tmpFileHolder.contents[i++]; // eat input
-    //    }
-    //    i--;
-    //  }
-    //  continue;
-    //}else if(line.contains("#ifndef")){
-    //  String[] def = split(line, ' ');
-    //  if(!defines.hasKey(def[1])){
-    //    while(!line.contains("#endifndef")){
-    //      line = tmpFileHolder.contents[i++];
-    //      output.append(line); // append lines for assembly
-    //    }
-    //  }else{
-    //    while(!line.contains("#endifndef")){
-    //      line = tmpFileHolder.contents[i++]; // eat input
-    //    }
-    //    i--;
-    //  }
-    //  continue;
     //}
     
     if(!skip){
@@ -252,45 +222,11 @@ class Variable{
   }
 }
 
-//String[] breakLine(int lineNum, String macro, int pos, String line){
-//  //println(lineNum);
-//  StringList out = new StringList();
-//  String tmp = "";
-//  boolean str = false;
-//  //boolean comment = false;
-//  int start = line.indexOf(macro) + macro.length();
-//  //println(start);
-//  if(start != pos){ println(lineNum); return null; }
-  
-//  for(int i = start; i < line.length(); i++){
-//    char c = line.charAt(i);
-//    if(c == '"'){ if(line.contains("\"\"\"")){ out.append("\"\"\""); tmp = ""; i+=1; continue; } str = !str; }
-//    if(c == ';' && !(line.charAt(i-1) == '"' && line.charAt(i+1) == '"')){ break; }
-//    if(c == ' '){ continue; }
-//    //if(c == ',' && !(line.charAt(i-1) == '"' && line.charAt(i+1) == '"')){
-//    if(c == ','){
-//      if(str != true){
-//        out.append(tmp);
-//        tmp = "";
-//        continue;
-//      }
-//    }
-//    tmp += c;
-//  }
-//  out.append(tmp);
-  
-//  return out.toArray();
-//}
-
-String[] breakLine(int lineNum, String macro, int pos, String line){
-  //println(lineNum);
+String[] breakLine(String macro, String line){
   StringList out = new StringList();
   String tmp = "";
   boolean str = false;
-  //boolean comment = false;
   int start = line.indexOf(macro) + macro.length();
-  //println(start);
-  //if(start != pos){ println(lineNum); return null; }
   
   for(int i = start; i < line.length(); i++){
     char c = line.charAt(i);
