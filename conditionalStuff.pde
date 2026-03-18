@@ -76,6 +76,9 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
           case ".let":
             parseLet(line, token.nextIndex);
             break;
+          case ".macro":
+            parseMacro(line, token.nextIndex);
+            break;
           default:
             skip = checkMacros(token.string, line);
             break;
@@ -98,6 +101,9 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             break;
           case ".let":
             parseLet(line, token.nextIndex);
+            break;
+          case ".macro":
+            parseMacro(line, token.nextIndex);
             break;
           default:
             skip = checkMacros(token.string, line);
@@ -140,6 +146,9 @@ void parseIf(String line_, int index_, int depth_){ // current depth of if state
             break;
           case ".let":
             parseLet(line, token.nextIndex);
+            break;
+          case ".macro":
+            parseMacro(line, token.nextIndex);
             break;
           default:
             skip = checkMacros(token.string, line);

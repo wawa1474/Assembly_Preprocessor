@@ -159,7 +159,58 @@ void buildMacro(String[] file){
   }
 }
 
+void parseMacro(String line_, int index){
+  //println("Start Macro!");
+  TokenReturn token = getNextToken(line_, index);
+  _macro_Name = token.string;
+  _macro_Args = getMacroArgs(line_, token.nextIndex);
+  _tmpFileHolder.indexArray++; // skip .macro line
+  int state = 0;
+  
+  for(; _tmpFileHolder.indexArray < _tmpFileHolder.contents.length && state != -1; _tmpFileHolder.indexArray++){
+    String line = _tmpFileHolder.contents[_tmpFileHolder.indexArray];
+    token = getNextToken(line,0);
+    
+    switch(token.string){
+      case ".endm":
+        finalizeNewMacro();
+        state = -1;
+        break;
+      default:
+        _macro_Content.append(line);
+        break;
+    }
+  }
+  
+  _tmpFileHolder.indexArray--; // main loops ++ at end, so we have to -- to be on correct line for next main loop
+}
+
+String[] getMacroArgs(String line, int index){
+  StringList Args = new StringList();
+  TokenReturn token = getNextToken(line, index);
+  Args.append(token.string);
+  
+  for(; token.nextIndex < line.length();){
+    token = getNextToken(line, token.nextIndex);
+    Args.append(token.string);
+  }
+  
+  return Args.toArray();
+}
+
+void finalizeNewMacro(){
+  //println("Finalize Macro!");
+  _Files[_Files_Macros].add(
+    new FileHolder(
+      new PathReturn(_macro_Name, _macro_Args),
+      _macro_Content.toArray()
+    )
+  );
+  _macro_Content.clear();
+}
+
 boolean checkMacros(String macro, String line){
+  // would just set _Files_Type to macros, then set _Files_Current to whichever macros name matches what was found
   for(int i = 0; i < _Macros.size(); i++){
     Macro tmp = _Macros.get(i);
     if(tmp.name.equals(macro)){

@@ -6,6 +6,19 @@ FileHolder _tmpFileHolder = new FileHolder(); // tmp variable to hold current wo
 ArrayList<Macro> _Macros;
 StringDict _Vars;
 
+ArrayList<FileHolder>[] _Files = new ArrayList[2]; // macros as arrays of strings would allow reuse of main parsing loop...
+String _macro_Name = "";
+String[] _macro_Args;
+StringList _macro_Content = new StringList();
+final static int _Files_Inputs = 0;
+final static int _Files_Macros = 1;
+int _Files_Type = _Files_Inputs; // select between parsing a macro/input file
+int _Files_Current = 0; // contains the current macro, or last pushed file
+
+String getNextLine(){
+  return _Files[_Files_Type].get(_Files_Current).getNextLine();
+}
+
 //@echo off
 //java -Djava.ext.dirs=lib -Djava.library.path=lib floatToHex
 
@@ -58,9 +71,21 @@ void setup(){
     _FileStack = new FileStack();
     _Macros = new ArrayList<Macro>();
     _Vars = new StringDict();
+    _Files[0] = new ArrayList<FileHolder>();
+    _Files[1] = new ArrayList<FileHolder>();
     
     processInput();
+    
+    
+    println("Total Macros: " + _Files[_Files_Macros].size());
+    if(_Files[_Files_Macros].size() > 0){
+      FileHolder tmp = _Files[_Files_Macros].get(_Files[_Files_Macros].size() - 1);
+      println("Macro Name: " + tmp.file.Name);
+      print("Macro Args: ");printArray(tmp.file.PathArray);
+      print("Macro Contents: ");printArray(tmp.contents);
+    }
   }
+  
   exit();
 }
 
@@ -76,6 +101,9 @@ void processInput(){
     switch(token.string){
       case ".include": // .include macro|file "path/name.ext"
         checkIncludeFile(line, token.nextIndex);
+        break;
+      case ".macro":
+        parseMacro(line, token.nextIndex);
         break;
       case ".if":
         parseIf(line, token.nextIndex, 0);
