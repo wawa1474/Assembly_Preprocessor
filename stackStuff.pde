@@ -62,3 +62,46 @@ void popRepeat(){
 int peekRepeat(){
   return _repeat_Args.get(_repeat_Args.size() - 1);
 }
+
+String g_TOS(String name){
+  int len = Stacks.get(name).size();
+  return Stacks.get(name).get(len - 1);
+}
+
+int g_DEPTH(String name){
+  return Stacks.get(name).size();
+}
+
+void g_PUSHNEW(String name, String value){
+  Stacks.put(name, new StringList(value));
+}
+
+void g_PUSH(String name, String value){
+  Stacks.get(name).append(value);
+}
+
+String g_PEEK(String name){
+  return Stacks.get(name).get(Stacks.get(name).size() - 1);
+}
+
+String g_PEEK(String name, int index){
+  return Stacks.get(name).get(Stacks.get(name).size() - 1 - index);
+}
+
+void g_POKE(String name, String value, int index){
+  Stacks.get(name).set(Stacks.get(name).size() - 1 - index, value);
+}
+
+String g_POP(String name){
+  int len = Stacks.get(name).size();
+  String tmp = Stacks.get(name).get(len - 1);
+  Stacks.get(name).remove(len - 1);
+  return tmp;
+}
+
+String g_PLUCK(String name, int value){
+  int len = Stacks.get(name).size();
+  String tmp = Stacks.get(name).get(len - value - 1);
+  Stacks.get(name).remove(len - value - 1);
+  return tmp;
+}

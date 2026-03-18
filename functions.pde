@@ -13,24 +13,6 @@ String parseFunction(String input){
   //}
   
   switch(args[0].Name){
-    case "push": // why yes, my preprocessor is turing complete...
-    case "pop":
-    case "rot": // (n1 n2 n3 - n2 n3 n1)
-    case "-rot": // (n1 n2 n3 - n3 n1 n2)
-    case "tuck": // (v1 - v2 v1)
-    case "nip": // (v1 v2 - v2)
-    case "under": // (v1 v2 - v1 v1 v2)
-    case "pick": // (a1 - v1)
-    case "swap": // (v1 v2 - v2 v1)
-    case "drop": // (v1 v2 - v1)
-    case "dup": // (v1 - v1 v1)
-    case "over": // (v1 v2 - v1 v2 v1)
-    case "2swap": // (v1 v2 v3 v4 - v3 v4 v1 v2)
-    case "2drop": // (v1 v2 -)
-    case "2dup": // (v1 v2 - v1 v2 v1 v2)
-    case "2over": // (v1 v2 v3 v4 - v1 v2 v3 v4 v1 v2)
-      break;
-    
     case "strlen":
       output += args[1].Name.length();
       break;
@@ -100,6 +82,302 @@ String parseFunction(String input){
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}
       // may need to change how args[] is populated, so that we can know indices...
+  }
+  
+  if(output.length() <= 0){
+    String sName = args.length >= 2 ? args[1].Name : "";
+    if(Stacks.size() <= 0){
+      output = "\\!{parseFunction:stack.noStacks}";
+    }else{
+      if(Stacks.containsKey(sName)){ // stack exists
+        int len = g_DEPTH(sName);
+        String tmp1;
+        String tmp2; // why yes, my preprocessor will be turing complete...
+        String tmp3;
+        String tmp4;
+        int idx;
+        if(len > 0){ // stack has AT LEAST 1 value
+          switch(args[0].Name){
+            case "push": // ([TOS] - TOS)
+              g_PUSH(sName, args[2].Name);
+              break;
+            
+            case "pop": // (TOS - [TOS])
+              output = g_POP(sName);
+              break;
+            
+            case "peek": // (TOS - TOS [TOS])
+              output = g_PEEK(sName);
+              break;
+            
+            case "pick": // (v1 v2 v3 #2 - v1 v2 v3 v1) [TOS=0, NOS=1, ...]
+              idx = parseVariables(g_POP(sName)).Integer;
+              len = g_DEPTH(sName);
+              if(len > idx){
+                g_PUSH(sName, g_PEEK(sName, idx));
+              }else{
+                output = "\\!{parseFunction:stack.pick.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pickF": // (v1 v2 v3 [#2] - v1 v2 v3 v1) [TOS=0, NOS=1, ...]
+              idx = parseVariables(args[2].Name).Integer;
+              if(len > idx){
+                g_PUSH(sName, g_PEEK(sName, idx));
+              }else{
+                output = "\\!{parseFunction:stack.pickF.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pickO": // (v1 v2 v3 #2 - v1 v2 v3 [v1]) [TOS=0, NOS=1, ...]
+              idx = parseVariables(g_POP(sName)).Integer;
+              len = g_DEPTH(sName);
+              if(len > idx){
+                output = g_PEEK(sName, idx);
+              }else{
+                output = "\\!{parseFunction:stack.pick.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pickFO": // (v1 v2 v3 [#2] - v1 v2 v3 [v1]) [TOS=0, NOS=1, ...]
+              idx = parseVariables(args[2].Name).Integer;
+              if(len > idx){
+                output = g_PEEK(sName, idx);
+              }else{
+                output = "\\!{parseFunction:stack.pickF.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pluck": // (v1 v2 v3 #2 - v2 v3 v1) [TOS=0, NOS=1, ...]
+              idx = parseVariables(g_POP(sName)).Integer;
+              len = g_DEPTH(sName);
+              if(len > idx){
+                g_PUSH(sName, g_PLUCK(sName, idx));
+              }else{
+                output = "\\!{parseFunction:stack.pluck.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pluckF": // (v1 v2 v3 [#2] - v2 v3 v1) [TOS=0, NOS=1, ...]
+              idx = parseVariables(args[2].Name).Integer;
+              if(len > idx){
+                g_PUSH(sName, g_PLUCK(sName, idx));
+              }else{
+                output = "\\!{parseFunction:stack.pluckF.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pluckO": // (v1 v2 v3 #2 - v2 v3 [v1]) [TOS=0, NOS=1, ...]
+              idx = parseVariables(g_POP(sName)).Integer;
+              len = g_DEPTH(sName);
+              if(len > idx){
+                output = g_PLUCK(sName, idx);
+              }else{
+                output = "\\!{parseFunction:stack.pluck.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "pluckFO": // (v1 v2 v3 [#2] - v2 v3 [v1]) [TOS=0, NOS=1, ...]
+              idx = parseVariables(args[2].Name).Integer;
+              if(len > idx){
+                output = g_PLUCK(sName, idx);
+              }else{
+                output = "\\!{parseFunction:stack.pluckF.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "poke": // (v1 v2 v3 v4 #1 - v1 v4 v3) [TOS=0, NOS=1, ...]
+              idx = parseVariables(g_POP(sName)).Integer;
+              len = g_DEPTH(sName);
+              if(len > 0){
+                tmp1 = g_POP(sName);
+                len = g_DEPTH(sName);
+                if(len > idx){
+                  g_POKE(sName, tmp1, idx);
+                  break;
+                }
+              }
+              output = "\\!{parseFunction:stack.poke.underflow, " + sName + "}";
+              break;
+            
+            case "pokeF": // (v1 v2 v3 [v4 #1] - v1 v4 v3) [TOS=0, NOS=1, ...]
+              idx = parseVariables(args[2].Name).Integer;
+              if(len > idx){
+                g_POKE(sName, args[3].Name, idx);
+              }else{
+                output = "\\!{parseFunction:stack.pokeF.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "depth": // (v1 v2 v3 - v1 v2 v3 #3)
+              output = str(len);
+              break;
+            
+            case "rot": // (n1 n2 n3 - n2 n3 n1)
+              if(len >= 3){
+                tmp3 = g_POP(sName);
+                tmp2 = g_POP(sName);
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, tmp2);
+                g_PUSH(sName, tmp3);
+                g_PUSH(sName, tmp1);
+              }else{
+                output = "\\!{parseFunction:stack.rot.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "-rot": // (n1 n2 n3 - n3 n1 n2)
+              if(len >= 3){
+                tmp3 = g_POP(sName);
+                tmp2 = g_POP(sName);
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, tmp3);
+                g_PUSH(sName, tmp1);
+                g_PUSH(sName, tmp2);
+              }else{
+                output = "\\!{parseFunction:stack.-rot.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "spin": // (n1 n2 n3 - n3 n2 n1)
+              if(len >= 3){
+                tmp3 = g_POP(sName);
+                tmp2 = g_POP(sName);
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, tmp3);
+                g_PUSH(sName, tmp2);
+                g_PUSH(sName, tmp1);
+              }else{
+                output = "\\!{parseFunction:stack.spin.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "tuck": // (v1 v2 - v2 v1 v2)
+              if(len >= 2){
+                tmp2 = g_POP(sName);
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, tmp2);
+                g_PUSH(sName, tmp1);
+                g_PUSH(sName, tmp2);
+              }else{
+                output = "\\!{parseFunction:stack.tuck.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "tuckF": // (v1 v2 - v2 v1 v2)
+              if(len >= 2){
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, args[2].Name);
+                g_PUSH(sName, tmp1);
+                g_PUSH(sName, args[2].Name);
+              }else{
+                output = "\\!{parseFunction:stack.tuckF.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "nip": // (v1 v2 - v2)
+              if(len >= 2){
+                tmp1 = g_POP(sName);
+                g_POP(sName);
+                g_PUSH(sName, tmp1);
+              }else{
+                output = "\\!{parseFunction:stack.nip.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "under": // (v1 v2 - v1 v1 v2)
+              if(len >= 2){
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, g_PEEK(sName));
+                g_PUSH(sName, tmp1);
+              }else{
+                output = "\\!{parseFunction:stack.under.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "swap": // (v1 v2 - v2 v1)
+              if(len >= 2){
+                tmp2 = g_POP(sName);
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, tmp2);
+                g_PUSH(sName, tmp1);
+              }else{
+                output = "\\!{parseFunction:stack.swap.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "drop": // (v1 v2 - v1)
+              g_POP(sName);
+              break;
+            
+            case "dup": // (v1 - v1 v1)
+              g_PUSH(sName, g_PEEK(sName));
+              break;
+            
+            case "over": // (v1 v2 - v1 v2 v1)
+              if(len >= 2){
+                g_PUSH(sName, g_PEEK(sName, 1));
+              }else{
+                output = "\\!{parseFunction:stack.over.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "2swap": // (v1 v2 v3 v4 - v3 v4 v1 v2)
+              if(len >= 4){
+                tmp4 = g_POP(sName);
+                tmp3 = g_POP(sName);
+                tmp2 = g_POP(sName);
+                tmp1 = g_POP(sName);
+                g_PUSH(sName, tmp3);
+                g_PUSH(sName, tmp4);
+                g_PUSH(sName, tmp1);
+                g_PUSH(sName, tmp2);
+              }else{
+                output = "\\!{parseFunction:stack.2swap.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "2drop": // (v1 v2 -)
+              if(len >= 2){
+                g_POP(sName);
+                g_POP(sName);
+              }else{
+                output = "\\!{parseFunction:stack.2drop.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "2dup": // (v1 v2 - v1 v2 v1 v2)
+              if(len >= 2){
+                g_PUSH(sName, g_PEEK(sName, 1));
+                g_PUSH(sName, g_PEEK(sName, 1));
+              }else{
+                output = "\\!{parseFunction:stack.2dup.underflow, " + sName + "}";
+              }
+              break;
+            
+            case "2over": // (v1 v2 v3 v4 - v1 v2 v3 v4 v1 v2)
+              if(len >= 4){
+                g_PUSH(sName, g_PEEK(sName, 3));
+                g_PUSH(sName, g_PEEK(sName, 3));
+              }else{
+                output = "\\!{parseFunction:stack.2over.underflow, " + sName + "}";
+              }
+              break;
+          }
+        }else{ // stack is empty
+          switch(args[0].Name){
+            case "push": g_PUSH(sName, args[2].Name); break; // push to top of stack
+            case "depth": output = "0"; break; // stack exists but has zero elements
+            default: output = "\\!{parseFunction:stack." + args[0].Name + ".underflow, " + sName + "}"; break; // stack underflow error
+          }
+        }
+      }else{ // stack does not exist
+        switch(args[0].Name){
+          case "push": g_PUSHNEW(args[1].Name, args[2].Name); break; // create new stack and append
+          default: output = "\\!{parseFunction:stack." + args[0].Name + ".doesNotExist, " + sName + "}"; break; // stack does not exist error
+        }
+      }
+    }
   }
   
   return output;
