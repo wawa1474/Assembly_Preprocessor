@@ -1,3 +1,23 @@
+/*
+  dfw {name}, {flags: u8}, {prev: u16} => 0x00 @ name @ 0x00 @ flags @ le(prev)
+  dfw {name},{name2}, {flags: u8}, {prev: u16} => 0x00 @ name @ name2 @ 0x00 @ flags @ le(prev)
+  dfw {name},{name2},{name3}, {flags: u8}, {prev: u16} => 0x00 @ name @ name2 @ name3 @ 0x00 @ flags @ le(prev)
+*/
+
+void output_dfw(String[] line){
+  //println(line[0]);
+  //println(line[1]);
+  //println(line[2]);
+  String name = line[0];
+  String flags = line[1];
+  String label = line[2];
+  output.append("\t#d8 0x00");
+  output.append("\t#d " + name);
+  output.append("\t#d8 0x00");
+  output.append("\t#d8 " + flags);
+  output.append("\t#d16 le(" + label + "`16)");
+}
+
 void output_defword(String[] line){
   String name = line[0];
   String namelen = line[1];
