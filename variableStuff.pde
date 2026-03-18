@@ -96,7 +96,7 @@ void parseLet(String line, int index){
 void parseLet(String variable, String action, TokenReturn secondToken){
   VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0");
   VariableReturn secondVar = parseVariables(secondToken.string);
-  //println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
+  if(hyperVerboseOutput){ println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")"); }
   
   if(firstVar.Number && secondVar.Number){
     switch(firstVar.Type){

@@ -38,8 +38,10 @@ void outputLine(String line, boolean skip){
   if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
   if(!skip && !empty){
     String tmp = cleanComments(parseVariables(line).String);
-    if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
-    _output.append(tmp);
+    if(tmp != null && tmp.length() > 0){
+      if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
+      _output.append(tmp);
+    }
   }
 }
 

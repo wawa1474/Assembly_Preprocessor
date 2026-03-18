@@ -115,6 +115,7 @@ TokenReturn getNextToken(String line, int index){
     index++;
   }
   
+  if(hyperVerboseOutput){ println("getNextToken:output = \"" + token + "\" @ [" + index + "]"); }
   return new TokenReturn(token, index);
 }
 
@@ -262,7 +263,9 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
     case Function: // built-in function
       if(hyperVerboseOutput){ println("cleanEscape:parseFunction = " + runFunction); }
       if(runFunction){ // for some reason (bad programming probably...) parseFunction is being called twice for every function
-        token = parseFunction(token);
+        token = parseFunction(token); // parse function
+      }else{
+        token = "\\#{" + token + "}"; // re-encase function for future parsing
       }
       break;
     case Builtin: // built-in variable
