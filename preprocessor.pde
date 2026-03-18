@@ -82,6 +82,8 @@ void setup(){
     processInput();
   }
   
+  println(parseVariable("le(%%lastWord`16)", true));
+  
   exit();
 }
 
@@ -171,9 +173,14 @@ class Macro{
   String name;
   String[] args;
   String[] output;
+  Argument[] Arguments;
   Token[] Tokens;
   
   Macro(){}
+  
+  Macro(String n){
+    name = n;
+  }
   
   Macro(String n, String[] o){
     name = n;
@@ -200,6 +207,18 @@ class Macro{
   }
 }
 
+class Argument{
+  String name;
+  String defualt;
+  
+  Argument(){}
+  
+  Argument(String n, String d){
+    name = n;
+    defualt = d;
+  }
+}
+
 class Token{
   TokenType Type = TokenType.Null;
   String Str;
@@ -221,13 +240,21 @@ class Token{
     Str = s;
   }
   
+  Token(TokenType t, String s, String v){
+    Type = t;
+    Str = s;
+    Value = v;
+  }
+  
   String toString(){
-    if(Type == TokenType.Macro){
-      return "{Macro} " + macro.argString();
+    if(Type == TokenType.Argument || Type == TokenType.Variable){
+      return "{" + Type.name() + "} " + Str.replace("%", Value);
+    //if(Type == TokenType.Macro){
+    //  return "{Macro} " + macro.argString();
     }else if(Type == TokenType.Let){
       return "{Let} " + Str + " = " + Value;
-    }else if(Type == TokenType.GlobalLabel || Type == TokenType.Argument){
-      return "{" + Type.name() + "} " + Value;
+    //}else if(Type == TokenType.GlobalLabel || Type == TokenType.Argument){
+    //  return "{" + Type.name() + "} " + Value;
     }else{
       return "{" + Type.name() + "} " + Str;
     }
