@@ -20,6 +20,16 @@ boolean concatenateFiles = true; // combine all input files into one output file
 boolean hyperVerboseOutput = false; // will all the println's in the universe be printed? (might be an int in the future...)
 boolean initEmptyStacks = false; // will an uninintialized stack be created on push, or generate an error?
 
+String ext_db = "\t#d8"; // what is the assemblers form for db
+String ext_db_wrapStart = "(("; // do we have to output something to signify a byte?
+String ext_db_wrapEnd = ")`8)";
+String ext_dw = "\t#d16"; // what is the assemblers form for dw
+String ext_dw_wrapStart = "(("; // do we have to output something to signify a word?
+String ext_dw_wrapEnd = ")`16)";
+String ext_drw = "\t#d16"; // what is the assemblers form for drw
+String ext_drw_wrapStart = "le(("; // do we have to output something to signify a reverse word?
+String ext_drw_wrapEnd = ")`16)";
+
 PathReturn CurrentDirectory; // current working directory for file includes...
 StringList _switch_Args = new StringList(); // stack for switch arguments
 ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
@@ -46,7 +56,7 @@ IntList _repeat_Args = new IntList(); // stack for repeat arguments
 
 String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
-String _version_minor = "0";
+String _version_minor = "1";
 String _version_patch = "0";
 String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
@@ -91,6 +101,16 @@ void setup(){
     updateVariable("__showLines", "false");
     updateVariable("__hyperVerboseOutput", "false");
     updateVariable("__initEmptyStacks", "false");
+    
+    updateVariable("__ext_db", "\t#d8");
+    updateVariable("__ext_db_wrapStart", "((");
+    updateVariable("__ext_db_wrapEnd", ")`8)");
+    updateVariable("__ext_dw", "\t#d16");
+    updateVariable("__ext_dw_wrapStart", "((");
+    updateVariable("__ext_dw_wrapEnd", ")`16)");
+    updateVariable("__ext_drw", "\t#d16");
+    updateVariable("__ext_drw_wrapStart", "le((");
+    updateVariable("__ext_drw_wrapEnd", ")`16)");
     
     processInput(0, ParseState.Entry);
     

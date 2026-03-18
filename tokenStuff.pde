@@ -63,17 +63,25 @@ TokenReturn getNextToken(String line, int index){
             break;
           
           case '(': // do we handle things within paren's as a 'discreet' unit? escaped open-paren are handled by cleanEscape() obviously...
-            // we would still need to check for escaped objects and handle them, but no other processing would occur on stuff within paren's...
-            parenDepth++; // we would need to correctly handle nested paren's too...
-            //token += c;
-            gotString = true;
-            //state = 1;
-            //break;
+            if(inString){
+              token += c;
+            }else{
+              // we would still need to check for escaped objects and handle them, but no other processing would occur on stuff within paren's...
+              parenDepth++; // we would need to correctly handle nested paren's too...
+              //token += c;
+              gotString = true;
+              //state = 1;
+            }
+            break;
           
           case ')': // perhaps we should also be handling unbalanced paren's too?
-            parenDepth--;
-            if(parenDepth == 0){
-              //state = 0; // what else do we have to handle here?
+            if(inString){
+              token += c;
+            }else{
+              parenDepth--;
+              if(parenDepth == 0){
+                //state = 0; // what else do we have to handle here?
+              }
             }
             break;
           
@@ -299,4 +307,41 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
   //VariableReturn out = new VariableReturn(token, index-1, type);
   //println(out.type() + ":" + out + ";" + token);
   return new TokenReturn(token, index-1); // token-1 due to increment after use!
+}
+
+String handleDefineValue(String line, int index, VariableType type){
+  MacroArg[] args = getMacroArgs(line, index);
+  String start;
+  String end;
+  String output;
+  
+  switch(type){
+    case Byte:
+      output = ext_db + " ";
+      start = ext_db_wrapStart;
+      end = ext_db_wrapEnd;
+      break;
+    
+    case Word:
+      output = ext_dw + " ";
+      start = ext_dw_wrapStart;
+      end = ext_dw_wrapEnd;
+      break;
+    
+    case RWord:
+      output = ext_drw + " ";
+      start = ext_drw_wrapStart;
+      end = ext_drw_wrapEnd;
+      break;
+    
+    default:
+      return "\\!{handleDefineValue:unknownDType," + type.name() + "}";
+  }
+  
+  for(int i = 0; i < args.length; i++){
+    output += start + args[i].Name + end;
+    if(i < args.length - 1){ output += ", "; }
+  }
+  
+  return output;
 }

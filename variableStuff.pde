@@ -3,6 +3,9 @@ enum VariableType{
   Float, // might need to be converted to hex format for some assemblers
   String,
   Char, // to be used for character arithmetic (sbc 'A' - '0')
+  Byte, // for db (Define Byte)
+  Word, // for dw (Define Word)
+  RWord, // for drw (Define Reverse Word)
   Argument, // macro argument
   Variable, // global variable
   Function, // built-in function
@@ -138,20 +141,38 @@ void parseLet(String variable, String action, TokenReturn secondToken){
 void updateVariable(String var_, String value_){
   _Vars.set(var_, value_);
   
-  boolean valueBool = false;
-  
-  switch(value_.toLowerCase()){
-    case "true": valueBool = true; break;
-    case "false": break;
-    default: return;
-  }
-  
-  switch(var_){ // update directive variables
-    case "__maintainComments": maintainComments = valueBool; break;
-    case "__showLines": showLines = valueBool; break;
-    case "__concatenateFiles": concatenateFiles = valueBool; break;
-    case "__hyperVerboseOutput": hyperVerboseOutput = valueBool; break;
-    case "__initEmptyStacks": initEmptyStacks = valueBool; break;
+  if(var_.startsWith("__")){
+    value_ = value_.startsWith("\"") ? value_.substring(1) : value_; // strip leading and trailing "
+    value_ = value_.endsWith("\"") ? value_.substring(0, value_.length()-1) : value_;
+    switch(var_){
+      case "__ext_db": ext_db = value_; break;
+      case "__ext_db_wrapStart": ext_db_wrapStart = value_; break;
+      case "__ext_db_wrapEnd": ext_db_wrapEnd = value_; break;
+      case "__ext_dw": ext_dw = value_; break;
+      case "__ext_dw_wrapStart": ext_dw_wrapStart = value_; break;
+      case "__ext_dw_wrapEnd": ext_dw_wrapEnd = value_; break;
+      case "__ext_drw": ext_drw = value_; break;
+      case "__ext_drw_wrapStart": ext_drw_wrapStart = value_; break;
+      case "__ext_drw_wrapEnd": ext_drw_wrapEnd = value_; break;
+      
+      default:
+        boolean valueBool = false;
+    
+        switch(value_.toLowerCase()){
+          case "true": valueBool = true; break;
+          case "false": break;
+          default: return;
+        }
+        
+        switch(var_){ // update directive variables
+          case "__maintainComments": maintainComments = valueBool; break;
+          case "__showLines": showLines = valueBool; break;
+          case "__concatenateFiles": concatenateFiles = valueBool; break;
+          case "__hyperVerboseOutput": hyperVerboseOutput = valueBool; break;
+          case "__initEmptyStacks": initEmptyStacks = valueBool; break;
+        }
+        break;
+    }
   }
 }
 
@@ -252,6 +273,11 @@ String getBuiltin(String name){
     case "*": return str(_output.size() + 1); // get total output line count
     case "filename": return CurrentWorker.File.file.Name; // get current file name
     case "argc": return str(CurrentMacroArgs.length); // how many args does this macro instance have?
+    case "versionMajor": return _version_major; // allow getting the version of the program
+    case "versionMinor": return _version_minor; // allow getting the version of the program
+    case "versionPatch": return _version_patch; // allow getting the version of the program
+    case "versionRC": return _version_preRelease; // allow getting the version of the program
+    case "version": return _VERSION; // allow getting the version of the program
   }
   
   return "\\!{getBuiltin:unknown_var, " + name + "}";

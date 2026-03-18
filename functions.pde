@@ -96,6 +96,27 @@ String parseFunction(String input){
       updateVariable(args[1].Name, args[2].Name);
       break;
     
+    case "db": // Define Byte
+      output = ext_db;
+      for(int i = 1; i < args.length; i++){
+        output += ext_db_wrapStart + args[i].Name + ext_db_wrapEnd;
+      }
+      break;
+    
+    case "dw": // Define Word (little endian)
+      output = ext_dw;
+      for(int i = 1; i < args.length; i++){
+        output += ext_dw_wrapStart + args[i].Name + ext_dw_wrapEnd;
+      }
+      break;
+    
+    case "drw": // Define Reverse Word (big endian)
+      output = ext_drw;
+      for(int i = 1; i < args.length; i++){
+        output += ext_drw_wrapStart + args[i].Name + ext_drw_wrapEnd;
+      }
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}
