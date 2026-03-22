@@ -123,6 +123,12 @@ String g_PLUCK(String name, int value){
 void pushTmpVars(){
   _TmpMacroVarsArr.add(_TmpMacroVars.copy());
   _TmpGlobalVarsArr.add((HashMap<String, String>)_TmpGlobalVars.clone());
+  
+  // Let's make the assumption that recursive files and macros DON'T want to output comments
+  // If you want a particular file or macro to output comments for its duration, you'll need to set it explicitly
+  // you could explicitly set __maintainComments to true or have a global var which holds true/false depending on outside context
+  _TmpGlobalVars.put("__maintainComments",_Vars.get("__maintainComments"));
+  updateVariable("__maintainComments", "false");
 }
 
 void popTmpVars(){ // java is such a pain at times...

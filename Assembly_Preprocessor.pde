@@ -58,7 +58,7 @@ String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
 String _version_minor = "2";
 String _version_patch = "0";
-String _version_preRelease = "8";
+String _version_preRelease = "9";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch};
 void setup(){
@@ -87,7 +87,7 @@ void setup(){
           if(pair.length != 2){
             println(" - bad var assignment! - " + arg);
           }else{
-            println(" - assigned var - " + pair[0] + " to " + pair[1]);
+            println(" - set variable \"" + pair[0] + "\" to \"" + pair[1] + "\"");
             updateVariable(pair[0], pair[1]);
           }
           break;
