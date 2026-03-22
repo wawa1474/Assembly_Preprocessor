@@ -4,6 +4,7 @@ import java.util.Map; // used for handling of _TmpGlobalVars
 StringList _output = new StringList();
 String _outputFile;
 boolean _exit = true;
+boolean _run = false;
 StringDict _Vars = new StringDict(); // variables that can be changed
 StringDict _Equates; // variables that are set once and can't be changed
 StringDict _TmpMacroVars = new StringDict(); // transitory variables that are deleted at the end of a macro
@@ -58,11 +59,10 @@ String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
 String _version_minor = "2";
 String _version_patch = "0";
-String _version_preRelease = "9";
+String _version_preRelease = "10";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch};
 void setup(){
-  int time = millis();
   println("sketchPath() = " + sketchPath());
   
   if(args != null){ // allows input from command line
@@ -72,12 +72,20 @@ void setup(){
       switch(arg){
         case "--input":
           arg = args[++i]; // get source file
-          PathReturn filename = splitFilepath(arg + ".asm");
-          CurrentDirectory = filename;
-          println(" " + filename + " [" + filename.Reverse + "]");
-          _outputFile = filename.getPath() + filename.Name + ".obj";
-          getNewFile(splitFilepath(sketchPath()), filename);
-          _exit = false;
+          File extFile = new File(sketchPath(arg + ".asm"));
+          if(extFile.exists()){
+            PathReturn filename = splitFilepath(arg + ".asm");
+            CurrentDirectory = filename;
+            println(" " + filename + " [" + filename.Reverse + "]");
+            _outputFile = filename.getPath() + filename.Name + ".obj";
+            getNewFile(splitFilepath(sketchPath()), filename);
+            _exit = false;
+            _run = true;
+          }else{
+            println("Error: file passed to --input does not exist! [" + arg + ".asm]");
+            _exit = true;
+            _run = false;
+          }
           break;
         
         case "--var":
@@ -94,11 +102,27 @@ void setup(){
         
         case "--help":
           _exit = true;
+          _run = false;
           break;
         
         default:
           println(" = unknown arg!");
       }
+    }
+  }else{
+    File mainAsm = new File(sketchPath("main.asm")); // if run from the IDE, we'll either auto run a "main.asm" in the root dir...
+    if(mainAsm.exists()){
+      PathReturn filename = splitFilepath("main.asm");
+      CurrentDirectory = filename;
+      println(" " + filename + " [" + filename.Reverse + "]");
+      _outputFile = filename.getPath() + filename.Name + ".obj";
+      getNewFile(splitFilepath(sketchPath()), filename);
+      _exit = false; // don't exit...
+      _run = true; // ...and begin processing the file
+    }else{
+      selectInput("Select a file to preprocess:", "fileSelected"); // ...or enable selecting a file via the file browser
+      _exit = false; // don't exit...
+      _run = false; // ...and wait for file to be selected
     }
   }
   
@@ -111,40 +135,62 @@ void setup(){
     println("\tOutput filename will be <input-filename>.obj");
     println("\t#include's will be opened and concatenated into a single output file.");
   }else{
-    _output.append("; This .obj file was produced by: " + _program_name + " " + _VERSION); // append some data to the start of the output file
-    _output.append("; " + getLabelUUID());
-    _output.append(""); _output.append("");
-    
-    updateVariable("__concatenateFiles", "true");
-    updateVariable("__maintainComments", "false");
-    updateVariable("__showLines", "false");
-    updateVariable("__hyperVerboseOutput", "false");
-    updateVariable("__initEmptyStacks", "false");
-    
-    updateVariable("__ext_db", "\t#d8");
-    updateVariable("__ext_db_wrapStart", "((");
-    updateVariable("__ext_db_wrapEnd", ")`8)");
-    updateVariable("__ext_dw", "\t#d16");
-    updateVariable("__ext_dw_wrapStart", "((");
-    updateVariable("__ext_dw_wrapEnd", ")`16)");
-    updateVariable("__ext_drw", "\t#d16");
-    updateVariable("__ext_drw_wrapStart", "le((");
-    updateVariable("__ext_drw_wrapEnd", ")`16)");
-    
-    processInput(0, ParseState.Entry);
-    
-    print("Stacks: "); printArray(Stacks);
-    print("Variables: "); printArray(_Vars);
-    println("Output file: " + _outputFile);
-    saveStrings(_outputFile, _output.toArray());
-    
-    print("Total Macros: " + Macros.size());printArray(Macros);
-    println("Total Macro Args Pushed: " + MacroArgsStack.size()); // should be 0 when done
+    if(_run == true){
+      startProcess();
+      exit();
+    }
   }
+}
+
+void startProcess(){
+  int time = millis();
   
-  testRPN();
+  _output.append("; This .obj file was produced by: " + _program_name + " " + _VERSION); // append some data to the start of the output file
+  _output.append("; " + getLabelUUID());
+  _output.append(""); _output.append("");
+  
+  updateVariable("__concatenateFiles", "true");
+  updateVariable("__maintainComments", "false");
+  updateVariable("__showLines", "false");
+  updateVariable("__hyperVerboseOutput", "false");
+  updateVariable("__initEmptyStacks", "false");
+  
+  updateVariable("__ext_db", "\t#d8");
+  updateVariable("__ext_db_wrapStart", "((");
+  updateVariable("__ext_db_wrapEnd", ")`8)");
+  updateVariable("__ext_dw", "\t#d16");
+  updateVariable("__ext_dw_wrapStart", "((");
+  updateVariable("__ext_dw_wrapEnd", ")`16)");
+  updateVariable("__ext_drw", "\t#d16");
+  updateVariable("__ext_drw_wrapStart", "le((");
+  updateVariable("__ext_drw_wrapEnd", ")`16)");
+  
+  processInput(0, ParseState.Entry);
+  
+  print("Stacks: "); printArray(Stacks);
+  print("Variables: "); printArray(_Vars);
+  println("Output file: " + _outputFile);
+  saveStrings(_outputFile, _output.toArray());
+  
+  print("Total Macros: " + Macros.size());printArray(Macros);
+  println("Total Macro Args Pushed: " + MacroArgsStack.size()); // should be 0 when done
+  
   println("program ran for: " + (millis() - time) + " millis.");
-  exit();
+}
+
+void fileSelected(File selection){
+  if(selection == null){
+    println("Did not select file to process");
+    exit();
+  }else{
+    PathReturn filename = splitFilepath(selection.getName());
+    CurrentDirectory = filename;
+    println(" " + filename + " [" + filename.Reverse + "]");
+    _outputFile = new File(selection.getParent(), filename.Name + ".obj").toString();
+    getNewFile(splitFilepath(selection.getParent()), filename);
+    startProcess();
+    exit();
+  }
 }
 
 FileHolder getFile(){
