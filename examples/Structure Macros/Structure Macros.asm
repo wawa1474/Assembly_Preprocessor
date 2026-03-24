@@ -2,6 +2,7 @@
 ; Ported to work with Assembly Preprocessor's odd syntax and eccentricities
 ; Contents of this file use a different licence as compared to the main project, specifically: CC BY-SA 4.0 -- [https://creativecommons.org/licenses/by-sa/4.0/]
 
+.let strucMacVer = "1.0.0"
 
 ;                         +--------------------------+
 ;                         |  IF_xx...ELSE_...END_IF  |
@@ -403,21 +404,28 @@
 \#{label, tmpMacroLabel, forNextLabel_\${*}}: ; (Addr of top of loop for NEXT to branch back up to.)
 \^{push, forNextControl, \%{limit}}           ; (This is used by NEXT.)
 \^{push, forNextControl, \&{tmpMacroLabel}}
+\^{push, forNextControl, \%{var_name}}
 .endm
 ;----------------
 
 
 .macro NEXT var_name
-	INC   \%{var_name}
+.let tmpNextVar = \^{pop, forNextControl}
+.if \%{var_name} != null
+	.if \%{var_name} != \&{tmpNextVar}
+		\!{"Mismatched vars! \%{var_name} != \&{tmpNextVar}"}
+	.endif
+.endif
+	INC   \&{tmpNextVar}
 .let tmpMacroLabel = nextBne_\${*}
 	BNE   \&{tmpMacroLabel}
-	INC   \%{var_name} + 1
+	INC   \&{tmpNextVar} + 1
 \&{tmpMacroLabel}:
-	LDA  \%{var_name}
-	CMP  #<\#{NOS, forNextControl} + 1  ; If the incremented variable is not 1 past the limit,
-	BNE  \#{TOS, forNextControl}        ; then branch to the top of the loop again.
-	LDA  \%{var_name} + 1
-	CMP  #>\#{NOS, forNextControl} + 1
+	LDA  \&{tmpNextVar}
+	CMP  #<\^{NOS, forNextControl} + 1  ; If the incremented variable is not 1 past the limit,
+	BNE  \^{TOS, forNextControl}        ; then branch to the top of the loop again.
+	LDA  \&{tmpNextVar} + 1
+	CMP  #>\^{NOS, forNextControl} + 1
 	BNE  \^{pop, forNextControl}        ; Watch the branch distance.
 	\#{drop, forNextControl}
                                         ; If, after being incremented, the specified variable
@@ -643,7 +651,8 @@
 
 ; .let accTmpLabel = accTmpLabel_\${*} ; temporary label used by accessory macros
 
-.macro RTS COND ; Takes 1 more byte than conditionally branching to the nearest RTS already there.
+; using RTS_ because RTS is an assembly mnemonic...
+.macro RTS_ COND ; Takes 1 more byte than conditionally branching to the nearest RTS already there.
 .let accTmpLabel = accTmpLabel_\${*}
 	.switch \%{COND} ; Timing is the same, whether 3 bytes & 8 clocks for the macro or 2 bytes & 8 without the macro.
 		.case == Z_SET
