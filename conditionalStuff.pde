@@ -10,7 +10,7 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
   VariableReturn firstVar = parseVariables(firstToken.string);
   VariableReturn secondVar = parseVariables(secondToken.string);
   //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
-  if(firstToken.string.equals("") || action.equals("") || secondToken.string.equals("")){ return default_; }
+  if(firstToken.string.equals("")){ return default_; } // || action.equals("") || secondToken.string.equals("")
   
   if(firstVar.Number && secondVar.Number){
     VariableReturn thirdVar = thirdToken == null ? null : parseVariables(thirdToken.string);
@@ -23,8 +23,12 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
       case "!=":
         return !firstVar.String.equals(secondVar.String);
       
-      case "": // check if var is defined
-        return _Vars.hasKey(firstToken.string);
+      case "": // check if firstVar.String is true/false, or if firstToken.string is a defined variable
+        switch(firstVar.String){
+          case "true": return true;
+          case "false": return false;
+          default: return _Vars.hasKey(firstToken.string);
+        }
       
       default:
         return default_;

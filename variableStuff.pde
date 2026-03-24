@@ -6,6 +6,8 @@ enum VariableType{
   Byte, // for db (Define Byte)
   Word, // for dw (Define Word)
   RWord, // for drw (Define Reverse Word)
+  Struct, // struct with named members (variables)
+  Array, // array of unnamed variables
   Argument, // macro argument
   Variable, // global variable
   Function, // built-in function
@@ -62,23 +64,24 @@ class VariableReturn{
   }
   
   String type(){
-    switch(Type){
-      case Integer: return "Integer";
-      case Float: return "Float";
-      case Argument: return "Argument";
-      case Variable: return "Variable";
-      case Function: return "Function";
-      case Error: return "Error";
-      case String:  return "String";
-      case Char:  return "Char";
-      default: return "Unkown";
-    }
+    return Type.name();
+    //switch(Type){
+    //  case Integer: return "Integer";
+    //  case Float: return "Float";
+    //  case Argument: return "Argument";
+    //  case Variable: return "Variable";
+    //  case Function: return "Function";
+    //  case Error: return "Error";
+    //  case String:  return "String";
+    //  case Char:  return "Char";
+    //  default: return "Unkown";
+    //}
   }
   
   String toString(){
     switch(Type){
-      case Integer: return "" + Integer;
-      case Float: return "" + Float;
+      case Integer: return str(Integer);
+      case Float: return str(Float);
       case Argument:
       case Variable:
       case Function:
@@ -312,6 +315,7 @@ String getBuiltin(String name){
 
 VariableReturn parseVariables(String line){ // going through entire line to convert remaining bits into final output
   if(hyperVerboseOutput){ println("parseVariables: " + line); }
+  if(line == null){ return null; } // new VariableReturn("");
   String value = "";
   
   for(int i = 0; i < line.length(); i++){

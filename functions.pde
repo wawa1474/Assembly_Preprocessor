@@ -93,6 +93,9 @@ String parseFunction(String input){
       output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       break;
     
+    //case "args": // get multiple macro args by index using ruby syntax? [1..4,10..8] == [1,2,3,4,10,9,8]
+      //break;
+    
     case "pushTmp": // save a global var to the stack and set it to a tmp value
       _TmpGlobalVars.put(args[1].Name,_Vars.get(args[1].Name));
       updateVariable(args[1].Name, args[2].Name);
@@ -133,12 +136,21 @@ String parseFunction(String input){
       args[1].Name = stripStr(args[1].Name);
       args[2].Name = stripStr(args[2].Name);
       boolean cond = false;
-      boolean checkEqu = false;
-      boolean invertEqu = false;
+      String func = args[1].Name;
+      boolean funcSet = false;
       String[] v1 = splitVersion(args[2].Name);
       
+      int checkLength = _version.length;
+      for(int i = 0; i < _version.length; i++){
+        if(_version[i] == null){
+          checkLength = i;
+          break;
+        }
+      }
+      checkLength = min(checkLength, v1.length);
+      
       boolean equ = true;
-      for(int i = 0; i < v1.length; i++){
+      for(int i = 0; i < checkLength; i++){
         equ &= v1[i].equals(_version[i]); // _version == v1
       }
       
@@ -152,55 +164,59 @@ String parseFunction(String input){
           break;
         
         case ">=": // greater than or equal
+          func = ">";
+          funcSet = true;
         case "<=": // less than or equal
-          checkEqu = true;
+          if(equ == true){ cond = true; break; }
+          if(funcSet == false){ func = "<"; }
         case ">": // greater than
         case "<": // less than
           //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name);
-          for(int i = 0; i < v1.length; i++){
+          for(int i = 0; i < checkLength; i++){
             if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), null, false)){
               cond = true;
               break; // break out of loop
             }
             //println(_version[i] + " " + args[1].Name + " " + v1[i] + " = " + cond + " / " + equ);
           }
-          //println(args[1].Name + " = " + cond + " / " + equ);
-          
-          if(checkEqu){
-            cond |= equ; // only for >= or <=
-          }
           break;
         
         case "<!=>": // not between or equal
-          invertEqu = true;
         case "<=>": // between or equal
-          checkEqu = true;
         case "<!>": // not between
         case "<>": // between
           if(args.length < 4){ output = "\\!{checkVer: not enough args " + (args.length-1) + " is < 3}"; break; }
           args[3].Name = stripStr(args[3].Name);
           String[] v2 = splitVersion(stripStr(args[3].Name));
+          checkLength = min(checkLength, v2.length);
           
-          boolean equ2 = true;
-          for(int i = 0; i < v2.length; i++){
-            equ2 &= v2[i].equals(_version[i]); // _version == v2
-          }
-          equ |= equ2; // _version == v1 || _version == v2
-          
-          //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
-          for(int i = 0; i < v1.length; i++){
-            if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), parseVariables(v2[i]), false)){
-              cond = true;
-              break; // break out of loop
-            }
+          boolean[] equEach = new boolean[checkLength];
+          boolean eq2 = true;
+          for(int i = 0; i < checkLength; i++){
+            equEach[i] = v1[i].equals(_version[i]) | v2[i].equals(_version[i]);
+            eq2 &= equEach[i];
           }
           
-          if(checkEqu){ // only for <=> or <!=>
-            if(invertEqu){
-              cond &= !equ; // <!=>
-            }else{
-              cond |= equ; // <=>
-            }
+          switch(args[1].Name){ // ugly hack, but it works...
+            case "<!=>": // not between or equal
+              if(equ == true || eq2 == true){ cond = false; break; }
+              func = "<!>";
+              funcSet = true;
+            case "<=>": // between or equal
+              if(funcSet == false){
+                if(equ == true || eq2 == true){ cond = true; break; }
+                func = "<>";
+              }
+            case "<!>": // not between
+            case "<>": // between
+              //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
+              for(int i = 0; i < checkLength; i++){
+                if(equEach[i] == false && checkCondition(parseVariables(_version[i]), func, parseVariables(v1[i]), parseVariables(v2[i]), false)){
+                  cond = true;
+                  break; // break out of loop
+                }
+              }
+              break;
           }
           break;
       }
