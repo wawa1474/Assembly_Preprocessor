@@ -132,95 +132,13 @@ String parseFunction(String input){
       break;
     
     case "checkVer":
-      if(args.length < 3){ output = "\\!{checkVer: not enough args " + (args.length-1) + "is < 2}"; break; }
-      args[1].Name = stripStr(args[1].Name);
-      args[2].Name = stripStr(args[2].Name);
-      boolean cond = false;
-      String func = args[1].Name;
-      boolean funcSet = false;
-      String[] v1 = splitVersion(args[2].Name);
-      
-      int checkLength = _version.length;
-      for(int i = 0; i < _version.length; i++){
-        if(_version[i] == null){
-          checkLength = i;
-          break;
-        }
-      }
-      checkLength = min(checkLength, v1.length);
-      
-      boolean equ = true;
-      for(int i = 0; i < checkLength; i++){
-        equ &= v1[i].equals(_version[i]); // _version == v1
-      }
-      
-      switch(args[1].Name){
-        case "!=": // not same
-          cond = !equ;
-          break;
-        
-        case "==": // same
-          cond = equ;
-          break;
-        
-        case ">=": // greater than or equal
-          func = ">";
-          funcSet = true;
-        case "<=": // less than or equal
-          if(equ == true){ cond = true; break; }
-          if(funcSet == false){ func = "<"; }
-        case ">": // greater than
-        case "<": // less than
-          //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name);
-          for(int i = 0; i < checkLength; i++){
-            if(checkCondition(parseVariables(_version[i]), args[1].Name, parseVariables(v1[i]), null, false)){
-              cond = true;
-              break; // break out of loop
-            }
-            //println(_version[i] + " " + args[1].Name + " " + v1[i] + " = " + cond + " / " + equ);
-          }
-          break;
-        
-        case "<!=>": // not between or equal
-        case "<=>": // between or equal
-        case "<!>": // not between
-        case "<>": // between
-          if(args.length < 4){ output = "\\!{checkVer: not enough args " + (args.length-1) + " is < 3}"; break; }
-          args[3].Name = stripStr(args[3].Name);
-          String[] v2 = splitVersion(stripStr(args[3].Name));
-          checkLength = min(checkLength, v2.length);
-          
-          boolean[] equEach = new boolean[checkLength];
-          boolean eq2 = true;
-          for(int i = 0; i < checkLength; i++){
-            equEach[i] = v1[i].equals(_version[i]) | v2[i].equals(_version[i]);
-            eq2 &= equEach[i];
-          }
-          
-          switch(args[1].Name){ // ugly hack, but it works...
-            case "<!=>": // not between or equal
-              if(equ == true || eq2 == true){ cond = false; break; }
-              func = "<!>";
-              funcSet = true;
-            case "<=>": // between or equal
-              if(funcSet == false){
-                if(equ == true || eq2 == true){ cond = true; break; }
-                func = "<>";
-              }
-            case "<!>": // not between
-            case "<>": // between
-              //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
-              for(int i = 0; i < checkLength; i++){
-                if(equEach[i] == false && checkCondition(parseVariables(_version[i]), func, parseVariables(v1[i]), parseVariables(v2[i]), false)){
-                  cond = true;
-                  break; // break out of loop
-                }
-              }
-              break;
-          }
-          break;
-      }
-      if(output.length() == 0){ output = str(cond); }
+      if(args.length < 3){ return "\\!{checkVer: not enough args " + (args.length-1) + "is < 2}"; }
+      output = compareVersions(_VERSION, args[1].Name, args[2].Name, args.length > 3 ? args[3].Name : "");
+      break;
+    
+    case "compareVer":
+      if(args.length < 4){ return "\\!{compareVer: not enough args " + (args.length-1) + "is < 3}"; }
+      output = compareVersions(args[1].Name, args[2].Name, args[3].Name, args.length > 4 ? args[4].Name : "");
       break;
     
     case "formatStr":

@@ -16,6 +16,99 @@ String[] splitVersion(String input){
   return tmp;
 }
 
+String compareVersions(String version, String action, String first, String second){
+  if(hyperVerboseOutput){ println("compareVersions: " + version + " " + action + " " + first + " " + second); }println("compareVersions: " + version + " " + action + " " + first + " " + second);
+  action = stripStr(action);
+  first = stripStr(first);
+  boolean cond = false;
+  boolean funcSet = false;
+  String[] v1 = splitVersion(first);
+  
+  String[] verArr = splitVersion(version);
+  int checkLength = verArr.length;
+  for(int i = 0; i < verArr.length; i++){
+    if(verArr[i] == null){
+      checkLength = i;
+      break;
+    }
+  }
+  checkLength = min(checkLength, v1.length);
+  
+  boolean equ = true;
+  for(int i = 0; i < checkLength; i++){
+    equ &= v1[i].equals(verArr[i]); // _version == v1
+  }
+  
+  switch(action){
+    case "!=": // not same
+      cond = !equ;
+      break;
+    
+    case "==": // same
+      cond = equ;
+      break;
+    
+    case ">=": // greater than or equal
+      action = ">";
+      funcSet = true;
+    case "<=": // less than or equal
+      if(equ == true){ cond = true; break; }
+      if(funcSet == false){ action = "<"; }
+    case ">": // greater than
+    case "<": // less than
+      //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name);
+      for(int i = 0; i < checkLength; i++){
+        if(checkCondition(parseVariables(verArr[i]), action, parseVariables(v1[i]), null, false)){
+          cond = true;
+          break; // break out of loop
+        }
+        //println(_version[i] + " " + args[1].Name + " " + v1[i] + " = " + cond + " / " + equ);
+      }
+      break;
+    
+    case "<!=>": // not between or equal
+    case "<=>": // between or equal
+    case "<!>": // not between
+    case "<>": // between
+      if(second == null){ return "\\!{check/compareVer: not enough args " + (args.length-1) + " is < 3/4}"; }
+      second = stripStr(second);
+      String[] v2 = splitVersion(stripStr(second));
+      checkLength = min(checkLength, v2.length);
+      
+      boolean[] equEach = new boolean[checkLength];
+      boolean eq2 = true;
+      for(int i = 0; i < checkLength; i++){
+        equEach[i] = v1[i].equals(verArr[i]) | v2[i].equals(verArr[i]);
+        eq2 &= equEach[i];
+      }
+      
+      switch(action){ // ugly hack, but it works...
+        case "<!=>": // not between or equal
+          if(equ == true || eq2 == true){ cond = false; break; }
+          action = "<!>";
+          funcSet = true;
+        case "<=>": // between or equal
+          if(funcSet == false){
+            if(equ == true || eq2 == true){ cond = true; break; }
+            action = "<>";
+          }
+        case "<!>": // not between
+        case "<>": // between
+          //println("checkVer: " + _VERSION + " " + args[1].Name + " " + args[2].Name + ", " + args[3].Name);
+          for(int i = 0; i < checkLength; i++){
+            if(equEach[i] == false && checkCondition(parseVariables(verArr[i]), action, parseVariables(v1[i]), parseVariables(v2[i]), false)){
+              cond = true;
+              break; // break out of loop
+            }
+          }
+          break;
+      }
+      break;
+  }
+  
+  return str(cond);
+}
+
 String getLabelUUID(){
   return UUID.randomUUID().toString().replace('-', '_');
 }
