@@ -458,6 +458,22 @@ String parseStackFunction(String input){
               output = "\\!{parseStackFunction:2over.underflow, " + sName + "}";
             }
             break;
+          
+          case "1+": // (v1 - v1)
+            if(len >= 1){
+              g_POKE(sName, str(parseVariables(g_PEEK(sName)).Integer + 1), 0);
+            }else{
+              output = "\\!{parseStackFunction:1+.underflow, " + sName + "}";
+            }
+            break;
+          
+          case "1-": // (v1 - v1)
+            if(len >= 1){
+              g_POKE(sName, str(parseVariables(g_PEEK(sName)).Integer - 1), 0);
+            }else{
+              output = "\\!{parseStackFunction:1-.underflow, " + sName + "}";
+            }
+            break;
         }
       }else{ // stack is empty
         switch(args[0].Name){

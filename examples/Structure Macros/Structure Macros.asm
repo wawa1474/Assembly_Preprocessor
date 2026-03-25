@@ -2,7 +2,7 @@
 ; Ported to work with Assembly Preprocessor's odd syntax and eccentricities
 ; Contents of this file use a different licence as compared to the main project, specifically: CC BY-SA 4.0 -- [https://creativecommons.org/licenses/by-sa/4.0/]
 
-.let strucMacVer = "1.0.0"
+.let strucMacVer = "1.1.0"
 
 ;                         +--------------------------+
 ;                         |  IF_xx...ELSE_...END_IF  |
@@ -322,15 +322,19 @@
 \^{createStack, switchReg} ; ACCUM, X_REG, or Y_REG. This gets recorded by SWITCH, getting the macro parameter value.
 \^{createStack, switchCaseEndLabel} ; This gets used by CASE and BREAK(_) to temporarily store a label to bra to
 \^{createStack, switchEndLabel} ; this if used by BREAK to jmp to ENDSW
+\^{createStack, switchRangeSet} ; this if used by RANGE_OF and SET_OF to remember their inputs after recursive usage
 
 .macro SWITCH reg ; reg is ACCUM, X_REG, or Y_REG
 \^{push, switchReg, \%{reg}} ; so the CASE's will know whether to use CMP, CPX, or CPY.
 \^{push, switchEndLabel, caseEnd_\${*}} ; make a unique label for BREAK to jump to ENDSW
+.let caseTmpLabel = caseEndOf_\${*}
+\^{push, switchCaseEndLabel, \&{caseTmpLabel}}
 .endm                   ; Note that the SWITCH macro does not add even a single byte of machine code.
 ;-----------------
 
 
 .macro CASE Nr_to_comp_to          ; Note that as written here, the same register (A, X, or Y) must have
+\^{drop, switchCaseEndLabel} ; drop excess stack value from SWITCH or CASE that fell through
 	.switch \^{peek, switchReg}    ; the right number every time CASE is encountered.  This is normally
 		.case == ACCUM             ; not a problem if no action is taken until a case match if found;
 			cmp #\%{Nr_to_comp_to} ; but if you have any reason to put code between a BREAK and the
@@ -349,7 +353,36 @@
 ;----------------
 
 
-.macro BREAK
+.macro SET_OF ; similar to CASE, but uses a 'set' of values, replacing multiple CASEs
+; SET 1, 4, 6
+\^{push, switchRangeSet, \${argc}}
+\^{push, switchRangeSet, 0}
+	.begin
+	.while \^{TOS, switchRangeSet} < \^{NOS, switchRangeSet}
+		CASE \#{arg, \^{TOS, switchRangeSet}} ; get each value from arg list and reuse CASE to lay down code
+		\^{1+, switchRangeSet} ; next arg index
+	.repeat
+\^{2drop, switchRangeSet}
+.endm
+;----------------
+
+
+.macro RANGE_OF from, dummy, to ; similar to CASE, but uses a 'range' of values, replacing multiple CASEs
+; RANGE 1, to, 6
+\^{push, switchRangeSet, \%{to}}
+\^{push, switchRangeSet, \%{from}}
+	.let index == \%{from}
+	.begin
+	.while \^{TOS, switchRangeSet} <= \^{NOS, switchRangeSet}
+		CASE \^{TOS, switchRangeSet} ; while index is <= %to, reuse CASE to lay down code
+		\^{1+, switchRangeSet} ; next arg index
+	.repeat
+\^{2drop, switchRangeSet}
+.endm
+;----------------
+
+
+.macro BREAK ; BREAK can be omitted to allow one CASE to fall into another, or if it's the final CASE
 	jmp \^{peek, switchEndLabel} ; First assemble the jump to the ENDSW for if the condition was met.
 \^{pop, switchCaseEndLabel}:       ; Then pull and lay down bra target for preceeding CASE
 .endm ; (CASEs use relative branching to the BREAK, whereas BREAK will use JMP.
@@ -651,8 +684,8 @@
 
 ; .let accTmpLabel = accTmpLabel_\${*} ; temporary label used by accessory macros
 
-; using RTS_ because RTS is an assembly mnemonic...
-.macro RTS_ COND ; Takes 1 more byte than conditionally branching to the nearest RTS already there.
+; using RTS_IF because RTS is an assembly mnemonic...
+.macro RTS_IF COND ; Takes 1 more byte than conditionally branching to the nearest RTS already there.
 .let accTmpLabel = accTmpLabel_\${*}
 	.switch \%{COND} ; Timing is the same, whether 3 bytes & 8 clocks for the macro or 2 bytes & 8 without the macro.
 		.case == Z_SET
@@ -734,6 +767,50 @@
 \&{accTmpLabel}:
 .endm
 ;------------------
+
+
+.macro BRL COND, ADDR ; conditional Long BRanches to more than -128/+127 bytes away
+.let accTmpLabel = accTmpLabel_\${*}
+	.switch \%{COND}
+		.case == Z_SET
+		.case == EQ
+		.case == ZERO
+			BNE \&{accTmpLabel} ; cond was not met, so BRA past the JMP
+			.break
+		.case == Z_CLR
+		.case == NEQ
+		.case == NOT_ZERO
+			BEQ \&{accTmpLabel}
+			.break
+		.case == N_SET
+		.case == NEG
+		.case == MINUS
+			BPL \&{accTmpLabel}
+			.break
+		.case == N_CLR
+		.case == POS
+		.case == PLUS
+			BMI \&{accTmpLabel}
+			.break
+		.case == C_SET
+		.case == GE
+			BCC \&{accTmpLabel}
+			.break
+		.case == C_CLR
+		.case == LT
+			BCS \&{accTmpLabel}
+			.break
+		.case == V_SET
+			BVC \&{accTmpLabel}
+			.break
+		.case == V_CLR
+			BVS \&{accTmpLabel}
+			.break
+	.endsw
+	JMP \%{ADDR} ; cond was met, so jump to the addr
+\&{accTmpLabel}: ; label to BRA to if cond is not met
+.endm
+;----------------
 
 
 
