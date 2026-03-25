@@ -1,19 +1,15 @@
-boolean checkIf(String line, int index, boolean default_){
-  TokenReturn firstToken = getNextToken(line, index);
-  TokenReturn action = getNextToken(line, firstToken.nextIndex);
-  TokenReturn secondToken = getNextToken(line, action.nextIndex);
-  TokenReturn thirdToken = getNextToken(line, secondToken.nextIndex);
-  return checkIf(firstToken, action.string, secondToken, thirdToken, default_);
+boolean checkIf(boolean default_){
+  return checkIf(getNextToken().string, getNextToken().string, getNextToken().string, getNextToken().string, default_);
 }
 
-boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, TokenReturn thirdToken, boolean default_){
-  VariableReturn firstVar = parseVariables(firstToken.string);
-  VariableReturn secondVar = parseVariables(secondToken.string);
-  //println("checkIf: [" + firstToken.string + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")");
-  if(firstToken.string.equals("")){ return default_; } // || action.equals("") || secondToken.string.equals("")
+boolean checkIf(String firstToken, String action, String secondToken, String thirdToken, boolean default_){
+  VariableReturn firstVar = parseVariables(firstToken);
+  VariableReturn secondVar = parseVariables(secondToken);
+  if(hyperVerboseOutput){ println("checkIf: [" + firstToken + "](" + firstVar + ") " + action + " [" + secondToken + "](" + secondVar + ")"); }
+  if(firstToken.equals("")){ return default_; } // || action.equals("") || secondToken.string.equals("")
   
   if(firstVar.Number && secondVar.Number){
-    VariableReturn thirdVar = thirdToken == null ? null : parseVariables(thirdToken.string);
+    VariableReturn thirdVar = thirdToken == null ? null : parseVariables(thirdToken);
     return checkCondition(firstVar, action, secondVar, thirdVar, default_);
   }else{
     switch(action){
@@ -27,7 +23,7 @@ boolean checkIf(TokenReturn firstToken, String action, TokenReturn secondToken, 
         switch(firstVar.String){
           case "true": return true;
           case "false": return false;
-          default: return _Vars.hasKey(firstToken.string);
+          default: return _Vars.hasKey(firstToken);
         }
       
       default:
@@ -105,13 +101,13 @@ int compare(VariableReturn one, VariableReturn two){ // -(one < two), 0(one == t
   }
 }
 
-boolean checkCase(String line, int index){
+boolean checkCase(){
   //VariableReturn switchValue = parseVariables(peekMacroArgs()[0]);
   int state = 0;
   StringList output = new StringList();
   
-  TokenReturn token = getNextToken(line, index);
-  for(; index < line.length() && state != -1; index++){
+  TokenReturn token = getNextToken();
+  for(; CurrentInputIndex < CurrentLineInput.length() && state != -1; CurrentInputIndex++){
     switch(state){
       case 0:
         switch(token.string){
@@ -119,7 +115,7 @@ boolean checkCase(String line, int index){
             state = 1;
             break;
           default: // must be a single value
-            if(CurrentMacroArgs != null){ return checkIf(new TokenReturn(CurrentMacroArgs[0].Name, 0), "==", token, null, false); }
+            if(CurrentMacroArgs != null){ return checkIf(CurrentMacroArgs[0].Name, "==", token.string, null, false); }
             else{ return false; }
         }
         break;

@@ -102,8 +102,8 @@ class FileHolder{
   }
 }
 
-void checkIncludeFile(String line, int index){
-  getNewFile(getFile().file, getNextToken(line,index).string);
+void checkIncludeFile(){
+  getNewFile(getFile().file, getNextToken().string);
 }
 
 PathReturn splitFilepath(String file){

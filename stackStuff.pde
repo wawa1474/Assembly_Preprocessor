@@ -1,15 +1,15 @@
-void doIf(String line, TokenReturn token, int depth_){
+void doIf(int depth_){
   incIndex(); // skip the .if line
-  processInput(depth_+1, checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False);
+  processInput(depth_+1, checkIf(false) ? ParseState.If_True : ParseState.If_False);
 }
 
-ParseState checkElseIf(String line, TokenReturn token){
-  return checkIf(line, token.nextIndex, false) ? ParseState.If_True : ParseState.If_False;
+ParseState checkElseIf(){
+  return checkIf(false) ? ParseState.If_True : ParseState.If_False;
 }
 
-ParseState checkCase(String line, TokenReturn token, ParseState state){
-  token = getNextToken(line, token.nextIndex);
-  if(checkIf(new TokenReturn(peekSwitchArg(), 0), token.string, getNextToken(line, token.nextIndex), null, false)){
+ParseState checkCase(ParseState state){
+  TokenReturn token = getNextToken();
+  if(checkIf(peekSwitchArg(), token.string, getNextToken().string, null, false)){
     return ParseState.Switch_Taken;
   }
   return state;
@@ -21,15 +21,16 @@ void pushMacroArgs(MacroArg[] args){
 
 MacroArg[] popMacroArgs(){
   if(MacroArgsStack == null || MacroArgsStack.size() == 0){ return null; }
-  return MacroArgsStack.remove(MacroArgsStack.size() - 1);
+  MacroArg[] tmp = MacroArgsStack.remove(MacroArgsStack.size() - 1);
+  return tmp != null ? tmp.clone() : null;
 }
 
 Worker popWorker(){
   return Workers.remove(Workers.size() - 1);
 }
 
-void doSwitch(String line, TokenReturn token, int depth_){
-  pushSwitchArg(getNextToken(line, token.nextIndex).string);
+void doSwitch(int depth_){
+  pushSwitchArg(getNextToken().string);
   incIndex();
   processInput(depth_+1, ParseState.Switch_Look);
 }

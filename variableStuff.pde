@@ -12,6 +12,7 @@ enum VariableType{
   Variable, // global variable
   Function, // built-in function
   StackFunction, // stack function
+  FileFunction, // file functions
   Builtin, // built-in variables
   Error, // error output
 }
@@ -92,15 +93,11 @@ class VariableReturn{
   }
 }
 
-void parseLet(String line, int index){
-  TokenReturn variable = getNextToken(line, index);
-  TokenReturn action = getNextToken(line, variable.nextIndex);
-  TokenReturn value = getNextToken(line, action.nextIndex);
-  
-  parseLet(variable.string, action.string, value);
+void parseLet(){
+  parseLet(getNextToken().string, getNextToken().string, getNextToken().string);
 }
 
-void parseLet(String variable, String action, TokenReturn secondToken){
+void parseLet(String variable, String action, String secondToken){
   switch(action){
     case "++":
       updateVariable(variable, str(parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0").Integer + 1));
@@ -112,22 +109,22 @@ void parseLet(String variable, String action, TokenReturn secondToken){
   }
   
   VariableReturn firstVar = parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0");
-  VariableReturn secondVar = parseVariables(secondToken.string);
-  if(hyperVerboseOutput){ println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken.string + "](" + secondVar + ")"); }
+  VariableReturn secondVar = parseVariables(secondToken);
+  if(hyperVerboseOutput){ println("parseLet: [" + variable + "](" + firstVar + ") " + action + " [" + secondToken + "](" + secondVar + ")"); }
   
   if(firstVar.Number && secondVar.Number){
     switch(firstVar.Type){
       case Integer:
         switch(secondVar.Type){
-          case Integer: updateVariable(variable, "" + parseLet(firstVar.Integer, action, secondVar.Integer)); break;
-          case Float: updateVariable(variable, "" + parseLet(firstVar.Integer, action, secondVar.Float)); break;
+          case Integer: updateVariable(variable, str(parseLet(firstVar.Integer, action, secondVar.Integer))); break;
+          case Float: updateVariable(variable, str(parseLet(firstVar.Integer, action, secondVar.Float))); break;
           default: break;
         }
         break;
       case Float:
         switch(secondVar.Type){
-          case Integer: updateVariable(variable, "" + parseLet(firstVar.Float, action, secondVar.Integer)); break;
-          case Float: updateVariable(variable, "" + parseLet(firstVar.Float, action, secondVar.Float)); break;
+          case Integer: updateVariable(variable, str(parseLet(firstVar.Float, action, secondVar.Integer))); break;
+          case Float: updateVariable(variable, str(parseLet(firstVar.Float, action, secondVar.Float))); break;
           default: break;
         }
         break;
@@ -284,7 +281,7 @@ String getBuiltin(String name){
     case "@": return str(getIndex()); // get current file index
     case "*": return str(_output.size() + 1); // get total output line count
     case "filename": return CurrentWorker.File.file.Name; // get current file name
-    case "argc": return str(CurrentMacroArgs.length); // how many args does this macro instance have?
+    case "argc": return str(CurrentMacroArgs != null ? CurrentMacroArgs.length : 0); // how many args does this macro instance have?
     case "versionMajor": return _version_major; // allow getting the version of the program
     case "versionMinor": return _version_minor; // allow getting the version of the program
     case "versionPatch": return _version_patch; // allow getting the version of the program

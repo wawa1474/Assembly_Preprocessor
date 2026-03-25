@@ -89,7 +89,7 @@ String parseFunction(String input){
     
     case "arg": // get a macro arg by index
       //println("parseFunction:arg " + args[1].Name + " == " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
-      //printArray(CurrentMacroArgs);
+      println("parseFunction:arg ");printArray(CurrentMacroArgs);
       output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       break;
     
@@ -191,10 +191,12 @@ String parseStackFunction(String input){
           case "TOS":
           case "peek": // (TOS - TOS [TOS])
             output = g_PEEK(sName);
+            if(hyperVerboseOutput){ println("parseStackFunction.TOS: " + sName + " = " + output); }
             break;
           
           case "NOS": // (NOS TOS - NOS TOS [NOS])
             output = g_PEEK(sName, 1);
+            if(hyperVerboseOutput){ println("parseStackFunction.NOS: " + sName + " = " + output); }
             break;
           
           case "3RD": // (3RD NOS TOS - 3RD NOS TOS [3RD])
@@ -495,6 +497,34 @@ String parseStackFunction(String input){
         default: output = "\\!{parseStackFunction:" + args[0].Name + ".doesNotExist, " + sName + "}"; break; // stack does not exist error
       }
     }
+  }
+  
+  return output;
+}
+
+String parseFileFunction(String input){
+  if(hyperVerboseOutput){ println("parseFileFunction: " + input); }
+  MacroArg[] args = getMacroArgs(input, 0);
+  if(hyperVerboseOutput){ print("parseFileFunction:args = ");printArray(args); }
+  String output = "";
+  
+  switch(args[0].Name){
+    case "create": // create a new output file
+    case "open": // open a pre-existing file
+    case "close": // close and save a file early (will happen automatically at end of program)
+    case "get": // get an entry at index
+    case "set": // set an entry at index
+    case "clear": // remove all entries
+    case "size": // length of file (in lines!)
+    case "remove": // remove an entry at index
+    case "append": // add entry at end of file
+    case "hasValue": // check if a value is a part of the file
+    //case "sort": // free function from StringList
+    //case "sortReverse": // free function from StringList
+    //case "reverse": // free function from StringList
+    //case "shuffle": // free function from StringList
+    //case "lower": // free function from StringList
+    //case "upper": // free function from StringList
   }
   
   return output;

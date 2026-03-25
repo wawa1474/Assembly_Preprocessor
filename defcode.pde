@@ -147,12 +147,12 @@ String octalToHex(String input_){
   return hex(value,4);
 }
 
-void outputLine(String line, boolean skip){
-  if(hyperVerboseOutput){ println("outputLine: \"" + line + "\" = " + !skip); }
-  boolean empty = isLineEmpty(line);
+void outputLine(boolean skip){
+  if(hyperVerboseOutput){ println("outputLine: \"" + CurrentLineOutput + "\" = " + !skip); }
+  boolean empty = isLineEmpty(CurrentLineOutput);
   if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
   if(!skip && !empty){
-    String tmp = cleanComments(parseVariables(line).String);
+    String tmp = cleanComments(parseVariables(CurrentLineOutput).String);
     if(tmp != null && tmp.length() > 0){
       if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
       _output.append(tmp);
@@ -205,9 +205,10 @@ String cleanComments(String line){
 void cleanMultilineComments(){
   int depth = 0;
   for(; getIndex() < getFileLength(); incIndex()){
-    String line = getLine();
-    if(maintainComments){ _output.append("; " + line); }
-    TokenReturn token = getNextToken(line, 0);
+    CurrentLineInput = getLine();
+    if(maintainComments){ _output.append("; " + CurrentLineInput); }
+    CurrentInputIndex = 0;
+    TokenReturn token = getNextToken();
     switch(token.string){
       case "/*":
         depth++; // handle nested multiline comments
@@ -225,7 +226,7 @@ void cleanMultilineComments(){
     }
     
     //println(line + ":" + depth);
-    while(token.nextIndex < line.length()){ // handle multiline comments that exist on a single line
+    while(token.nextIndex < CurrentLineInput.length()){ // handle multiline comments that exist on a single line
       switch(token.string){
         case "/*":
           depth++; // handle nested multiline comments
@@ -241,7 +242,7 @@ void cleanMultilineComments(){
           }
           break; // end of current nested multiline comment
       }
-      token = getNextToken(line, token.nextIndex); // get next token on same line
+      token = getNextToken(); // get next token on same line
     }
   }
 }

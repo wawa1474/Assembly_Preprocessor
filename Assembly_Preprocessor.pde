@@ -32,6 +32,9 @@ String ext_drw_wrapStart = "le(("; // do we have to output something to signify 
 String ext_drw_wrapEnd = ")`16)";
 
 PathReturn CurrentDirectory; // current working directory for file includes...
+int CurrentInputIndex = 0;
+String CurrentLineInput; // current line from input being worked on
+String CurrentLineOutput; // current working line for output
 StringList _switch_Args = new StringList(); // stack for switch arguments
 ArrayList<String[]> _while_Args = new ArrayList<String[]>(); // stack for while loop arguments
 ArrayList<int[]> _begin_Args = new ArrayList<int[]>(); // stack for .begin .again .while .repeat
@@ -59,7 +62,7 @@ String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
 String _version_minor = "4";
 String _version_patch = "0";
-String _version_preRelease = "1";
+String _version_preRelease = "2";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch, _version_preRelease};
 void setup(){

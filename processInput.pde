@@ -15,74 +15,77 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
   int curDepth = depth_;
   
   for(; getIndex() < getFileLength(); incIndex()){
-    String line = getLine();
-    TokenReturn token = getNextToken(line,0);
+    CurrentLineInput = getLine();
+    CurrentLineOutput = CurrentLineInput;
+    CurrentInputIndex = 0;
+    TokenReturn token = getNextToken();
     if(token.string.length() > 0 && token.string.charAt(0) == ';'){ // skip comment-only lines
-      if(maintainComments){ _output.append(line); }
+      if(maintainComments){ _output.append(CurrentLineInput); }
       popFileIfLastLine();
       continue;
     }
     boolean skip = true;
-    if(hyperVerboseOutput){ println("[" + getIndex() + "]{" + state.name() + "}<" + token.string + "> " + line); }
+    if(hyperVerboseOutput){ println("[" + getIndex() + "]{" + state.name() + "}<" + token.string + "> " + CurrentLineInput); }
     
     switch(state){
       case Entry:
         switch(token.string){
-          case ".include": checkIncludeFile(line, token.nextIndex); break;
-          case ".if": doIf(line, token, depth_); break;
-          case ".let": parseLet(line, token.nextIndex); break; // let/set? - set a variable that can be modified
-          case ".equ": break; // equate - set a variable that can't be modified
-          case ".macro": buildMacro(line, token.nextIndex); break;
-          case ".switch": doSwitch(line, token, depth_); break;
+          case ".include": checkIncludeFile(); break;
+          case ".if": doIf(depth_); break;
+          case ".let": parseLet(); break; // let/set? - set a variable that can be modified
+          case ".equ": break; // equate - create a constant that can't be modified, outputs error if .let/.set/.equ afterwards
+          case ".set": break; // set a global variable, .let would become temporary variable setting
+          case ".macro": buildMacro(); break;
+          case ".switch": doSwitch(depth_); break;
           case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
           case ".org":
             storageOrigin = "dfsOrgLabel_" + getLabelUUID();
-            line = storageOrigin + " = " + getNextToken(line, token.nextIndex).string;
+            CurrentLineOutput = storageOrigin + " = " + getNextToken().string;
             storageOffset = 0;
             skip = false;
             break;
           case ".dfs":
-            token = getNextToken(line, token.nextIndex);
+            token = getNextToken();
             String name = token.string;
-            token = getNextToken(line, token.nextIndex);
+            token = getNextToken();
             String len = token.string;
             
-            line = name + " = " + // variable =
+            CurrentLineOutput = name + " = " + // variable =
               storageOrigin + " + " + // origin +
               storageOffset; // length
             storageOffset += tryInt(len).Integer;
             skip = false;
             break;
-          case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
-          case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;
-          case ".drw": line = handleDefineValue(line, token.nextIndex, VariableType.RWord); skip = false; break;
-          default: skip = checkMacros(token.string, line, token.nextIndex); break;
+          case ".db": CurrentLineOutput = handleDefineValue(VariableType.Byte); skip = false; break;
+          case ".dw": CurrentLineOutput = handleDefineValue(VariableType.Word); skip = false; break;
+          case ".drw": CurrentLineOutput = handleDefineValue(VariableType.RWord); skip = false; break;
+          default: skip = checkMacros(token.string); break;
         }
         break;
       
       case If_True: // if statement true
         switch(token.string){
-          case ".include": checkIncludeFile(line, token.nextIndex); break;
-          case ".if": doIf(line, token, depth_); break;
+          case ".include": checkIncludeFile(); break;
+          case ".if": doIf(depth_); break;
           case ".else": case ".elseif": state = ParseState.If_Skip; break;
           case ".endif": return;
-          case ".let": parseLet(line, token.nextIndex); break;
-          case ".macro": buildMacro(line, token.nextIndex); break;
-          case ".switch": doSwitch(line, token, depth_); break;
+          case ".let": parseLet(); break;
+          case ".macro": buildMacro(); break;
+          case ".switch": doSwitch(depth_); break;
           case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
-          case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
-          case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;
-          case ".drw": line = handleDefineValue(line, token.nextIndex, VariableType.RWord); skip = false; break;
-          default: skip = checkMacros(token.string, line, token.nextIndex); break;
+          case ".db": CurrentLineOutput = handleDefineValue(VariableType.Byte); skip = false; break;
+          case ".dw": CurrentLineOutput = handleDefineValue(VariableType.Word); skip = false; break;
+          case ".drw": CurrentLineOutput = handleDefineValue(VariableType.RWord); skip = false; break;
+          default: skip = checkMacros(token.string); break;
         }
         break;
       
       case If_False: // if statement false
         switch(token.string){
           case ".if": curDepth++; break;
-          case ".elseif": if(curDepth == depth_){ state = checkElseIf(line, token); } break;
+          case ".elseif": if(curDepth == depth_){ state = checkElseIf(); } break;
           case ".else": if(curDepth == depth_){ state = ParseState.If_True; } break;
           case ".endif": curDepth--; if(curDepth < depth_){ return; } break;
           case "/*": cleanMultilineComments(); break;
@@ -101,7 +104,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
       
       case Switch_Look: // scan through lines looking for .case or .default
         switch(token.string){
-          case ".case": state = checkCase(line, token, state); break;
+          case ".case": state = checkCase(state); break;
           case ".default": state = ParseState.Switch_Taken; break;
           case ".endsw": popSwitchArg(); return;
           case "/*": cleanMultilineComments(); break;
@@ -111,20 +114,20 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
         
       case Switch_Taken: // case was found, output contents until .case, .default, or .endsw
         switch(token.string){
-          case ".include": checkIncludeFile(line, token.nextIndex); break;
-          case ".if": doIf(line, token, depth_); break;
-          case ".let": parseLet(line, token.nextIndex); break;
-          case ".macro": buildMacro(line, token.nextIndex); break;
-          case ".switch": doSwitch(line, token, depth_); break;
+          case ".include": checkIncludeFile(); break;
+          case ".if": doIf(depth_); break;
+          case ".let": parseLet(); break;
+          case ".macro": buildMacro(); break;
+          case ".switch": doSwitch(depth_); break;
           case ".case": case ".default": break;
           case ".break": state = ParseState.Switch_Skip; break;
           case ".endsw": popSwitchArg(); return;
           case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
-          case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
-          case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;
-          case ".drw": line = handleDefineValue(line, token.nextIndex, VariableType.RWord); skip = false; break;
-          default: skip = checkMacros(token.string, line, token.nextIndex); break;
+          case ".db": CurrentLineOutput = handleDefineValue(VariableType.Byte); skip = false; break;
+          case ".dw": CurrentLineOutput = handleDefineValue(VariableType.Word); skip = false; break;
+          case ".drw": CurrentLineOutput = handleDefineValue(VariableType.RWord); skip = false; break;
+          default: skip = checkMacros(token.string); break;
         }
         break;
         
@@ -149,25 +152,25 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
       
       case Begin_Loop:
         switch(token.string){
-          case ".include": checkIncludeFile(line, token.nextIndex); break;
-          case ".if": doIf(line, token, depth_); break;
-          case ".let": parseLet(line, token.nextIndex); break;
-          case ".macro": buildMacro(line, token.nextIndex); break;
-          case ".switch": doSwitch(line, token, depth_); break;
+          case ".include": checkIncludeFile(); break;
+          case ".if": doIf(depth_); break;
+          case ".let": parseLet(); break;
+          case ".macro": buildMacro(); break;
+          case ".switch": doSwitch(depth_); break;
           case ".begin": doBegin(depth_); break;
-          case ".while": if(!checkIf(line, token.nextIndex, true)){ popBegin(); return; } break;
-          case ".until": if(checkIf(line, token.nextIndex, true)){ popBegin(); return; } else{ setIndex(peekBegin()); } break;
+          case ".while": if(!checkIf(true)){ popBegin(); return; } break;
+          case ".until": if(checkIf(true)){ popBegin(); return; } else{ setIndex(peekBegin()); } break;
           case ".repeat": setIndex(peekBegin()); break;
           case "/*": cleanMultilineComments(); break;
-          case ".db": line = handleDefineValue(line, token.nextIndex, VariableType.Byte); skip = false; break;
-          case ".dw": line = handleDefineValue(line, token.nextIndex, VariableType.Word); skip = false; break;
-          case ".drw": line = handleDefineValue(line, token.nextIndex, VariableType.RWord); skip = false; break;
-          default: skip = checkMacros(token.string, line, token.nextIndex); break;
+          case ".db": CurrentLineOutput = handleDefineValue(VariableType.Byte); skip = false; break;
+          case ".dw": CurrentLineOutput = handleDefineValue(VariableType.Word); skip = false; break;
+          case ".drw": CurrentLineOutput = handleDefineValue(VariableType.RWord); skip = false; break;
+          default: skip = checkMacros(token.string); break;
         }
         break;
     }
     
-    outputLine(line, skip);
+    outputLine(skip);
     popFileIfLastLine();
   }
 }

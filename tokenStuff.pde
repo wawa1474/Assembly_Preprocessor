@@ -16,16 +16,16 @@ class TokenReturn{
   }
 }
 
-TokenReturn getNextToken(String line, int index){
-  if(hyperVerboseOutput){ println("getNextToken: \"" + line + "\" @ [" + index + "]"); }
+TokenReturn getNextToken(){
+  if(hyperVerboseOutput){ println("getNextToken: \"" + CurrentLineInput + "\" @ [" + CurrentInputIndex + "]"); }
   String token = "";
   int state = 0;
   boolean inString = false;
   boolean gotString = false;
   int parenDepth = 0;
   
-  for(; index < line.length() && state != -1; index++){
-    char c = line.charAt(index);
+  for(; CurrentInputIndex < CurrentLineInput.length() && state != -1; CurrentInputIndex++){
+    char c = CurrentLineInput.charAt(CurrentInputIndex);
     switch(state){
       case 0:
         switch(c){
@@ -47,8 +47,8 @@ TokenReturn getNextToken(String line, int index){
           case '\\':
             if(hyperVerboseOutput){ println("getNextToken:0:cleanEscape"); }
             gotString = true;
-            TokenReturn output = cleanEscape(line, index, false);
-            index = output.nextIndex;
+            TokenReturn output = cleanEscape(CurrentLineInput, CurrentInputIndex, false);
+            CurrentInputIndex = output.nextIndex;
             token += output.string;
             break;
           
@@ -102,8 +102,8 @@ TokenReturn getNextToken(String line, int index){
           case '\\': // escaped open-paren are still handled by cleanEscape() obviously...
             if(hyperVerboseOutput){ println("getNextToken:1:cleanEscape"); }
             gotString = true;
-            TokenReturn output = cleanEscape(line, index, false);
-            index = output.nextIndex;
+            TokenReturn output = cleanEscape(CurrentLineInput, CurrentInputIndex, false);
+            CurrentInputIndex = output.nextIndex;
             token += output.string;
             break;
           
@@ -118,13 +118,13 @@ TokenReturn getNextToken(String line, int index){
     }
   }
   
-  if(line.length() == 1 && token.equals("")){
-    token = line;
-    index++;
+  if(CurrentLineInput.length() == 1 && token.equals("")){
+    token = CurrentLineInput;
+    CurrentInputIndex++;
   }
   
-  if(hyperVerboseOutput){ println("getNextToken:output = \"" + token + "\" @ [" + index + "]"); }
-  return new TokenReturn(token, index);
+  if(hyperVerboseOutput){ println("getNextToken:output = \"" + token + "\" @ [" + CurrentInputIndex + "]"); }
+  return new TokenReturn(token, CurrentInputIndex);
 }
 
 TokenReturn cleanEscape(String line, int index, boolean runFunction){
@@ -215,9 +215,17 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             type = VariableType.StackFunction;
             state = 1;
             break;
+          case '>': // file operations
+            outputEscape = false;
+            type = VariableType.FileFunction;
+            state = 1;
+            break;
           case '(': // escaped open-paren means we need to do infixToRPN stuff
             // doing infix to RPN conversion and then emitting the result is useful for asm-time forth stuff
             //token += lineToRPN(line, index);
+            break;
+          case '[': // Ruby Range Syntax (e.g. [1..4] == [1,2,3,4])([1,2,10..13] == [1,2,10,11,12,13])([1..4,10..8] == [1,2,3,4,10,9,8])
+            state = 10; // look for first number or ..
             break;
           default:
             token += "\\u{" + hex(c) + "}";
@@ -240,9 +248,19 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             break;
           
           case '\\':
-            TokenReturn output = cleanEscape(line, index, outputEscape); // if we're not stripping escape tokens, then don't do it on recurse
-            index = output.nextIndex;
-            token += output.string;
+            if((index == line.length() - 1) || (index + 1 < line.length() && line.charAt(index + 1) == ' ')){
+              // if \ is the final character on line or the following character is a space
+              // then we need to continue onto next line for more stuff, as this is a multi-line thing
+              //incIndex();
+              //line = getLine();
+              //index = 0;
+              // not that simple though, as caller may still be using old line...
+              // we may have to make line be global?
+            }//else{
+              TokenReturn output = cleanEscape(line, index, outputEscape); // if we're not stripping escape tokens, then don't do it on recurse
+              index = output.nextIndex;
+              token += output.string;
+            //}
             break;
           
           default:
@@ -269,6 +287,17 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
           index--;
           state = -1;
         }
+        break;
+      
+      case 10: // look for first number or '..' --- a ']' would be an error (empty range)
+      case 11: // look for next number '..' ']' --- split on ',' or ' '
+      case 12: // found all sections of range, go through it and produce final output
+        token += c;
+        if(c == ']'){
+          token = "\\!{Ruby Range Syntax is not yet implemented! - [" + token + "}";
+          state = -1;
+        }
+        break;
     }
   }
   
@@ -296,6 +325,13 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
         token = "\\^{" + token + "}"; // re-encase function for future parsing
       }
       break;
+    case FileFunction:
+      if(hyperVerboseOutput){ println("cleanEscape:parseFileFunction = " + runFunction); }
+      if(runFunction){ // same issue as parseFunction!
+        token = parseFileFunction(token);
+      }else{
+        token = "\\>{" + token + "}"; // re-encase function for future parsing
+      }
     case Builtin: // built-in variable
       token = getBuiltin(token);
       break;
@@ -309,8 +345,8 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
   return new TokenReturn(token, index-1); // token-1 due to increment after use!
 }
 
-String handleDefineValue(String line, int index, VariableType type){
-  MacroArg[] args = getMacroArgs(line, index);
+String handleDefineValue(VariableType type){
+  MacroArg[] args = getMacroArgs(CurrentLineInput, CurrentInputIndex);
   String start;
   String end;
   String output;
