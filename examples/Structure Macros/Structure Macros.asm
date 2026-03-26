@@ -2,7 +2,7 @@
 ; Ported to work with Assembly Preprocessor's odd syntax and eccentricities
 ; Contents of this file use a different licence as compared to the main project, specifically: CC BY-SA 4.0 -- [https://creativecommons.org/licenses/by-sa/4.0/]
 
-.let strucMacVer = "1.1.0"
+.let strucMacVer = "2.0.0"
 
 ;                         +--------------------------+
 ;                         |  IF_xx...ELSE_...END_IF  |
@@ -323,18 +323,17 @@
 \^{createStack, switchCaseEndLabel} ; This gets used by CASE and BREAK(_) to temporarily store a label to bra to
 \^{createStack, switchEndLabel} ; this if used by BREAK to jmp to ENDSW
 \^{createStack, switchRangeSet} ; this if used by RANGE_OF and SET_OF to remember their inputs after recursive usage
+\^{createStack, setOfArgs} ; this is used by SET_OF to work around a bug in the preprocessor...
+.let switchCase_EndLabel = null ; this is used by CASE_ to bra past last CASE if any cond is true
 
 .macro SWITCH reg ; reg is ACCUM, X_REG, or Y_REG
 \^{push, switchReg, \%{reg}} ; so the CASE's will know whether to use CMP, CPX, or CPY.
 \^{push, switchEndLabel, caseEnd_\${*}} ; make a unique label for BREAK to jump to ENDSW
-.let caseTmpLabel = caseEndOf_\${*}
-\^{push, switchCaseEndLabel, \&{caseTmpLabel}}
 .endm                   ; Note that the SWITCH macro does not add even a single byte of machine code.
 ;-----------------
 
-
-.macro CASE Nr_to_comp_to          ; Note that as written here, the same register (A, X, or Y) must have
-\^{drop, switchCaseEndLabel} ; drop excess stack value from SWITCH or CASE that fell through
+; multiple CASEs (or rather, CASE_s) in a row don't work, each needs to have a way to jump past others if one cond is true...
+.macro CASE_ Nr_to_comp_to          ; Note that as written here, the same register (A, X, or Y) must have
 	.switch \^{peek, switchReg}    ; the right number every time CASE is encountered.  This is normally
 		.case == ACCUM             ; not a problem if no action is taken until a case match if found;
 			cmp #\%{Nr_to_comp_to} ; but if you have any reason to put code between a BREAK and the
@@ -346,38 +345,68 @@
 			cpy #\%{Nr_to_comp_to}
 			.break
 	.endsw
-.let caseTmpLabel = caseEndOf_\${*}         ; BREAK uses this to fill in the branch address.
-    bne \&{caseTmpLabel}                       ; The BNE is used to branch only to the end of the individual case.
-\^{push, switchCaseEndLabel, \&{caseTmpLabel}} ; Push the unique label for when BREAK is laid down
+	.if \&{switchCase_EndLabel} == null
+		.let switchCase_EndLabel = case_EndOf_\${*}
+	.endif
+    beq \&{switchCase_EndLabel} ; The BNE is used to branch only to the end of the individual case.
 .endm
 ;----------------
 
 
+.macro CASE Nr_to_comp_to
+.let caseTmpLabel = caseEndOf_\${*}         ; BREAK uses this to fill in the branch address.
+\^{push, switchCaseEndLabel, \&{caseTmpLabel}} ; Push the unique label for when BREAK is laid down
+    .switch \^{peek, switchReg}    ; the right number every time CASE is encountered.  This is normally
+		.case == ACCUM             ; not a problem if no action is taken until a case match if found;
+			cmp #\%{Nr_to_comp_to} ; but if you have any reason to put code between a BREAK and the
+			.break                 ; following CASE, make sure the right number is in the chosen
+		.case == X_REG             ; register (A, X, or Y) when the next CASE is encountered.
+			cpx #\%{Nr_to_comp_to}
+			.break
+		.case == Y_REG
+			cpy #\%{Nr_to_comp_to}
+			.break
+	.endsw
+	bne \&{caseTmpLabel} ; The BNE is used to branch only to the end of the individual case.
+	.if \&{switchCase_EndLabel} != null
+\&{switchCase_EndLabel}:
+		.let switchCase_EndLabel = null
+	.endif
+.endm
+;----------------
+
+
+; #arg and $argc are just broken, and I can't figure it out...
 .macro SET_OF ; similar to CASE, but uses a 'set' of values, replacing multiple CASEs
 ; SET 1, 4, 6
-\^{push, switchRangeSet, \${argc}}
-\^{push, switchRangeSet, 0}
+	.let index = \${argc}
 	.begin
-	.while \^{TOS, switchRangeSet} < \^{NOS, switchRangeSet}
-		CASE \#{arg, \^{TOS, switchRangeSet}} ; get each value from arg list and reuse CASE to lay down code
-		\^{1+, switchRangeSet} ; next arg index
-	.repeat
-\^{2drop, switchRangeSet}
+		.let index --
+		\^{push, setOfArgs, \#{arg, \&{index}} ; hacky fix for #arg and $argc being broken...
+	.until \&{index} == 0
+
+	.let index = \${argc}
+	.begin
+		.let index -- ; next arg index
+		CASE_ \^{pop, setOfArgs} ; output each arg using CASE_
+	.until \&{index} == 1
+	
+	CASE \^{pop, setOfArgs} ; output final arg using CASE
 .endm
 ;----------------
 
 
 .macro RANGE_OF from, dummy, to ; similar to CASE, but uses a 'range' of values, replacing multiple CASEs
 ; RANGE 1, to, 6
-\^{push, switchRangeSet, \%{to}}
-\^{push, switchRangeSet, \%{from}}
-	.let index == \%{from}
+	.let from == \%{from}
+	.let to == \%{to}
+	
 	.begin
-	.while \^{TOS, switchRangeSet} <= \^{NOS, switchRangeSet}
-		CASE \^{TOS, switchRangeSet} ; while index is <= %to, reuse CASE to lay down code
-		\^{1+, switchRangeSet} ; next arg index
-	.repeat
-\^{2drop, switchRangeSet}
+		CASE_ \&{from} ; while %from is <= %to, use CASE_ to lay down code
+		.let from ++ ; next value
+	.until \&{from} == \&{to}
+	
+	CASE \&{from} ; output final value using CASE
 .endm
 ;----------------
 
