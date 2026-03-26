@@ -7,29 +7,15 @@ boolean _exit = true;
 boolean _run = false;
 StringDict _Vars = new StringDict(); // variables that can be changed
 StringDict _Equates; // variables that are set once and can't be changed
-StringDict _TmpMacroVars = new StringDict(); // transitory variables that are deleted at the end of a macro
-ArrayList<StringDict> _TmpMacroVarsArr = new ArrayList<StringDict>(); // transitory variables that are deleted at the end of a macro
 HashMap<String, String> _TmpGlobalVars = new HashMap<String, String>(); // ditto, but a way to easily save and restore global variables
 ArrayList<HashMap<String, String>> _TmpGlobalVarsArr = new ArrayList<HashMap<String, String>>(); // ditto, but a way to easily save and restore global variables
 HashMap<String, StringList> Stacks = new HashMap<String, StringList>(); // hashmap of data stacks for use in complex preprocessing
-String storageOrigin = ""; // for use with .org and .dfs, allowing automatic address assignment for assembly variables
-int storageOffset = 0;      // ditto
 
 boolean maintainComments = false; // should comments be passed on, or cleaned up
 boolean showLines = false; // show all lines, including 'eaten' ones
 boolean concatenateFiles = true; // combine all input files into one output file
 boolean hyperVerboseOutput = false; // will all the println's in the universe be printed? (might be an int in the future...)
 boolean initEmptyStacks = false; // will an uninintialized stack be created on push, or generate an error?
-
-String ext_db = "\t#d8"; // what is the assemblers form for db
-String ext_db_wrapStart = "(("; // do we have to output something to signify a byte?
-String ext_db_wrapEnd = ")`8)";
-String ext_dw = "\t#d16"; // what is the assemblers form for dw
-String ext_dw_wrapStart = "le(("; // do we have to output something to signify a word?
-String ext_dw_wrapEnd = ")`16)";
-String ext_drw = "\t#d16"; // what is the assemblers form for drw
-String ext_drw_wrapStart = "(("; // do we have to output something to signify a reverse word?
-String ext_drw_wrapEnd = ")`16)";
 
 PathReturn CurrentDirectory; // current working directory for file includes...
 int CurrentInputIndex = 0;
@@ -59,8 +45,8 @@ ArrayList<int[]> _begin_Args = new ArrayList<int[]>(); // stack for .begin .agai
 */
 
 String _program_name = "Assembly Preprocessor";
-String _version_major = "2";
-String _version_minor = "5";
+String _version_major = "3";
+String _version_minor = "0";
 String _version_patch = "0";
 String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");

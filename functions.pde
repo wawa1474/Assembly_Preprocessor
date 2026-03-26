@@ -113,27 +113,6 @@ String parseFunction(String input){
       _TmpGlobalVars.remove(args[1].Name);
       break;
     
-    case "db": // Define Byte
-      output = ext_db;
-      for(int i = 1; i < args.length; i++){
-        output += ext_db_wrapStart + args[i].Name + ext_db_wrapEnd;
-      }
-      break;
-    
-    case "dw": // Define Word (little endian)
-      output = ext_dw;
-      for(int i = 1; i < args.length; i++){
-        output += ext_dw_wrapStart + args[i].Name + ext_dw_wrapEnd;
-      }
-      break;
-    
-    case "drw": // Define Reverse Word (big endian)
-      output = ext_drw;
-      for(int i = 1; i < args.length; i++){
-        output += ext_drw_wrapStart + args[i].Name + ext_drw_wrapEnd;
-      }
-      break;
-    
     case "stripStr":
       output = stripStr(args[1].Name); // strip leading and trailing "
       break;

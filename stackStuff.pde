@@ -122,7 +122,6 @@ String g_PLUCK(String name, int value){
 }
 
 void pushTmpVars(){
-  _TmpMacroVarsArr.add(_TmpMacroVars.copy());
   _TmpGlobalVarsArr.add((HashMap<String, String>)_TmpGlobalVars.clone());
   
   // Let's make the assumption that recursive files and macros DON'T want to output comments
@@ -133,15 +132,9 @@ void pushTmpVars(){
 }
 
 void popTmpVars(){ // java is such a pain at times...
-  int len = _TmpMacroVarsArr.size();
-  _TmpMacroVars = _TmpMacroVarsArr.get(len - 1).copy();
-  _TmpMacroVarsArr.remove(len - 1);
-  
   for(Map.Entry<String, String> me : _TmpGlobalVars.entrySet()){
     updateVariable(me.getKey(), me.getValue());
   }
   
-  len = _TmpGlobalVarsArr.size();
-  _TmpGlobalVars = (HashMap<String, String>)_TmpGlobalVarsArr.get(len - 1).clone();
-  _TmpGlobalVarsArr.remove(len - 1);
+  _TmpGlobalVars = (HashMap<String, String>)_TmpGlobalVarsArr.remove(_TmpGlobalVarsArr.size() - 1).clone();
 }

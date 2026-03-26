@@ -155,15 +155,7 @@ void updateVariable(String var_, String value_){
   if(var_.startsWith("__")){
     value_ = stripStr(value_); // strip leading and trailing "
     switch(var_){
-      case "__ext_db": ext_db = value_; break;
-      case "__ext_db_wrapStart": ext_db_wrapStart = value_; break;
-      case "__ext_db_wrapEnd": ext_db_wrapEnd = value_; break;
-      case "__ext_dw": ext_dw = value_; break;
-      case "__ext_dw_wrapStart": ext_dw_wrapStart = value_; break;
-      case "__ext_dw_wrapEnd": ext_dw_wrapEnd = value_; break;
-      case "__ext_drw": ext_drw = value_; break;
-      case "__ext_drw_wrapStart": ext_drw_wrapStart = value_; break;
-      case "__ext_drw_wrapEnd": ext_drw_wrapEnd = value_; break;
+      //case "__ext_db": ext_db = value_; break;
       
       default:
         boolean valueBool = false;

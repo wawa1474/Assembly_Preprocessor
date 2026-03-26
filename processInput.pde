@@ -39,27 +39,6 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".switch": doSwitch(depth_); break;
           case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
-          case ".org":
-            storageOrigin = "dfsOrgLabel_" + getLabelUUID();
-            CurrentLineOutput = storageOrigin + " = " + getNextToken().string;
-            storageOffset = 0;
-            skip = false;
-            break;
-          case ".dfs":
-            token = getNextToken();
-            String name = token.string;
-            token = getNextToken();
-            String len = token.string;
-            
-            CurrentLineOutput = name + " = " + // variable =
-              storageOrigin + " + " + // origin +
-              storageOffset; // length
-            storageOffset += tryInt(len).Integer;
-            skip = false;
-            break;
-          case ".db": handleDefineValue(VariableType.Byte); break;
-          case ".dw": handleDefineValue(VariableType.Word); break;
-          case ".drw": handleDefineValue(VariableType.RWord); break;
           default: skip = checkMacros(token.string); break;
         }
         break;
@@ -75,9 +54,6 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".switch": doSwitch(depth_); break;
           case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
-          case ".db": handleDefineValue(VariableType.Byte); break;
-          case ".dw": handleDefineValue(VariableType.Word); break;
-          case ".drw": handleDefineValue(VariableType.RWord); break;
           default: skip = checkMacros(token.string); break;
         }
         break;
@@ -124,9 +100,6 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".endsw": popSwitchArg(); return;
           case ".begin": doBegin(depth_); break;
           case "/*": cleanMultilineComments(); break;
-          case ".db": handleDefineValue(VariableType.Byte); break;
-          case ".dw": handleDefineValue(VariableType.Word); break;
-          case ".drw": handleDefineValue(VariableType.RWord); break;
           default: skip = checkMacros(token.string); break;
         }
         break;
@@ -162,9 +135,6 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".until": if(checkIf(true)){ println("<<       until was true        >>");popBegin(); return; }else{ println("<<       until was false        >>");setIndex(peekBegin()); } break;
           case ".repeat": setIndex(peekBegin()); break;
           case "/*": cleanMultilineComments(); break;
-          case ".db": handleDefineValue(VariableType.Byte); break;
-          case ".dw": handleDefineValue(VariableType.Word); break;
-          case ".drw": handleDefineValue(VariableType.RWord); break;
           default: skip = checkMacros(token.string); break;
         }
         break;

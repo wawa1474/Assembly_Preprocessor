@@ -148,17 +148,6 @@ String octalToHex(String input_){
 }
 
 void outputLine(boolean skip){
-  //if(hyperVerboseOutput){ println("outputLine: \"" + CurrentLineOutput + "\" = " + !skip); }
-  //boolean empty = isLineEmpty(CurrentLineOutput);
-  //if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
-  //if(!skip && !empty){
-  //  String tmp = cleanComments(parseVariables(CurrentLineOutput).String);
-  //  if(tmp != null && tmp.length() > 0){
-  //    if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
-  //    _output.append(tmp);
-  //  }
-  //}
-  
   if(skip == true){
     if(hyperVerboseOutput){ println("outputLine skipped: \"" + CurrentLineOutput + "\""); }
   }else{
@@ -177,13 +166,13 @@ void outputLine(boolean skip){
 }
 
 boolean isLineEmpty(String line){
-  if(line == null){ return true; }
+  if(line == null || line.strip().length() == 0){ return true; }
   for(int i = 0; i < line.length(); i++){
     char c = line.charAt(i);
+    if(c == ';'){ return true; }
     if(!isWhitespace(c)){ return false; }
   }
   return true;
-  //return line.strip().length() == 0; // cleaner, but also slower?
 }
 
 String cleanComments(String line){

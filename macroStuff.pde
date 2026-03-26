@@ -188,7 +188,6 @@ MacroArg[] getMacroArgs(String line, int index){
   String token = "";
   boolean inString = false;
   int state = 0;
-  boolean prevNeedSpace = false;
   int parenDepth = 0;
   
   for(; index < line.length() && state != -1; index++){
@@ -233,36 +232,6 @@ MacroArg[] getMacroArgs(String line, int index){
             }
             break;
           
-          //case ' ':
-          //  if(prevNeedSpace){
-          //    token += c;
-          //    prevNeedSpace = false;
-          //  }
-          //  break;
-          
-          //case ' ': // each of these are tokens
-          //  if(!inString){
-          //    if(token.length() != 0){ Args.append(token); } // don't, split, on,[ ]after, comma
-          //    token = "";
-          //  }else{
-          //    token += c;
-          //  }
-          //  break;
-          
-          //case ' ':
-          //  if(!inString){
-          //    int prev = index - 1;
-          //    int next = index + 1;
-          //    if((prev >= 0 && line.charAt(prev) == ',') || (next < line.length() && line.charAt(next) == ',')){
-          //      // don't append prefix/suffix spaces -- ,[ ]arg=default[ ],
-          //    }else{
-          //      token += c; // maintain spaces WITHIN args
-          //    }
-          //  }else{
-          //    token += c;
-          //  }
-          //  break;
-          
           case '\\':
             TokenReturn output = cleanEscape(line, index, true);
             index = output.nextIndex;
@@ -271,20 +240,18 @@ MacroArg[] getMacroArgs(String line, int index){
           
           case '(':
             token += c;
-            if(!inString){ parenDepth++; }
+            if(!inString){ parenDepth++; state = 1; }
             break;
           
           case ')':
             token += c;
-            if(!inString){ parenDepth--; }
+            //if(!inString){ parenDepth--; } // mismatched parens!
             break;
           
           case '"':
             inString = !inString;
           default:
             token += c;
-            if(isNumber(c) || isAlpha(c)){ prevNeedSpace = true; }
-            else{ prevNeedSpace = false; }
             break;
         }
         break;
@@ -300,6 +267,12 @@ MacroArg[] getMacroArgs(String line, int index){
             token += c;
             if(!inString){ parenDepth--; }
             if(parenDepth == 0){ state = 0; }
+            break;
+          
+          case '"':
+            inString = !inString;
+          default:
+            token += c;
             break;
         }
         break;
