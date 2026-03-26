@@ -28,6 +28,8 @@ boolean checkIf(String firstToken, String action, String secondToken, String thi
         }
       
       default:
+        println("checkIf.unknownOperator: " + action);
+        appendOutput("\\!{checkIf.unknownOperator: " + action + "}");
         return default_;
     }
   }
@@ -77,6 +79,8 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
       }
     
     default:
+      println("checkCondition.unknownOperator: " + action);
+      appendOutput("\\!{checkCondition.unknownOperator: " + action + "}");
       return default_;
   }
 }
