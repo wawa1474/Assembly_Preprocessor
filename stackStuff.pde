@@ -62,7 +62,7 @@ void doBeginEnd(){
 }
 
 void popBegin(){
-  setIndex(_begin_Args.get(_begin_Args.size() - 1)[1] + 1);
+  setIndex(_begin_Args.get(_begin_Args.size() - 1)[1]);
   _begin_Args.remove(_begin_Args.size() - 1);
 }
 

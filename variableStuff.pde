@@ -98,6 +98,7 @@ void parseLet(){
 }
 
 void parseLet(String variable, String action, String secondToken){
+  println("parseLet: [" + variable + "](" + parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0") + ") " + action + " [" + secondToken + "](" + parseVariables(_Vars.hasKey(secondToken) ? _Vars.get(secondToken) : "0") + ")");
   switch(action){
     case "++":
       updateVariable(variable, str(parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0").Integer + 1));

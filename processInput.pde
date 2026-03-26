@@ -159,7 +159,7 @@ void processInput(int depth_, ParseState state_){ // current depth of if stateme
           case ".switch": doSwitch(depth_); break;
           case ".begin": doBegin(depth_); break;
           case ".while": if(!checkIf(true)){ popBegin(); return; } break;
-          case ".until": if(checkIf(true)){ popBegin(); return; } else{ setIndex(peekBegin()); } break;
+          case ".until": if(checkIf(true)){ println("<<       until was true        >>");popBegin(); return; }else{ println("<<       until was false        >>");setIndex(peekBegin()); } break;
           case ".repeat": setIndex(peekBegin()); break;
           case "/*": cleanMultilineComments(); break;
           case ".db": handleDefineValue(VariableType.Byte); break;

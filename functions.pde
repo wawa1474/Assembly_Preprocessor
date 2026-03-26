@@ -90,13 +90,14 @@ String parseFunction(String input){
     case "arg": // get a macro arg by index
       //println("parseFunction:arg " + args[1].Name + " == " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
       print("parseFunction:arg ");
+      printArray(CurrentMacroArgs);
       if(parseVariables(args[1].Name).Integer < CurrentMacroArgs.length){
         println("[" + parseVariables(args[1].Name).Integer + "] = " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
+        output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       }else{
         println();
+        output = "\\!{parseFunction.arg: Index " + parseVariables(args[1].Name).Integer + " out of bounds for length " + CurrentMacroArgs.length + "}";
       }
-      printArray(CurrentMacroArgs);
-      output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       break;
     
     //case "args": // get multiple macro args by index using ruby syntax? [1..4,10..8] == [1,2,3,4,10,9,8]
@@ -147,6 +148,14 @@ String parseFunction(String input){
       output = compareVersions(args[1].Name, args[2].Name, args[3].Name, args.length > 4 ? args[4].Name : "");
       break;
     
+    case "debug":
+      print("debug output: ");//printArray(args);
+      for(int i = 1; i < args.length; i++){
+        print(parseVariables(args[i].Name).String);
+      }
+      println();
+      break;
+    
     case "formatStr":
       // \#{formatStr, "this is a {0} that {1} to be {2}", string, needs, formatted}
       // \#{formatStr, "this is a {string} that {needs} to be {formatted}"}
@@ -160,9 +169,9 @@ String parseFunction(String input){
 // built-in functions
 
 String parseStackFunction(String input){
-  if(hyperVerboseOutput){ println("parseStackFunction: " + input); }
+  if(hyperVerboseOutput){ println("parseStackFunction: " + input); }println("parseStackFunction: " + input);
   MacroArg[] args = getMacroArgs(input, 0);
-  if(hyperVerboseOutput){ print("parseStackFunction:args = ");printArray(args); }
+  if(hyperVerboseOutput){ print("parseStackFunction:args = ");printArray(args); }print("parseStackFunction:args = ");printArray(args);
   //VariableReturn[] argsInt = new VariableReturn[args.length];
   //printArray(args);
   String output = "";
@@ -187,7 +196,7 @@ String parseStackFunction(String input){
       if(len > 0){ // stack has AT LEAST 1 value
         switch(args[0].Name){
           case "push": // ([TOS] - TOS)
-            g_PUSH(sName, args[2].Name);
+            g_PUSH(sName, args[2].Name);println("parseStackFunction.push: " + sName + " = " + args[2].Name);
             break;
           
           case "pop": // (TOS - [TOS])

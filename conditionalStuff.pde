@@ -6,6 +6,7 @@ boolean checkIf(String firstToken, String action, String secondToken, String thi
   VariableReturn firstVar = parseVariables(firstToken);
   VariableReturn secondVar = parseVariables(secondToken);
   if(hyperVerboseOutput){ println("checkIf: [" + firstToken + "](" + firstVar + ") " + action + " [" + secondToken + "](" + secondVar + ")"); }
+  println("checkIf: [" + firstToken + "](" + firstVar + ") " + action + " [" + secondToken + "](" + secondVar + ")");
   if(firstToken.equals("")){ return default_; } // || action.equals("") || secondToken.string.equals("")
   
   if(firstVar.Number && secondVar.Number){
