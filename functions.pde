@@ -89,7 +89,13 @@ String parseFunction(String input){
     
     case "arg": // get a macro arg by index
       //println("parseFunction:arg " + args[1].Name + " == " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
-      println("parseFunction:arg ");printArray(CurrentMacroArgs);
+      print("parseFunction:arg ");
+      if(parseVariables(args[1].Name).Integer < CurrentMacroArgs.length){
+        println("[" + parseVariables(args[1].Name).Integer + "] = " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
+      }else{
+        println();
+      }
+      printArray(CurrentMacroArgs);
       output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       break;
     

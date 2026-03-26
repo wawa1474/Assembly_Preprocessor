@@ -16,7 +16,7 @@ class Worker{
   int LineIndex; // which line are we working on
   int CharacterIndex; // which character are we working on
   Macro Macro; // storage for current macro...
-  FileHolder File; // or current file.
+  FileHolder File; // ...or current file.
   
   Worker(){}
   
@@ -322,10 +322,12 @@ MacroArg[] getMacroArgs(String line, int index){
 boolean checkMacros(String macro){
   Macro tmp = Macros.get(macro);
   if(tmp != null){
-    //println("checkMacro: " + macro);
+    println("checkMacro: " + macro);
+    print("pushing macro args: ");printArray(CurrentMacroArgs);
     MacroArgsStack.add(CurrentMacroArgs != null ? CurrentMacroArgs.clone() : null);
     pushTmpVars();
-    CurrentMacroArgs = getMacroArgs(CurrentLineInput, CurrentInputIndex);
+    println("setting macro args @ " + CurrentWorker.getOrigin() + getFileName() + " @ " + (getIndex()+1));
+    CurrentMacroArgs = getMacroArgs(CurrentLineInput, CurrentInputIndex).clone();
     //printArray(CurrentMacroArgs);
     Workers.add(new Worker(CurrentWorker));
     CurrentWorker = new Worker(tmp);

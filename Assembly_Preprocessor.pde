@@ -25,10 +25,10 @@ String ext_db = "\t#d8"; // what is the assemblers form for db
 String ext_db_wrapStart = "(("; // do we have to output something to signify a byte?
 String ext_db_wrapEnd = ")`8)";
 String ext_dw = "\t#d16"; // what is the assemblers form for dw
-String ext_dw_wrapStart = "(("; // do we have to output something to signify a word?
+String ext_dw_wrapStart = "le(("; // do we have to output something to signify a word?
 String ext_dw_wrapEnd = ")`16)";
 String ext_drw = "\t#d16"; // what is the assemblers form for drw
-String ext_drw_wrapStart = "le(("; // do we have to output something to signify a reverse word?
+String ext_drw_wrapStart = "(("; // do we have to output something to signify a reverse word?
 String ext_drw_wrapEnd = ")`16)";
 
 PathReturn CurrentDirectory; // current working directory for file includes...
@@ -60,9 +60,9 @@ ArrayList<int[]> _begin_Args = new ArrayList<int[]>(); // stack for .begin .agai
 
 String _program_name = "Assembly Preprocessor";
 String _version_major = "2";
-String _version_minor = "4";
+String _version_minor = "5";
 String _version_patch = "0";
-String _version_preRelease = "2";
+String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch, _version_preRelease};
 void setup(){
@@ -227,6 +227,13 @@ int getFileLength(){
 
 String getFileName(){
   return CurrentWorker.getFileName();
+}
+
+void appendOutput(String line){
+  if(showLines){ // possibly show where it came from, and then...
+    line += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + (getIndex()+1);
+  }
+  _output.append(line); // ...append it to the output.
 }
 
 String getLastOutputLine(){

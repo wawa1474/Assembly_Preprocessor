@@ -248,8 +248,8 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
             break;
           
           case '\\':
-            if((index == line.length() - 1) || (index + 1 < line.length() && line.charAt(index + 1) == ' ')){
-              // if \ is the final character on line or the following character is a space
+            if((index == line.length() - 1) || (index + 1 < line.length() && (line.charAt(index + 1) == ' ' || line.charAt(index + 1) == ';'))){
+              // if \ is the final character on line or the following character is a space or ;
               // then we need to continue onto next line for more stuff, as this is a multi-line thing
               //incIndex();
               //line = getLine();
@@ -345,7 +345,7 @@ TokenReturn cleanEscape(String line, int index, boolean runFunction){
   return new TokenReturn(token, index-1); // token-1 due to increment after use!
 }
 
-String handleDefineValue(VariableType type){
+void handleDefineValue(VariableType type){
   MacroArg[] args = getMacroArgs(CurrentLineInput, CurrentInputIndex);
   String start;
   String end;
@@ -371,7 +371,8 @@ String handleDefineValue(VariableType type){
       break;
     
     default:
-      return "\\!{handleDefineValue:unknownDType," + type.name() + "}";
+      appendOutput("\\!{handleDefineValue:unknownDType," + type.name() + "}");
+      return;
   }
   
   for(int i = 0; i < args.length; i++){
@@ -379,5 +380,5 @@ String handleDefineValue(VariableType type){
     if(i < args.length - 1){ output += ", "; }
   }
   
-  return output;
+  appendOutput(parseVariables(output).String);
 }

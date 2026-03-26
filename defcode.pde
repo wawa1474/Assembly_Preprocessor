@@ -148,14 +148,30 @@ String octalToHex(String input_){
 }
 
 void outputLine(boolean skip){
-  if(hyperVerboseOutput){ println("outputLine: \"" + CurrentLineOutput + "\" = " + !skip); }
-  boolean empty = isLineEmpty(CurrentLineOutput);
-  if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
-  if(!skip && !empty){
-    String tmp = cleanComments(parseVariables(CurrentLineOutput).String);
-    if(tmp != null && tmp.length() > 0){
-      if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
-      _output.append(tmp);
+  //if(hyperVerboseOutput){ println("outputLine: \"" + CurrentLineOutput + "\" = " + !skip); }
+  //boolean empty = isLineEmpty(CurrentLineOutput);
+  //if(empty && !isLineEmpty(getLastOutputLine())){ _output.append(""); return; } // the current line is blank, but the last output one wasn't...
+  //if(!skip && !empty){
+  //  String tmp = cleanComments(parseVariables(CurrentLineOutput).String);
+  //  if(tmp != null && tmp.length() > 0){
+  //    if(showLines){ tmp += "\t\t\t\t; " + CurrentWorker.getOrigin() + getFileName() + " @ " + getIndex(); }
+  //    _output.append(tmp);
+  //  }
+  //}
+  
+  if(skip == true){
+    if(hyperVerboseOutput){ println("outputLine skipped: \"" + CurrentLineOutput + "\""); }
+  }else{
+    boolean empty = isLineEmpty(CurrentLineOutput);
+    if(empty){ // the current line is blank...
+      if(!isLineEmpty(getLastOutputLine())){ // ...but the last one wasn't...
+        _output.append(""); // ...so output a blank line for aesthetics.
+      }
+    }else{ // the current line is not blank...
+      String tmp = cleanComments(parseVariables(CurrentLineOutput).String); // ...so clean up any remaining escaped stuff or comments...
+      if(tmp != null && tmp.length() > 0){ // ...and if not null or empty afterwards...
+        appendOutput(tmp);
+      }
     }
   }
 }
