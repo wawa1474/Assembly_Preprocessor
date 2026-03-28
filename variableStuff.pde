@@ -94,11 +94,11 @@ class VariableReturn{
 }
 
 void parseLet(){
-  parseLet(getNextToken().string, getNextToken().string, getNextToken().string);
+  parseLet(getNextToken(true).string, getNextToken(true).string, getNextToken(true).string);
 }
 
 void parseLet(String variable, String action, String secondToken){
-  println("parseLet: [" + variable + "](" + parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0") + ") " + action + " [" + secondToken + "](" + parseVariables(_Vars.hasKey(secondToken) ? _Vars.get(secondToken) : "0") + ")");
+  //println("parseLet: [" + variable + "](" + parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0") + ") " + action + " [" + secondToken + "](" + parseVariables(_Vars.hasKey(secondToken) ? _Vars.get(secondToken) : "0") + ")");
   switch(action){
     case "++":
       updateVariable(variable, str(parseVariables(_Vars.hasKey(variable) ? _Vars.get(variable) : "0").Integer + 1));
@@ -133,12 +133,12 @@ void parseLet(String variable, String action, String secondToken){
     }
   }else{
     switch(action){
-      case "+":
+      case "+=":
         if(_Vars.hasKey(variable)){ updateVariable(variable, _Vars.get(variable) + secondVar.String); }
         else{ updateVariable(variable, secondVar.String); }
         break;
       
-      case "-":
+      case "-=":
         if(_Vars.hasKey(variable)){ updateVariable(variable, _Vars.get(variable).replace(secondVar.String, "")); }
         break;
       

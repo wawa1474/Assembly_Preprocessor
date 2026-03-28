@@ -1,12 +1,11 @@
 boolean checkIf(boolean default_){
-  return checkIf(getNextToken().string, getNextToken().string, getNextToken().string, getNextToken().string, default_);
+  return checkIf(getNextToken(true).string, getNextToken(true).string, getNextToken(true).string, getNextToken(true).string, default_);
 }
 
 boolean checkIf(String firstToken, String action, String secondToken, String thirdToken, boolean default_){
   VariableReturn firstVar = parseVariables(firstToken);
   VariableReturn secondVar = parseVariables(secondToken);
   if(hyperVerboseOutput){ println("checkIf: [" + firstToken + "](" + firstVar + ") " + action + " [" + secondToken + "](" + secondVar + ")"); }
-  println("checkIf: [" + firstToken + "](" + firstVar + ") " + action + " [" + secondToken + "](" + secondVar + ")");
   if(firstToken.equals("")){ return default_; } // || action.equals("") || secondToken.string.equals("")
   
   if(firstVar.Number && secondVar.Number){
@@ -28,7 +27,7 @@ boolean checkIf(String firstToken, String action, String secondToken, String thi
         }
       
       default:
-        println("checkIf.unknownOperator: " + action);
+        //println("checkIf.unknownOperator: " + action);
         appendOutput("\\!{checkIf.unknownOperator: " + action + "}");
         return default_;
     }
@@ -79,7 +78,7 @@ boolean checkCondition(VariableReturn firstVar, String action, VariableReturn se
       }
     
     default:
-      println("checkCondition.unknownOperator: " + action);
+      //println("checkCondition.unknownOperator: " + action);
       appendOutput("\\!{checkCondition.unknownOperator: " + action + "}");
       return default_;
   }
@@ -111,7 +110,7 @@ boolean checkCase(){
   int state = 0;
   StringList output = new StringList();
   
-  TokenReturn token = getNextToken();
+  TokenReturn token = getNextToken(true);
   for(; CurrentInputIndex < CurrentLineInput.length() && state != -1; CurrentInputIndex++){
     switch(state){
       case 0:

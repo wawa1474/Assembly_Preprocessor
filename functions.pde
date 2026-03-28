@@ -13,12 +13,16 @@ String parseFunction(String input){
   //}
   
   switch(args[0].Name){
-    case "strlen":
+    case "strLen":
       output += args[1].Name.length();
       break;
     
     case "str":
       output += "\"" + args[1].Name + "\"";
+      break;
+    
+    case "stripStr":
+      output = stripStr(args[1].Name); // strip leading and trailing "
       break;
     
     case "random":
@@ -89,13 +93,13 @@ String parseFunction(String input){
     
     case "arg": // get a macro arg by index
       //println("parseFunction:arg " + args[1].Name + " == " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
-      print("parseFunction:arg ");
-      printArray(CurrentMacroArgs);
+      //print("parseFunction:arg ");
+      //printArray(CurrentMacroArgs);
       if(parseVariables(args[1].Name).Integer < CurrentMacroArgs.length){
-        println("[" + parseVariables(args[1].Name).Integer + "] = " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
+        //println("[" + parseVariables(args[1].Name).Integer + "] = " + CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name);
         output = CurrentMacroArgs[parseVariables(args[1].Name).Integer].Name;
       }else{
-        println();
+        //println();
         output = "\\!{parseFunction.arg: Index " + parseVariables(args[1].Name).Integer + " out of bounds for length " + CurrentMacroArgs.length + "}";
       }
       break;
@@ -111,10 +115,6 @@ String parseFunction(String input){
     case "popTmp": // pop a tmp var from the stack early
       updateVariable(args[1].Name, _TmpGlobalVars.get(args[1].Name));
       _TmpGlobalVars.remove(args[1].Name);
-      break;
-    
-    case "stripStr":
-      output = stripStr(args[1].Name); // strip leading and trailing "
       break;
     
     case "checkVer":
@@ -148,9 +148,9 @@ String parseFunction(String input){
 // built-in functions
 
 String parseStackFunction(String input){
-  if(hyperVerboseOutput){ println("parseStackFunction: " + input); }println("parseStackFunction: " + input);
+  if(hyperVerboseOutput){ println("parseStackFunction: " + input); }
   MacroArg[] args = getMacroArgs(input, 0);
-  if(hyperVerboseOutput){ print("parseStackFunction:args = ");printArray(args); }print("parseStackFunction:args = ");printArray(args);
+  if(hyperVerboseOutput){ print("parseStackFunction:args = ");printArray(args); }
   //VariableReturn[] argsInt = new VariableReturn[args.length];
   //printArray(args);
   String output = "";
@@ -175,7 +175,7 @@ String parseStackFunction(String input){
       if(len > 0){ // stack has AT LEAST 1 value
         switch(args[0].Name){
           case "push": // ([TOS] - TOS)
-            g_PUSH(sName, args[2].Name);println("parseStackFunction.push: " + sName + " = " + args[2].Name);
+            g_PUSH(sName, args[2].Name);//println("parseStackFunction.push: " + sName + " = " + args[2].Name);
             break;
           
           case "pop": // (TOS - [TOS])
@@ -199,6 +199,18 @@ String parseStackFunction(String input){
           
           case "clear": // (3RD NOS TOS - )
             g_CLEAR(sName);
+            break;
+          
+          case "pushArgs": // ([Macro, Args] - Macro Args)
+            for(int i = 0; i < CurrentMacroArgs.length; i++){
+              g_PUSH(sName, CurrentMacroArgs[i].Name);
+            }
+            break;
+          
+          case "pushRevArgs": // ([Macro, Args] - Args Macro)
+            for(int i = CurrentMacroArgs.length - 1; i >= 0; i--){
+              g_PUSH(sName, CurrentMacroArgs[i].Name);
+            }
             break;
           
           case "pick": // (v1 v2 v3 #2 - v1 v2 v3 v1) [TOS=0, NOS=1, ...]
@@ -474,6 +486,16 @@ String parseStackFunction(String input){
       }else{ // stack is empty
         switch(args[0].Name){
           case "push": g_PUSH(sName, args[2].Name); break; // push to top of stack
+          case "pushArgs": // ([Macro, Args] - Macro Args)
+            for(int i = 0; i < CurrentMacroArgs.length; i++){
+              g_PUSH(sName, CurrentMacroArgs[i].Name);
+            }
+            break;
+          case "pushRevArgs": // ([Macro, Args] - Args Macro)
+            for(int i = CurrentMacroArgs.length - 1; i >= 0; i--){
+              g_PUSH(sName, CurrentMacroArgs[i].Name);
+            }
+            break;
           case "depth": output = "0"; break; // stack exists but has zero elements
           default: output = "\\!{parseStackFunction:" + args[0].Name + ".underflow, " + sName + "}"; break; // stack underflow error
         }

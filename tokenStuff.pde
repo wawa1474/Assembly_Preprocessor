@@ -16,7 +16,7 @@ class TokenReturn{
   }
 }
 
-TokenReturn getNextToken(){
+TokenReturn getNextToken(boolean allowEscape){
   if(hyperVerboseOutput){ println("getNextToken: \"" + CurrentLineInput + "\" @ [" + CurrentInputIndex + "]"); }
   String token = "";
   int state = 0;
@@ -45,11 +45,15 @@ TokenReturn getNextToken(){
             break;
           
           case '\\':
-            if(hyperVerboseOutput){ println("getNextToken:0:cleanEscape"); }
-            gotString = true;
-            TokenReturn output = cleanEscape(CurrentLineInput, CurrentInputIndex, false);
-            CurrentInputIndex = output.nextIndex;
-            token += output.string;
+            if(allowEscape == true){
+              if(hyperVerboseOutput){ println("getNextToken:0:cleanEscape"); }
+              gotString = true;
+              TokenReturn output = cleanEscape(CurrentLineInput, CurrentInputIndex, false);
+              CurrentInputIndex = output.nextIndex;
+              token += output.string;
+            }else{
+              token += c;
+            }
             break;
           
           case ' ':
@@ -100,11 +104,15 @@ TokenReturn getNextToken(){
             break;
           
           case '\\': // escaped open-paren are still handled by cleanEscape() obviously...
-            if(hyperVerboseOutput){ println("getNextToken:1:cleanEscape"); }
-            gotString = true;
-            TokenReturn output = cleanEscape(CurrentLineInput, CurrentInputIndex, false);
-            CurrentInputIndex = output.nextIndex;
-            token += output.string;
+            if(allowEscape == true){
+              if(hyperVerboseOutput){ println("getNextToken:1:cleanEscape"); }
+              gotString = true;
+              TokenReturn output = cleanEscape(CurrentLineInput, CurrentInputIndex, false);
+              CurrentInputIndex = output.nextIndex;
+              token += output.string;
+            }else{
+              token += c;
+            }
             break;
           
           case ')':

@@ -149,7 +149,7 @@ class Macro{ // MacroFile combined class? plus a pun...
 void buildMacro(){
   //println("<buildMacro>");
   //println(line_);
-  TokenReturn token = getNextToken();
+  TokenReturn token = getNextToken(true);
   int originLine = getIndex();
   String name = token.string;
   MacroArg[] args = getMacroArgs(CurrentLineInput, token.nextIndex);
@@ -162,7 +162,7 @@ void buildMacro(){
     CurrentLineInput = getLine();
     //println(line);
     CurrentInputIndex = 0;
-    token = getNextToken();
+    token = getNextToken(false);
     
     switch(token.string){
       case ".endm":
@@ -295,11 +295,11 @@ MacroArg[] getMacroArgs(String line, int index){
 boolean checkMacros(String macro){
   Macro tmp = Macros.get(macro);
   if(tmp != null){
-    println("checkMacro: " + macro);
-    print("pushing macro args: ");printArray(CurrentMacroArgs);
+    //println("checkMacro: " + macro);
+    //print("pushing macro args: ");printArray(CurrentMacroArgs);
     MacroArgsStack.add(CurrentMacroArgs != null ? CurrentMacroArgs.clone() : null);
     pushTmpVars();
-    println("setting macro args @ " + CurrentWorker.getOrigin() + getFileName() + " @ " + (getIndex()+1));
+    //println("setting macro args @ " + CurrentWorker.getOrigin() + getFileName() + " @ " + (getIndex()+1));
     CurrentMacroArgs = getMacroArgs(CurrentLineInput, CurrentInputIndex).clone();
     //printArray(CurrentMacroArgs);
     Workers.add(new Worker(CurrentWorker));

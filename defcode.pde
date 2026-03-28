@@ -17,7 +17,7 @@ String[] splitVersion(String input){
 }
 
 String compareVersions(String version, String action, String first, String second){
-  if(hyperVerboseOutput){ println("compareVersions: " + version + " " + action + " " + first + " " + second); }println("compareVersions: " + version + " " + action + " " + first + " " + second);
+  if(hyperVerboseOutput){ println("compareVersions: " + version + " " + action + " " + first + " " + second); }
   action = stripStr(action);
   first = stripStr(first);
   boolean cond = false;
@@ -213,7 +213,7 @@ void cleanMultilineComments(){
     CurrentLineInput = getLine();
     if(maintainComments){ _output.append("; " + CurrentLineInput); }
     CurrentInputIndex = 0;
-    TokenReturn token = getNextToken();
+    TokenReturn token = getNextToken(false);
     switch(token.string){
       case "/*":
         depth++; // handle nested multiline comments
@@ -247,7 +247,7 @@ void cleanMultilineComments(){
           }
           break; // end of current nested multiline comment
       }
-      token = getNextToken(); // get next token on same line
+      token = getNextToken(false); // get next token on same line
     }
   }
 }

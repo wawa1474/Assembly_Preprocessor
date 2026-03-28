@@ -103,7 +103,7 @@ class FileHolder{
 }
 
 void checkIncludeFile(){
-  getNewFile(getFile().file, getNextToken().string);
+  getNewFile(getFile().file, getNextToken(true).string);
 }
 
 PathReturn splitFilepath(String file){
@@ -243,10 +243,10 @@ void getNewFile(PathReturn base, String line){
 void popFileIfLastLine(){
   //print("<" + Workers.size() + ">");printArray(Workers);
   while(getIndex() >= getFileLength() - 1 && Workers.size() > 0){
-    println("pop file: " + CurrentWorker.File);
+    //println("pop file: " + CurrentWorker.File);
     if(CurrentWorker.Type == WorkerType.Macro){
       popMacroArgs(); // pop macro's args from arg stack
-      print("pop macro args: ");printArray(CurrentMacroArgs);
+      //print("pop macro args: ");printArray(CurrentMacroArgs);
     }else if(!concatenateFiles && CurrentWorker.Type == WorkerType.File){
       saveStrings(CurrentWorker.File.file.toString() + ".obj", _output.toArray()); // save output to separate files
       _output.clear(); // clear output for next file
