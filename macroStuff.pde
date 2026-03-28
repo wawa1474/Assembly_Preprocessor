@@ -187,6 +187,7 @@ MacroArg[] getMacroArgs(String line, int index){
   boolean isDefault = false;
   String token = "";
   boolean inString = false;
+  boolean gotString = true; // somewhere along the lines, leading/trailing space aren't being handled correctly as #strLen doesn't see them...
   int state = 0;
   int parenDepth = 0;
   
@@ -203,7 +204,7 @@ MacroArg[] getMacroArgs(String line, int index){
             }else{
               if(isDefault == true){ tmp.Value = token; }
               else{ tmp.Name = token; }
-              args.add(new MacroArg(tmp.strip()));
+              args.add(new MacroArg(gotString ? tmp : tmp.strip()));
               isDefault = false;
               token = "";
               state = -1;
@@ -214,7 +215,7 @@ MacroArg[] getMacroArgs(String line, int index){
             if(!inString){
               if(isDefault == true){ tmp.Value = token; }
               else{ tmp.Name = token; }
-              args.add(new MacroArg(tmp.strip()));
+              args.add(new MacroArg(gotString ? tmp : tmp.strip()));
               isDefault = false;
               token = "";
             }else{
@@ -248,7 +249,17 @@ MacroArg[] getMacroArgs(String line, int index){
             //if(!inString){ parenDepth--; } // mismatched parens!
             break;
           
+          case ' ': // ignore whitespace unless we're in a string
+          case '\t':
+          case '\r':
+          case '\n':
+            if(inString){
+              token += c;
+            }
+            break;
+          
           case '"':
+            gotString = true;
             inString = !inString;
           default:
             token += c;
@@ -269,7 +280,17 @@ MacroArg[] getMacroArgs(String line, int index){
             if(parenDepth == 0){ state = 0; }
             break;
           
+          case ' ': // ignore whitespace unless we're in a string
+          case '\t':
+          case '\r':
+          case '\n':
+            if(inString){
+              token += c;
+            }
+            break;
+          
           case '"':
+            gotString = true;
             inString = !inString;
           default:
             token += c;
@@ -281,7 +302,7 @@ MacroArg[] getMacroArgs(String line, int index){
   if(token.length() != 0){
     if(isDefault == true){ tmp.Value = token; }
     else{ tmp.Name = token; }
-    args.add(new MacroArg(tmp.strip()));
+    args.add(new MacroArg(gotString ? tmp : tmp.strip()));
   }
   
   MacroArg[] output = new MacroArg[args.size()];

@@ -14,7 +14,7 @@ String parseFunction(String input){
   
   switch(args[0].Name){
     case "strLen":
-      output += args[1].Name.length();
+      output += cleanUnicode(args[1].Name).length();
       break;
     
     case "str":

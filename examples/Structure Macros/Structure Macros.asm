@@ -2,7 +2,7 @@
 ; Ported to work with Assembly Preprocessor's odd syntax and eccentricities
 ; Contents of this file use a different licence as compared to the main project, specifically: CC BY-SA 4.0 -- [https://creativecommons.org/licenses/by-sa/4.0/]
 
-.let strucMacVer = "2.0.0"
+.let strucMacVer = "4.0.0"
 
 ;                         +--------------------------+
 ;                         |  IF_xx...ELSE_...END_IF  |
@@ -334,6 +334,23 @@
 
 ; multiple CASEs (or rather, CASE_s) in a row don't work, each needs to have a way to jump past others if one cond is true...
 .macro CASE_ Nr_to_comp_to          ; Note that as written here, the same register (A, X, or Y) must have
+	.if \&{switchCase_EndLabel} == null
+		.let switchCase_EndLabel = case_EndOf_\${*}
+	.else
+		.switch \^{peek, switchReg} ; ensure that if previous CASE_ was true, then each subsequent CASE(_) is also true
+			.case == ACCUM
+				lda #\%{Nr_to_comp_to}
+				.break
+			.case == X_REG
+				ldx #\%{Nr_to_comp_to}
+				.break
+			.case == Y_REG
+				ldy #\%{Nr_to_comp_to}
+				.break
+		.endsw
+\&{switchCase_EndLabel}:
+		.let switchCase_EndLabel = case_EndOf_\${*}
+	.endif
 	.switch \^{peek, switchReg}    ; the right number every time CASE is encountered.  This is normally
 		.case == ACCUM             ; not a problem if no action is taken until a case match if found;
 			cmp #\%{Nr_to_comp_to} ; but if you have any reason to put code between a BREAK and the
@@ -345,15 +362,27 @@
 			cpy #\%{Nr_to_comp_to}
 			.break
 	.endsw
-	.if \&{switchCase_EndLabel} == null
-		.let switchCase_EndLabel = case_EndOf_\${*}
-	.endif
-    beq \&{switchCase_EndLabel} ; The BNE is used to branch only to the end of the individual case.
+    bne \&{switchCase_EndLabel} ; The BNE is used to branch only to the end of the individual case.
 .endm
 ;----------------
 
 
 .macro CASE Nr_to_comp_to
+	.if \&{switchCase_EndLabel} != null
+		.switch \^{peek, switchReg} ; ensure that if previous CASE_ was true, then CASE is also true
+			.case == ACCUM
+				lda #\%{Nr_to_comp_to}
+				.break
+			.case == X_REG
+				ldx #\%{Nr_to_comp_to}
+				.break
+			.case == Y_REG
+				ldy #\%{Nr_to_comp_to}
+				.break
+		.endsw
+\&{switchCase_EndLabel}:
+		.let switchCase_EndLabel = null
+	.endif
 .let caseTmpLabel = caseEndOf_\${*}         ; BREAK uses this to fill in the branch address.
 \^{push, switchCaseEndLabel, \&{caseTmpLabel}} ; Push the unique label for when BREAK is laid down
     .switch \^{peek, switchReg}    ; the right number every time CASE is encountered.  This is normally
@@ -368,10 +397,6 @@
 			.break
 	.endsw
 	bne \&{caseTmpLabel} ; The BNE is used to branch only to the end of the individual case.
-	.if \&{switchCase_EndLabel} != null
-\&{switchCase_EndLabel}:
-		.let switchCase_EndLabel = null
-	.endif
 .endm
 ;----------------
 
@@ -379,11 +404,13 @@
 ; #arg and $argc are just broken, and I can't figure it out...
 .macro SET_OF ; similar to CASE, but uses a 'set' of values, replacing multiple CASEs
 ; SET 1, 4, 6
-	.let index = \${argc}
-	.begin
-		.let index --
-		\^{push, setOfArgs, \#{arg, \&{index}} ; hacky fix for #arg and $argc being broken...
-	.until \&{index} == 0
+	; .let index = \${argc}
+	; .begin
+		; .let index --
+		; \^{push, setOfArgs, \#{arg, \&{index}} ; hacky fix for #arg and $argc being broken...
+	; .until \&{index} == 0
+	
+	\^{pushRevArgs, setOfArgs} ; hacky fix for #arg and $argc being broken...
 
 	.let index = \${argc}
 	.begin
@@ -426,7 +453,7 @@
 
 .macro ENDSW
 \^{pop, switchEndLabel}: ; ENDSW does not compile anything new; it only lays down the label that BREAKs jump to.
-\#{drop, switchReg} ; as well as drop the temp switchReg off of the stack
+\^{drop, switchReg} ; as well as drop the temp switchReg off of the stack
 .endm
 ;----------------------------
 
@@ -489,7 +516,7 @@
 	LDA  \&{tmpNextVar} + 1
 	CMP  #>\^{NOS, forNextControl} + 1
 	BNE  \^{pop, forNextControl}        ; Watch the branch distance.
-	\#{drop, forNextControl}
+	\^{drop, forNextControl}
                                         ; If, after being incremented, the specified variable
 .endm                                   ; matches the limit +1 (checking both bytes), drop through.
 ;----------------------------
@@ -932,4 +959,95 @@
 		.let index ++ ; next arg index
 	.repeat
 	;.until \&{index} == \${argc} ; [.while .repeat] and [.until] are functionally equivalent...
+.endm
+
+
+; ORG and DFS replace built-in .org and .dfs
+.let dfsOrg = 0
+.let dfsOffset = 0
+.macro ORG addr
+	.let dfsOrg = dfsOrgLabel_\#{uuid}
+\&{dfsOrg} = \%{addr}
+	.let dfsOffset = 0
+.endm
+
+
+.macro DFS name, length
+\%{name} = \&{dfsOrg} + \&{dfsOffset}
+	.let dfsOffset += \%{length}
+.endm
+
+
+; some macros to output various types of data
+.macro DS0 ; output 0 terminated strings
+	.let index = 0
+	.begin
+	#d \#{arg, \&{index}}, 0`8 ; output each arg
+		.let index ++ ; next arg index
+	.until \&{index} >= \${argc}
+.endm
+
+.macro DSC ; output length-prefixed strings
+	.let index = 0
+	.begin
+	#d \#{strLen, \#{stripStr, \#{arg, \&{index}}}}`8, \#{arg, \&{index}} ; output each arg
+		.let index ++ ; next arg index
+	.until \&{index} >= \${argc}
+.endm
+
+.macro DB ; output bytes on separate lines
+	.let index = 0
+	.begin
+	#d8 (\#{arg, \&{index}})`8 ; output each arg
+		.let index ++ ; next arg index
+	.until \&{index} >= \${argc}
+.endm
+
+.macro DW ; output little endian words on separate lines
+	.let index = 0
+	.begin
+	#d16 le((\#{arg, \&{index}})`16) ; output each arg
+		.let index ++ ; next arg index
+	.until \&{index} >= \${argc}
+.endm
+
+.macro DRW ; output big endian words on separate lines
+	.let index = 0
+	.begin
+	#d16 (\#{arg, \&{index}})`16 ; output each arg
+		.let index ++ ; next arg index
+	.until \&{index} >= \${argc}
+.endm
+
+.macro DBS ; output bytes on single line
+	.let index = 1
+	.let output = \#{stripStr, "(\#{arg, 0})`8"}
+	.begin
+	.while \&{index} < \${argc}
+		.let output += \#{stripStr, ", (\#{arg, \&{index}})`8"}
+		.let index ++ ; next arg index
+	.repeat
+	#d8 \&{output}
+.endm
+
+.macro DWS ; output little endian words on single line
+	.let index = 1
+	.let output = \#{stripStr, "le((\#{arg, 0})`16)"}
+	.begin
+	.while \&{index} < \${argc}
+		.let output += \#{stripStr, ", le((\#{arg, \&{index}})`16)"}
+		.let index ++ ; next arg index
+	.repeat
+	#d16 \&{output}
+.endm
+
+.macro DRWS ; output big endian words on single line
+	.let index = 1
+	.let output = \#{stripStr, "(\#{arg, 0})`16"}
+	.begin
+	.while \&{index} < \${argc}
+		.let output += \#{stripStr, ", (\#{arg, \&{index}})`16"}
+		.let index ++ ; next arg index
+	.repeat
+	#d16 \&{output}
 .endm

@@ -1,3 +1,50 @@
+String cleanUnicode(String input){ // \\{0022} counts as more characters than it should...
+  String output = "";
+  int state = 0;
+  String code = "";
+  for(int i = 0; i < input.length(); i++){
+    char c = input.charAt(i);
+    switch(state){
+      case 0:
+        switch(c){
+          case '\\':
+            state = 1;
+            break;
+          
+          default:
+            output += c;
+            break;
+        }
+        break;
+      
+      case 1:
+        switch(c){
+          case 'u':
+            state = 2;
+            break;
+          
+          default:
+            output += "\\" + c;
+            state = 0;
+            break;
+        }
+        break;
+      
+      case 2:
+        if(isHex(c)){
+          code += c;
+        }else if(c == '}'){
+          output += char(parseInt(code));
+          code = "";
+          state = 0;
+        }
+        break;
+    }
+  }
+  
+  return output;
+}
+
 String stripStr(String input){
   input = input.startsWith("\"") ? input.substring(1) : input; // strip leading and trailing "
   return input.endsWith("\"") ? input.substring(0, input.length()-1) : input;

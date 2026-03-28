@@ -47,7 +47,7 @@ ArrayList<int[]> _begin_Args = new ArrayList<int[]>(); // stack for .begin .agai
 String _program_name = "Assembly Preprocessor";
 String _version_major = "3";
 String _version_minor = "1";
-String _version_patch = "0";
+String _version_patch = "1";
 String _version_preRelease;// = "1";
 String _VERSION = "V" + _version_major + "." + _version_minor + "." + _version_patch + (_version_preRelease != null ? "-pr." + _version_preRelease : "");
 String[] _version = {_version_major, _version_minor, _version_patch, _version_preRelease};
